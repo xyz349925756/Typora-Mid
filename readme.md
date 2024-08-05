@@ -16,6 +16,34 @@ linux OS、MacOS 并未做过测试，请尝试之前备份好覆盖的文件。
 
 ![image-20240805223213943](./.readme.assets/image-20240805223213943.png)
 
+![image-20240805232704516](./.readme.assets/image-20240805232704516.png)
+
+图上的引用如何使用？
+
+格式 > [!xxx] 就可以实现
+
+```shell
+> [!NOTE]
+> Highlights information that users should take into account, even when skimming.  这个是引用.用来特别说明,主要是用来表示注意,通知事宜.
+
+> [!TIP]
+> Optional information to help a user be more successful.这个是引用.用来特别说明,主要是用来表示注意,通知事宜.
+
+> [!IMPORTANT]  
+> Crucial information necessary for users to succeed.这个是引用.用来特别说明,主要是用来表示注意,通知事宜.
+
+> [!WARNING]  
+> Critical content demanding immediate user attention due to potential risks.这个是引用.用来特别说明,主要是用来表示注意,通知事宜.
+
+> [!CAUTION]
+> Negative potential consequences of an action.这个是引用.用来特别说明,主要是用来表示注意,通知事宜.
+
+
+> 这个是引用.用来特别说明,主要是用来表示注意,通知事宜.
+```
+
+
+
 ## 资源下载
 
 项目包含了字体和图标字体的修改
