@@ -1,6 +1,4 @@
----
-正在调整仓库，清理以前的缓存。
----
+
 
 # Typora Mid
 
@@ -16,7 +14,7 @@ linux OS、MacOS 并未做过测试，请尝试之前备份好覆盖的文件。
 
 ![image-20240805221515120](./.readme.assets/image-20240805221515120.png)
 
-
+![image-20240805223213943](./.readme.assets/image-20240805223213943.png)
 
 ## 资源下载
 
@@ -50,6 +48,12 @@ $ cd Typora-Mid
 - themes 解压到 `C:\Users\换成你的用户名\AppData\Roaming\Typora`
 
   ![image-20240805222339944](./.readme.assets/image-20240805222339944.png)
+
+
+
+> [!caution]
+>
+> 上面主题导出 html、pdf 图标都在，样式也在，但是主题有暗色和白色区别。
 
 
 
