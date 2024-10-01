@@ -10,11 +10,23 @@ linux OS、MacOS 并未做过测试，请尝试之前备份好覆盖的文件。
 
 ## 主题预览
 
-![image-20240805221400275](./.readme.assets/image-20240805221400275.png)
+标题样式
 
-![image-20240805221515120](./.readme.assets/image-20240805221515120.png)
+![titile](./.readme.assets/titile.gif)
 
-![image-20240805223213943](./.readme.assets/image-20240805223213943.png)
+脑图/思维导图
+
+![nt](./.readme.assets/nt.gif)
+
+侧边导航
+
+![sb](./.readme.assets/sb.gif)
+
+亮色主题
+
+![bs](./.readme.assets/bs.gif)
+
+引用样式
 
 ![image-20240805232704516](./.readme.assets/image-20240805232704516.png)
 
