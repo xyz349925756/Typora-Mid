@@ -26,6 +26,12 @@ linux OS、MacOS 并未做过测试，请尝试之前备份好覆盖的文件。
 
 ![bs](./.readme.assets/bs.gif)
 
+导出为html/pdf 预览
+
+![html](./.readme.assets/html.gif)
+
+
+
 引用样式
 
 ![image-20240805232704516](./.readme.assets/image-20240805232704516.png)
