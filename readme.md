@@ -100,32 +100,34 @@ $ cd Typora-Mid
 1. 懒人使用
 
    - font.zip 可选，默认使用当前用户的默认字体。
-
-
-   - resources.zip 对应 typora 安装目录下的 resources 当前项目使用的是 typora 1.9.5 
-
-
-   - themes.zip 对应
-
-     `C:\Users\换成你的用户名\AppData\Roaming\Typora`
-
-     目录下的theme
+   
+   
+      - resources.zip 对应 typora 安装目录下的 resources 当前项目使用的是 typora 1.9.5 
+   
+   
+      - themes.zip 对应
+   
+        `C:\Users\换成你的用户名\AppData\Roaming\Typora`
+   
+        目录下的theme
+   
 
 2. 动手能力强的使用，linux,macos 可以参考resources 中对应的文件。
 
    - font-awesome-4.7.0、ionicons-2.0.1、window.css 这三个文件放到 typora 的安装目录下的`\resources\style` 文件夹下，如图
 
      ![image-20240805221953206](./.readme.assets/image-20240805221953206.png)
-
-
-   - window.html、plugin 存放在 `resources` 文件夹下，如图
-
-     ![image-20240805222137381](./.readme.assets/image-20240805222137381.png)
-
-
-   - themes 解压到 `C:\Users\换成你的用户名\AppData\Roaming\Typora`
-
-     ![image-20240805222339944](./.readme.assets/image-20240805222339944.png)
+   
+   
+      - window.html、plugin 存放在 `resources` 文件夹下，如图
+   
+        ![image-20240805222137381](./.readme.assets/image-20240805222137381.png)
+   
+   
+      - themes 解压到 `C:\Users\换成你的用户名\AppData\Roaming\Typora`
+   
+        ![image-20240805222339944](./.readme.assets/image-20240805222339944.png)
+   
 
 
 
