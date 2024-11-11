@@ -111,7 +111,6 @@ $ cd Typora-Mid
    
         目录下的theme
    
-
 2. 动手能力强的使用，linux,macos 可以参考resources 中对应的文件。
 
    - font-awesome-4.7.0、ionicons-2.0.1、window.css 这三个文件放到 typora 的安装目录下的`\resources\style` 文件夹下，如图
@@ -150,6 +149,8 @@ li{
     display: flex !important;
     align-items: center;
     flex-wrap: wrap;
+    position: relative;      /* 为伪元素定位 */
+    padding-left: 35px; 
 }
 
 ol > li:before {
@@ -160,18 +161,26 @@ ol > li:before {
     padding: 1px 6px;
     margin-right: 5px;
     border-radius: 50%;
+    position: absolute;
+    left: 8px;
+    top: 5px;
 }
 
 ol > li > p {
     padding-top: 5px;
+    flex: 1 1 calc(100% - 50px);
 }
 ul > li:before {
     content: ">>>";
     color: #F44336;
     margin-right: 5px;
+    position: absolute;
+    left: 8px;
+    top: 5px;
 }
 ul > li > p {
     padding-top: 5px;
+    flex: 1 1 calc(100% - 50px);
 }
 
 li.md-task-list-item.task-list-item.task-list-done::before {
