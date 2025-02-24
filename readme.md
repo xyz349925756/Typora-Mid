@@ -8,6 +8,16 @@
 
 Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件几个项目整合起来的。 在不修改typora，typora_plugin 的基础上实现的。因为系统的差异性如果打包成固定的，会出现各种奇葩的问题，体验很好。
 
+## update
+
+[2025.2.24]
+
+- 添加仿 mac 样式的按钮和代码块样式
+
+> [!caution]
+>
+> 修改按钮样式是在 window.css  代码在下面[使用指导](##使用指导)
+
 
 
 ## 主题预览
@@ -127,6 +137,106 @@ $ cd Typora-Mid
    
         ![image-20240805222339944](./.readme.assets/image-20240805222339944.png)
    
+
+window.css 按钮样式源码：
+
+```css
+/* 基础容器重置 */
+#w-traffic-lights {
+  display: flex !important;
+  flex-direction: row-reverse !important;
+  gap: 8px !important;
+  padding: 6px 10px !important;
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  z-index: 2147483647 !important;
+  -webkit-app-region: no-drag !important;
+}
+
+/* 核心按钮样式锁定 */
+#w-close, 
+#w-min, 
+#w-restore,
+#w-max{
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  border: 0.5px solid rgba(0,0,0,0.06) !important;
+  padding: 0 !important;
+  position: relative !important;
+  display: flex;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  background: var(--btn-color) !important;
+  box-shadow: 
+      inset 0 1px 1px rgba(255,255,255,0.2),
+      0 0.5px 1px rgba(0,0,0,0.08) !important;
+  transition: none !important;
+  margin: 0 5px;
+}
+
+
+/* 精确色彩定义 */
+#w-close { --btn-color: #ff5f57 !important; }
+#w-min { --btn-color: #febc2e !important; }
+#w-max { --btn-color: #28c940 !important; }
+#w-restore { --btn-color: #28c940 !important; }
+
+/* 原生图标替换技术 */
+#w-close .ty-close10,
+#w-min .ty-minimize10,
+#w-restore .ty-window-restore,
+#w-max .ty-maximize10 {
+  visibility: hidden !important;
+  position: relative !important;
+}
+
+#w-close .ty-close10::before,
+#w-min .ty-minimize10::before,
+#w-restore .ty-window-restore::before,
+#w-max .ty-maximize10::before {
+  content: "";
+  position: absolute !important;
+  width: 12px !important;
+  height: 12px !important;
+  background: no-repeat center/7px;
+}
+
+
+
+
+/* 隐藏冗余元素 */
+#w-full,
+#w-pin,
+#w-unpin,
+/* #w-restore, */
+#w-max-group > :not(#w-max) {
+  display: none !important;
+} 
+
+/* 状态锁定 */
+#w-traffic-lights .btn:hover,
+#w-traffic-lights .btn:active {
+  filter: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+} 
+
+/* SVG图标注入 */
+#w-close .ty-close10::before {
+  background-image: url("data:image/svg+xml,%3Csvg width='8' height='8' viewBox='0 0 8 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.707 1.707a1 1 0 0 0 0 1.414L6.293 7.7a1 1 0 1 0 1.414-1.414L3.12 1.707a1 1 0 0 0-1.414 0z' fill='rgba(0,0,0,0.5)'/%3E%3Cpath d='M6.293 1.707a1 1 0 0 1 0 1.414L1.707 7.7a1 1 0 1 1-1.414-1.414L4.88 1.707a1 1 0 0 1 1.414 0z' fill='rgba(0,0,0,0.5)'/%3E%3C/svg%3E");
+}
+
+#w-min .ty-minimize10::before {
+  background-image: url("data:image/svg+xml,%3Csvg width='8' height='2' viewBox='0 0 8 2' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1h6' stroke='rgba(0,0,0,0.5)' stroke-width='1.2' stroke-linecap='square'/%3E%3C/svg%3E");
+}
+
+#w-max .ty-maximize10::before {
+  background-image: url("data:image/svg+xml,%3Csvg width='8' height='8' viewBox='0 0 8 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 1h4v4M1 3v4h4' stroke='rgba(0,0,0,0.5)' stroke-width='1.2' stroke-linecap='square'/%3E%3C/svg%3E");
+}
+```
 
 
 
