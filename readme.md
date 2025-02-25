@@ -26,17 +26,27 @@ Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件
 
 ![title](./.readme.assets/title.gif)
 
+![标题](./.readme.assets/标题.gif)
+
 ### 脑图/思维导图、有序、无序列表样式，
 
 ![思维导图](./.readme.assets/思维导图.gif)
 
+![image-20250225203428732](./.readme.assets/image-20250225203428732.png)
+
 ### 侧边导航
 
-![sb](./.readme.assets/sb.gif)
+![文件栏](./.readme.assets/文件栏.gif)
+
+![大纲栏](./.readme.assets/大纲栏.gif)
 
 ### 亮色主题
 
 ![bs](./.readme.assets/bs.gif)
+
+![image-20250225203211079](./.readme.assets/image-20250225203211079.png)
+
+
 
 ### 导出为html/pdf 预览
 
