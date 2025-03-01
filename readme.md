@@ -6,7 +6,9 @@
 
 为什么文件这么零散？
 
-Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件几个项目整合起来的。 在不修改typora，typora_plugin 的基础上实现的。因为系统的差异性如果打包成固定的，会出现各种奇葩的问题，体验很好。
+Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件几个项目整合起来的。 在不修改typora，typora_plugin 的基础上实现的。因为系统的差异性如果打包成固定的，会出现各种奇葩的问题，体验很不好。
+
+> 如果喜欢这个项目请点击 Star
 
 ## update
 
@@ -22,47 +24,25 @@ Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件
 
 ## 主题预览
 
-### 标题样式
+![image-20250301211818031](./.readme.assets/image-20250301211818031.png)
 
-![title](./.readme.assets/title.gif)
+**标题样式**
 
-![标题](./.readme.assets/标题.gif)
+![标题](./.readme.assets/标题-1740828423301-1.gif)
 
-### 脑图/思维导图、有序、无序列表样式，
+**引用**
 
-![思维导图](./.readme.assets/思维导图.gif)
+![image-20250301193027925](./.readme.assets/image-20250301193027925.png)
 
-![image-20250225203428732](./.readme.assets/image-20250225203428732.png)
+`默认引用是 红绿黄 这个`
 
-### 侧边导航
+![image-20250301210334232](./.readme.assets/image-20250301210334232.png)
 
-![文件栏](./.readme.assets/文件栏.gif)
+> 使用提示
+>
+> **格式** > [!xxx] 就可以实现
 
-![大纲栏](./.readme.assets/大纲栏.gif)
-
-### 亮色主题
-
-![bs](./.readme.assets/bs.gif)
-
-![image-20250225203211079](./.readme.assets/image-20250225203211079.png)
-
-
-
-### 导出为html/pdf 预览
-
-![html](./.readme.assets/html-1730953102113-3.gif)
-
-
-
-### 引用样式
-
-![image-20240805232704516](./.readme.assets/image-20240805232704516.png)
-
-图上的引用如何使用？
-
-格式 > [!xxx] 就可以实现
-
-```shell
+```go
 > [!NOTE]
 > Highlights information that users should take into account, even when skimming.  这个是引用.用来特别说明,主要是用来表示注意,通知事宜.
 
@@ -77,22 +57,140 @@ Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件
 
 > [!CAUTION]
 > Negative potential consequences of an action.这个是引用.用来特别说明,主要是用来表示注意,通知事宜.
-
-
-> 这个是引用.用来特别说明,主要是用来表示注意,通知事宜.
 ```
 
-### 有序列表
+**思维导图插件**
 
-![image-20241105112239154](./.readme.assets/image-20241105112239154.png)
+![image-20250301205630800](./.readme.assets/image-20250301205630800.png)
 
-### 无序列表
+**有序列表**
 
-![image-20241105112257596](./.readme.assets/image-20241105112257596.png)
+![image-20250301205720584](./.readme.assets/image-20250301205720584.png)
 
-### 按键背景
+**无序列表**
 
-![image-20241105112318058](./.readme.assets/image-20241105112318058.png)
+![image-20250301205743126](./.readme.assets/image-20250301205743126.png)
+
+**文件导航**
+
+![wenjian](./.readme.assets/wenjian.gif)![image-20250301210427777](./.readme.assets/image-20250301210427777.png)
+
+**大纲导航**
+
+![dagang](./.readme.assets/dagang.gif)
+
+**代码块**
+
+![image-20250301210251693](./.readme.assets/image-20250301210251693.png)
+
+![image-20250301210311890](./.readme.assets/image-20250301210311890.png)
+
+**表格**
+
+![image-20250301210636083](./.readme.assets/image-20250301210636083.png)
+
+![image-20250301210652187](./.readme.assets/image-20250301210652187.png)
+
+**整体界面**
+
+![image-20250301210613354](./.readme.assets/image-20250301210613354.png)
+
+![image-20250301210842142](./.readme.assets/image-20250301210842142.png)
+
+**其他**
+
+![image-20250301210925456](./.readme.assets/image-20250301210925456.png)
+
+### 导出为html/pdf 预览
+
+导出想要所见即所得还需要添加下面的样式
+
+![image-20250301211330837](./.readme.assets/image-20250301211330837.png)
+
+![image-20250301211350357](./.readme.assets/image-20250301211350357.png)
+
+```css
+<style class="text/css">
+ol{
+	counter-reset: list-counter;
+}
+ul, ol {
+    padding-inline-start: 0 !important;
+}
+#write.first-line-indent li {
+    margin-left: 0em !important;
+}
+li.md-task-list-item.task-list-item:before {
+    margin-top: 7px !important;
+}
+
+.task-list-item.md-task-list-item {
+    padding-left: 10px !important;
+}
+li{
+    list-style: none;
+    display: flex !important;
+    align-items: center;
+    flex-wrap: wrap;
+    position: relative;      /* 为伪元素定位 */
+    padding-left: 35px; 
+}
+
+ol > li:before {
+    counter-increment: list-counter;
+    content: counter(list-counter);
+    background-color: #202124;
+    color: white;
+    padding: 1px 6px;
+    margin-right: 5px;
+    border-radius: 50%;
+    position: absolute;
+    left: 8px;
+    top: 5px;
+    box-shadow: 1px 0 10px 0 #696161;
+}
+
+ol > li > p {
+    padding-top: 5px;
+    flex: 1 1 calc(100% - 50px);
+}
+ul > li:before {
+	content: "\f005";
+    color: #F44336;
+    position: absolute;
+    left: 8px;
+    top: 5px;
+    padding-left: 15px;
+}
+ul > li > p {
+    padding-top: 5px;
+    flex: 1 1 calc(100% - 50px);
+}
+
+li.md-task-list-item.task-list-item.task-list-done::before {
+    content: "";
+    background: var(--checkbox-checked) 0 0 no-repeat;
+    background-size: 100%;
+    display: inline-block;
+    position: absolute;
+    height: 1.6rem;
+    width: 1.6rem;
+    margin-left: -2em;
+}
+
+li.md-task-list-item.task-list-item.task-list-not-done::before {
+    content: "";
+    background: var(--checkbox-unchecked) 0 0 no-repeat;
+    background-size: 100%;
+    display: inline-block;
+    position: absolute;
+    height: 1.6rem;
+    width: 1.6rem;
+    margin-left: -2em;
+}
+
+</style>
+```
 
 
 
@@ -250,86 +348,4 @@ window.css 按钮样式源码：
 
 
 
-
-> [!caution]
->
-> 上面主题导出 html、pdf 图标都在，样式也在，但是主题有暗色和白色区别。
-
-## 导出html/pdf设置
-
-在导出html pdf  文件时添加下面的代码
-
-```css
-<style class="text/css">
-ol{
-	counter-reset: list-counter;
-}
-li{
-    list-style: none;
-    display: flex !important;
-    align-items: center;
-    flex-wrap: wrap;
-    position: relative;      /* 为伪元素定位 */
-    padding-left: 35px; 
-}
-
-ol > li:before {
-    counter-increment: list-counter;
-    content: counter(list-counter);
-    background-color: #5050f1;
-    color: white;
-    padding: 1px 6px;
-    margin-right: 5px;
-    border-radius: 50%;
-    position: absolute;
-    left: 8px;
-    top: 5px;
-}
-
-ol > li > p {
-    padding-top: 5px;
-    flex: 1 1 calc(100% - 50px);
-}
-ul > li:before {
-    content: ">>>";
-    color: #F44336;
-    margin-right: 5px;
-    position: absolute;
-    left: 8px;
-    top: 5px;
-}
-ul > li > p {
-    padding-top: 5px;
-    flex: 1 1 calc(100% - 50px);
-}
-
-li.md-task-list-item.task-list-item.task-list-done::before {
-    content: "";
-    background: var(--checkbox-checked) 0 0 no-repeat;
-    background-size: 100%;
-    display: inline-block;
-    position: absolute;
-    height: 1.6rem;
-    width: 1.6rem;
-    margin-left: -2em;
-}
-
-li.md-task-list-item.task-list-item.task-list-not-done::before {
-    content: "";
-    background: var(--checkbox-unchecked) 0 0 no-repeat;
-    background-size: 100%;
-    display: inline-block;
-    position: absolute;
-    height: 1.6rem;
-    width: 1.6rem;
-    margin-left: -2em;
-}
-
-</style>
-```
-
-![image-20241107123200610](./.readme.assets/image-20241107123200610.png)
-
-![image-20241107123228009](./.readme.assets/image-20241107123228009.png)
-
-现在导出的html pdf 文件就跟你看到的几乎一样了。pdf 的可以调整导出 a3 格式的效果很不错。
+> 现在导出的html pdf 文件就跟你看到的几乎一样了。pdf 的可以调整导出 a3 格式的效果很不错。
