@@ -200,7 +200,7 @@ li.md-task-list-item.task-list-item.task-list-not-done::before {
 
 项目包含了字体和图标字体的修改
 
-目前为了方便直接打包成三个压缩包 font.zip 、themes.zip、resources.zip 操作说明参考下面的 [使用指导](##使用指导)。
+目前为了方便直接打包成三个压缩包 font.zip 、themes.zip、resources.zip 操作说明参考下面的 [使用指导](#使用指导)。
 
 ```shell
 $ git https://github.com/xyz349925756/Typora-Mid.git
