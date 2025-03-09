@@ -111,9 +111,11 @@ Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件
 
 导出想要所见即所得还需要添加下面的样式
 
-![image-20250301211330837](./.readme.assets/image-20250301211330837.png)
+![image-20250309185208391](./.readme.assets/image-20250309185208391.png)
 
-![image-20250301211350357](./.readme.assets/image-20250301211350357.png)
+![image-20250309185232078](./.readme.assets/image-20250309185232078.png)
+
+下面的代码就是复制粘贴到上面3号位置的源码
 
 ```css
 <style class="text/css">
@@ -123,9 +125,10 @@ ol{
 ul, ol {
     padding-inline-start: 0 !important;
 }
-#write.first-line-indent li {
-    margin-left: 0em !important;
+#write.first-line-indent ol ol li {
+    margin-left: 0em;
 }
+
 li.md-task-list-item.task-list-item:before {
     margin-top: 7px !important;
 }
