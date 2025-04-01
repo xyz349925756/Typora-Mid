@@ -1,0 +1,1369 @@
+[global]
+EXIT_INTERACTIVE_MODE = [ "click_exit_button" ]
+
+[window_tab]
+ENABLE = false
+REMOVE_FILE_SUFFIX = false
+CTRL_CLICK_TO_NEW_WINDOW = false
+CLOSE_HOTKEY = [ "ctrl+w" ]
+SWITCH_NEXT_TAB_HOTKEY = [ "ctrl+PageDown", "ctrl+Tab" ]
+SWITCH_PREVIOUS_TAB_HOTKEY = [ "ctrl+PageUp", "ctrl+shift+Tab" ]
+SORT_TABS_HOTKEY = [ ]
+TOGGLE_TAB_BAR_HOTKEY = [ ]
+COPY_PATH_HOTKEY = [ ]
+CONTEXT_MENU = [
+  "closeTab",
+  "closeOtherTabs",
+  "closeLeftTabs",
+  "closeRightTabs",
+  "sortTabs",
+  "copyPath",
+  "showInFinder",
+  "openInNewWindow"
+]
+
+[search_multi]
+ENABLE = false
+ALLOW_EXT = [
+  "",
+  "md",
+  "markdown",
+  "mdown",
+  "mmd",
+  "text",
+  "txt",
+  "rmarkdown",
+  "mkd",
+  "mdwn",
+  "mdtxt",
+  "rmd",
+  "mdtext",
+  "apib"
+]
+IGNORE_FOLDERS = [ ".git", ".idea", "node_modules" ]
+STYLE_COLOR = [
+  "#BBEEFF",
+  "#FFBBCC",
+  "#88EE88",
+  "#CCBBFF",
+  "#FFEE88",
+  "#FFFFA0",
+  "#88CCCC",
+  "#FFBB88",
+  "#CCCCCC",
+  "#FFAABB",
+  "#99CCFF",
+  "#FF99CC",
+  "#66CC66",
+  "#CC99FF",
+  "#FFCC66",
+  "#FFFF80",
+  "#DD9966",
+  "#AAAAAA",
+  "#66AAAA",
+  "#DD6699"
+]
+
+[commander]
+ENABLE = false
+
+  [[commander.BUILTIN]]
+  name = ""
+  disable = false
+  shell = "cmd/bash"
+  cmd = ""
+
+  [[commander.BUILTIN]]
+  name = "explorer"
+  disable = false
+  shell = "powershell"
+  cmd = "explorer $d"
+
+  [[commander.BUILTIN]]
+  name = "vscode"
+  disable = false
+  shell = "cmd/bash"
+  cmd = "code $f"
+
+  [[commander.BUILTIN]]
+  name = "wt"
+  disable = false
+  shell = "cmd/bash"
+  cmd = "cd $d && wt"
+
+  [[commander.BUILTIN]]
+  name = "git commit"
+  disable = false
+  shell = "cmd/bash"
+  cmd = 'cd $m && git add . && git commit -m "update"'
+
+  [[commander.BUILTIN]]
+  name = "tc"
+  disable = true
+  shell = "cmd/bash"
+  cmd = "D:\\software\\TotalCMD_64bit_11.03\\TOTALCMD64.EXE /O /T /P=L /L=$f"
+
+[md_padding]
+IGNORE_WORDS = [ ]
+IGNORE_PATTERNS = [
+  "<br\\s*?/?>",
+  ":[0-9a-z_\\-]+?:",
+  "<u>.+?</u>",
+  "<span style=\".+?\">.+?</span>"
+]
+ENABLE = false
+
+[read_only]
+REMAIN_AVAILABLE_MENU_KEY = [ "typora-plugin", "dev-tool", "copy-img" ]
+ENABLE = false
+
+[resize_image]
+ENABLE = false
+
+  [resize_image.MODIFIER_KEY]
+  TEMPORARY = "alt"
+  PERSISTENT = ""
+
+[markmap]
+CANDIDATE_COLOR_SCHEMES = [
+  [
+  "#B3E2CD",
+  "#FDCDAC",
+  "#CBD5E8",
+  "#F4CAE4",
+  "#E6F5C9",
+  "#FFF2AE",
+  "#F1E2CC",
+  "#CCCCCC"
+],
+  [
+  "#66C2A5",
+  "#FC8D62",
+  "#8DA0CB",
+  "#E78AC3",
+  "#A6D854",
+  "#FFD92F",
+  "#E5C494",
+  "#B3B3B3"
+],
+  [
+  "#1B9E77",
+  "#D95F02",
+  "#7570B3",
+  "#E7298A",
+  "#66A61E",
+  "#E6AB02",
+  "#A6761D",
+  "#666666"
+],
+  [
+  "#7FC97F",
+  "#BEAED4",
+  "#FDC086",
+  "#FFFF99",
+  "#386CB0",
+  "#F0027F",
+  "#BF5B17",
+  "#666666"
+],
+  [
+  "#FBB4AE",
+  "#B3CDE3",
+  "#CCEBC5",
+  "#DECBE4",
+  "#FED9A6",
+  "#FFFFCC",
+  "#E5D8BD",
+  "#FDDAEC",
+  "#F2F2F2"
+],
+  [
+  "#E41A1C",
+  "#377EB8",
+  "#4DAF4A",
+  "#984EA3",
+  "#FF7F00",
+  "#FFFF33",
+  "#A65628",
+  "#F781BF",
+  "#999999"
+],
+  [
+  "#4E79A7",
+  "#F28E2C",
+  "#E15759",
+  "#76B7B2",
+  "#59A14F",
+  "#EDC949",
+  "#AF7AA1",
+  "#FF9DA7",
+  "#9C755F",
+  "#BAB0AB"
+],
+  [
+  "#1F77B4",
+  "#FF7F0E",
+  "#2CA02C",
+  "#D62728",
+  "#9467BD",
+  "#8C564B",
+  "#E377C2",
+  "#7F7F7F",
+  "#BCBD22",
+  "#17BECF"
+],
+  [
+  "#A6CEE3",
+  "#1F78B4",
+  "#B2DF8A",
+  "#33A02C",
+  "#FB9A99",
+  "#E31A1C",
+  "#FDBF6F",
+  "#FF7F00",
+  "#CAB2D6",
+  "#6A3D9A",
+  "#FFFF99",
+  "#B15928"
+],
+  [
+  "#8DD3C7",
+  "#FFFFB3",
+  "#BEBADA",
+  "#FB8072",
+  "#80B1D3",
+  "#FDB462",
+  "#B3DE69",
+  "#FCCDE5",
+  "#D9D9D9",
+  "#BC80BD",
+  "#CCEBC5",
+  "#FFED6F"
+]
+]
+FENCE_TEMPLATE = """
+```markmap\r
+---\r
+# 根节点默认文本（若内容存在根节点，则此选项失效）\r
+title: markmap\r
+# 配置:\r
+markmap:\r
+  # 是否允许缩放\r
+  zoom: false\r
+  # 是否允许平移\r
+  pan: false\r
+  # 节点最大长度（0则无长度限制）\r
+  maxWidth: 0\r
+  # 节点水平间距\r
+  spacingHorizontal: 80\r
+  # 节点垂直间距\r
+  spacingVertical: 5\r
+  # 节点内部边距\r
+  paddingX: 8\r
+  # 图形的窗口填充率\r
+  fitRatio: 0.95\r
+  # 展开的最大节点级别（-1则展开全部）\r
+  initialExpandLevel: -1\r
+  # 多少级开始固定分支颜色\r
+  colorFreezeLevel: 6\r
+  # 颜色\r
+  color: ["#4E79A7", "#F28E2C", "#E15759", "#76B7B2", "#59A14F", "#EDC949", "#AF7AA1", "#FF9DA7", "#9C755F", "#BAB0AB"]\r
+  # 动画持续时间\r
+  duration: 500\r
+  # 图形高度\r
+  height: 300px\r
+  # 背景色\r
+  backgroundColor: "#F8F8F8"\r
+---\r
+\r
+## Links\r
+\r
+- [Website](https://markmap.js.org/)\r
+- [GitHub](https://github.com/gera2ld/markmap)\r
+\r
+## Features\r
+\r
+Note that if blocks and lists appear at the same level, the lists will be ignored.\r
+\r
+### Lists\r
+\r
+- **strong** ~~del~~ *italic* ==highlight==\r
+- `inline code`\r
+- [x] checkbox\r
+- Katex: $x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}$ <!-- markmap: fold -->\r
+  - [More Katex Examples](#?d=gist:af76a4c245b302206b16aec503dbe07b:katex.md)\r
+- Now we can wrap very very very very long text based on `maxWidth` option\r
+\r
+### Blocks\r
+\r
+| Products | Price |\r
+|-|-|\r
+| Apple | 4 |\r
+| Banana | 2 |\r
+"""
+
+  [markmap.DEFAULT_TOC_OPTIONS]
+  autoFit = true
+  duration = 500
+  initialExpandLevel = -1
+  maxWidth = 0
+  spacingHorizontal = 80
+  spacingVertical = 5
+  fitRatio = 0.95
+  paddingX = 8
+  colorFreezeLevel = 6
+  zoom = true
+  pan = true
+  color = [
+  "#1F77B4",
+  "#FF7F0E",
+  "#2CA02C",
+  "#D62728",
+  "#9467BD",
+  "#8C564B",
+  "#E377C2",
+  "#7F7F7F",
+  "#BCBD22",
+  "#17BECF"
+]
+
+  [markmap.DOWNLOAD_OPTIONS]
+  FILENAME = "{{filename}}_{{timestamp}}.svg"
+  FOLDER = ""
+  REMOVE_USELESS_CLASSES = true
+  REMOVE_FOREIGN_OBJECT = false
+  PADDING_HORIZONTAL = 25
+  PADDING_VERTICAL = 25
+  IMAGE_QUALITY = 0.92
+  KEEP_ALPHA_CHANNEL = true
+  BACKGROUND_COLOR = "#FFFFFF"
+  TEXT_COLOR = "#333333"
+  OPEN_CIRCLE_COLOR = "#FFFFFF"
+  SHOW_PATH_INQUIRY_DIALOG = true
+  SHOW_IN_FINDER = true
+
+  [markmap.DEFAULT_FENCE_OPTIONS]
+  duration = 500
+  initialExpandLevel = -1
+  colorFreezeLevel = 6
+  zoom = false
+  pan = false
+  maxWidth = 0
+  spacingHorizontal = 80
+  spacingVertical = 5
+  paddingX = 8
+  fitRatio = 0.95
+  height = "300px"
+  backgroundColor = "#F8F8F8"
+  color = [
+  "#1F77B4",
+  "#FF7F0E",
+  "#2CA02C",
+  "#D62728",
+  "#9467BD",
+  "#8C564B",
+  "#E377C2",
+  "#7F7F7F",
+  "#BCBD22",
+  "#17BECF"
+]
+
+[auto_number]
+ENABLE = false
+
+[fence_enhance]
+ENABLE = false
+
+  [[fence_enhance.CUSTOM_BUTTONS]]
+  DISABLE = true
+  ICON = "fa fa-bomb"
+  HINT = "demo"
+  ON_INIT = ""
+  ON_RENDER = ""
+  ON_CLICK = "({cont}) => console.log(cont)"
+
+[collapse_paragraph.MODIFIER_KEY]
+COLLAPSE_SINGLE = "ctrl"
+COLLAPSE_SIBLINGS = "ctrl+alt"
+COLLAPSE_ALL_SIBLINGS = "ctrl+shift+alt"
+COLLAPSE_RECURSIVE = ""
+
+[text_stylize]
+TOOLBAR = [
+  "weight",
+  "italic",
+  "underline",
+  "throughline",
+  "overline",
+  "title",
+  "superScript",
+  "subScript",
+  "emphasis",
+  "blur",
+  "increaseLetterSpacing",
+  "decreaseLetterSpacing",
+  "increaseSize",
+  "decreaseSize",
+  "family",
+  "foregroundColor",
+  "backgroundColor",
+  "borderColor",
+  "setBrush",
+  "useBrush",
+  "erase",
+  "blank",
+  "move",
+  "close"
+]
+COLORS = [
+  "#330000",
+  "#331900",
+  "#333300",
+  "#193300",
+  "#003300",
+  "#003319",
+  "#003333",
+  "#001933",
+  "#000033",
+  "#190033",
+  "#330033",
+  "#330019",
+  "#000000",
+  "#660000",
+  "#663300",
+  "#666600",
+  "#336600",
+  "#006600",
+  "#006633",
+  "#006666",
+  "#003366",
+  "#000066",
+  "#330066",
+  "#660066",
+  "#660033",
+  "#202020",
+  "#990000",
+  "#994C00",
+  "#999900",
+  "#4C9900",
+  "#009900",
+  "#00994C",
+  "#009999",
+  "#004C99",
+  "#000099",
+  "#4C0099",
+  "#990099",
+  "#99004C",
+  "#404040",
+  "#CC0000",
+  "#CC6600",
+  "#CCCC00",
+  "#66CC00",
+  "#00CC00",
+  "#00CC66",
+  "#00CCCC",
+  "#0066CC",
+  "#0000CC",
+  "#6600CC",
+  "#CC00CC",
+  "#CC0066",
+  "#606060",
+  "#FF0000",
+  "#FF8000",
+  "#FFFF00",
+  "#80FF00",
+  "#00FF00",
+  "#00FF80",
+  "#00FFFF",
+  "#0080FF",
+  "#0000FF",
+  "#7F00FF",
+  "#FF00FF",
+  "#FF007F",
+  "#808080",
+  "#FF3333",
+  "#FF9933",
+  "#FFFF33",
+  "#99FF33",
+  "#33FF33",
+  "#33FF99",
+  "#33FFFF",
+  "#3399FF",
+  "#3333FF",
+  "#9933FF",
+  "#FF33FF",
+  "#FF3399",
+  "#A0A0A0",
+  "#FF6666",
+  "#FFB266",
+  "#FFFF66",
+  "#B2FF66",
+  "#66FF66",
+  "#66FFB2",
+  "#66FFFF",
+  "#66B2FF",
+  "#6666FF",
+  "#B266FF",
+  "#FF66FF",
+  "#FF66B2",
+  "#C0C0C0",
+  "#FF9999",
+  "#FFCC99",
+  "#FFFF99",
+  "#CCFF99",
+  "#99FF99",
+  "#99FFCC",
+  "#99FFFF",
+  "#99CCFF",
+  "#9999FF",
+  "#CC99FF",
+  "#FF99FF",
+  "#FF99CC",
+  "#E0E0E0",
+  "#FFCCCC",
+  "#FFE5CC",
+  "#FFFFCC",
+  "#E5FFCC",
+  "#CCFFCC",
+  "#CCFFE5",
+  "#CCFFFF",
+  "#CCE5FF",
+  "#CCCCFF",
+  "#E5CCFF",
+  "#FFCCFF",
+  "#FFCCE5",
+  "#FFFFFF"
+]
+
+  [[text_stylize.ACTION_HOTKEYS]]
+  hotkey = ""
+  action = "foregroundColor"
+
+  [[text_stylize.ACTION_HOTKEYS]]
+  hotkey = ""
+  action = "backgroundColor"
+
+  [text_stylize.DEFAULT_COLORS]
+  FOREGROUND = "#330000"
+  BACKGROUND = "#FFFFFF"
+  BORDER = "#330000"
+
+[slash_commands]
+ENABLE = false
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "H1"
+  hint = "一级标题"
+  callback = "() => File.editor.stylize.changeBlock('header1', undefined, true)"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "H2"
+  hint = "二级标题"
+  callback = "() => File.editor.stylize.changeBlock('header2', undefined, true)"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "H3"
+  hint = "三级标题"
+  callback = "() => File.editor.stylize.changeBlock('header3', undefined, true)"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "H4"
+  hint = "四级标题"
+  callback = "() => File.editor.stylize.changeBlock('header4', undefined, true)"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "H5"
+  hint = "五级标题"
+  callback = "() => File.editor.stylize.changeBlock('header5', undefined, true)"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "H6"
+  hint = "六级标题"
+  callback = "() => File.editor.stylize.changeBlock('header6', undefined, true)"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "Paragraph"
+  hint = "段落"
+  callback = "() => File.editor.stylize.changeBlock('paragraph')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "IncreaseHeaderLevel"
+  hint = "提升标题等级"
+  callback = "() => File.editor.stylize.increaseHeaderLevel()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "DecreaseHeaderLevel"
+  hint = "降低标题等级"
+  callback = "() => File.editor.stylize.decreaseHeaderLevel()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "Table"
+  hint = "表格"
+  callback = "() => File.editor.tableEdit.insertTable()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "BlockCode"
+  hint = "代码块"
+  callback = "() => File.editor.stylize.toggleFences()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "BlockMath"
+  hint = "公式块"
+  callback = "() => File.editor.stylize.toggleMathBlock()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "BlockQuote"
+  hint = "引用"
+  callback = "() => File.editor.stylize.toggleIndent('blockquote')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "OrderedList"
+  hint = "有序列表"
+  callback = "() => File.editor.stylize.toggleIndent('ol')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "UnorderedList"
+  hint = "无序列表"
+  callback = "() => File.editor.stylize.toggleIndent('ul')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "Tasklist"
+  hint = "任务列表"
+  callback = "() => File.editor.stylize.toggleIndent('tasklist')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "ListMoreIndent"
+  hint = "增加列表缩进"
+  callback = "() => File.editor.UserOp.moreIndent(File.editor)"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "ListLessIndent"
+  hint = "减少列表缩进"
+  callback = "() => File.editor.UserOp.lessIndent(File.editor)"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "InsertParagraphAbove"
+  hint = "在上方插入段落"
+  callback = "() => File.editor.UserOp.insertParagraph(true)"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "InsertParagraphBelow"
+  hint = "在下方插入段落"
+  callback = "() => File.editor.UserOp.insertParagraph(false)"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "DefLink"
+  hint = "链接引用"
+  callback = "() => File.editor.stylize.insertBlock('def_link')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "DefFootnote"
+  hint = "脚注"
+  callback = "() => File.editor.stylize.insertBlock('def_footnote')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "Hr"
+  hint = "水平分割线"
+  callback = "() => File.editor.stylize.insertBlock('hr')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "TOC"
+  hint = "内容目录"
+  callback = "() => File.editor.stylize.insertBlock('toc')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "📝"
+  keyword = "FrontMatter"
+  hint = "元信息"
+  callback = "() => File.editor.stylize.insertMetaBlock()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Strong"
+  hint = "粗体"
+  callback = "() => File.editor.stylize.toggleStyle('strong')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Em"
+  hint = "斜体"
+  callback = "() => File.editor.stylize.toggleStyle('em')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Underline"
+  hint = "下划线"
+  callback = "() => File.editor.stylize.toggleStyle('underline')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Code"
+  hint = "代码"
+  callback = "() => File.editor.stylize.toggleStyle('code')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "InlineMath"
+  hint = "内联公式"
+  callback = "() => File.editor.stylize.toggleStyle('inline_math')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Delete"
+  hint = "删除线"
+  callback = "() => File.editor.stylize.toggleStyle('del')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Highlight"
+  hint = "高亮"
+  callback = "() => File.editor.stylize.toggleStyle('highlight')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Superscript"
+  hint = "上标"
+  callback = "() => File.editor.stylize.toggleStyle('superscript')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Subscript"
+  hint = "下标"
+  callback = "() => File.editor.stylize.toggleStyle('subscript')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Footnote"
+  hint = "脚注"
+  callback = "() => File.editor.stylize.toggleStyle('footnote')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Comment"
+  hint = "注释"
+  callback = "() => File.editor.stylize.toggleStyle('comment')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Link"
+  hint = "超链接"
+  callback = "() => File.editor.stylize.toggleStyle('link')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "Image"
+  hint = "图像"
+  callback = "() => File.editor.stylize.toggleStyle('image')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "👕"
+  keyword = "ClearStyle"
+  hint = "清除样式"
+  callback = "() => File.editor.stylize.clearStyle()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "💻"
+  keyword = "Golang"
+  callback = "() => this.utils.insertFence('go')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "💻"
+  keyword = "Python"
+  callback = "() => this.utils.insertFence('python')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "💻"
+  keyword = "Bash"
+  callback = "() => this.utils.insertFence('bash')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "💻"
+  keyword = "Java"
+  callback = "() => this.utils.insertFence('java')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "💻"
+  keyword = "HTML"
+  callback = "() => this.utils.insertFence('html')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "💻"
+  keyword = "SQL"
+  callback = "() => this.utils.insertFence('sql')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "💻"
+  keyword = "CSS"
+  callback = "() => this.utils.insertFence('css')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "💻"
+  keyword = "Mermaid"
+  callback = "() => this.utils.insertFence('mermaid')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "💻"
+  keyword = "JavaScript"
+  callback = "() => this.utils.insertFence('javascript')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "💻"
+  keyword = "TypeScript"
+  callback = "() => this.utils.insertFence('typescript')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "🧰"
+  keyword = "JumpTop"
+  hint = "至顶部"
+  callback = "() => File.editor.selection.jumpTop()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "🧰"
+  keyword = "JumpBottom"
+  hint = "至底部"
+  callback = "() => File.editor.selection.jumpBottom()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "🧰"
+  keyword = "JumpToLineStart"
+  hint = "至行首"
+  callback = "() => File.editor.selection.jumpToLineStart()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "🧰"
+  keyword = "JumpToLineEnd"
+  hint = "至行尾"
+  callback = "() => File.editor.selection.jumpToLineEnd()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "🧰"
+  keyword = "Help"
+  hint = "帮助"
+  callback = "() => this.call()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "snippet"
+  icon = "🧩"
+  keyword = "Br"
+  hint = "换行符"
+  callback = "<br>"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "snippet"
+  icon = "🧩"
+  keyword = "IMG"
+  hint = "<img>"
+  cursorOffset = [ -14, -14 ]
+  callback = '<img src="" alt="alt" />'
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "snippet"
+  icon = "🧩"
+  keyword = "SnippetExample"
+  hint = "示例片段"
+  callback = "https://github.com/obgnail/typora_plugin"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "snippet"
+  icon = "🧩"
+  keyword = "cursorOffsetExample"
+  hint = "光标偏移示例"
+  cursorOffset = [ -31, -18 ]
+  callback = "感谢您使用 Typora Plugin，如果本项目帮助到您，欢迎 STAR"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "gen-snp"
+  icon = "🧩"
+  keyword = "Datetime"
+  hint = "日期时间"
+  callback = "() => new Date().toLocaleString('chinese', {hour12: false})"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "gen-snp"
+  icon = "🧩"
+  keyword = "Date"
+  hint = "日期"
+  callback = "() => { let day = new Date(); return `${day.getFullYear()}/${day.getMonth()+1}/${day.getDate()}` }"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "gen-snp"
+  icon = "🧩"
+  keyword = "Time"
+  hint = "时间"
+  callback = "() => { let day = new Date(); return `${day.getHours()}:${day.getMinutes()}:${day.getSeconds()}` }"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "gen-snp"
+  icon = "🧩"
+  keyword = "Timestamp"
+  hint = "时间戳"
+  callback = "() => new Date().getTime().toString()"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "gen-snp"
+  icon = "🧩"
+  keyword = "Week"
+  hint = "星期"
+  callback = "() => '星期' + '日一二三四五六'.charAt((new Date()).getDay())"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "snippet"
+  icon = "🧩"
+  keyword = "alpha"
+  hint = "α"
+  scope = "inline_math"
+  callback = "\\alpha "
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "snippet"
+  icon = "🧩"
+  keyword = "beta"
+  hint = "β"
+  scope = "inline_math"
+  callback = "\\beta "
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "snippet"
+  icon = "🧩"
+  keyword = "epsilon"
+  hint = "ε"
+  scope = "inline_math"
+  callback = "\\epsilon "
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "snippet"
+  icon = "🧩"
+  keyword = "rightarrow"
+  hint = "→"
+  scope = "inline_math"
+  callback = "\\rightarrow "
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "gen-snp"
+  icon = "🌟"
+  keyword = "BlockCodeGenerator"
+  hint = "代码块生成器"
+  callback = "(...langs) => langs.map(l => '```' + l.toLowerCase() + '\\n```').join('\\n\\n')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "gen-snp"
+  icon = "🌟"
+  keyword = "CalloutGenerator"
+  hint = "提示块生成器"
+  callback = "(...types) => types.map(t => `> [!${t.toUpperCase()}]\\n>\\n> `).join('\\n\\n')"
+
+  [[slash_commands.COMMANDS]]
+  enable = true
+  type = "command"
+  icon = "🌟"
+  keyword = "TableGenerator"
+  hint = "表格生成器"
+  callback = "(col, row) => { col = parseInt(col); row = parseInt(row); const c = ['      ', ' ---- ', ...Array(row - 1).fill('      ')].map(e => `|${Array(col).fill(e).join('|')}|`).join('\\n'); this.utils.insertText(null, c, false) }"
+
+[right_click_menu]
+SHOW_ACTION_OPTIONS_ICON = false
+
+  [[right_click_menu.MENUS]]
+  NAME = "少用插件"
+  LIST = [
+  "window_tab",
+  "fence_enhance",
+  "auto_number",
+  "datatables",
+  "resize_image",
+  "resize_table",
+  "collapse_list",
+  "collapse_table",
+  "truncate_text",
+  "export_enhance",
+  "cipher",
+  "right_click_menu",
+  "help",
+  "---",
+  "pie_menu",
+  "go_top",
+  "slash_commands",
+  "text_stylize",
+  "hotkeys",
+  "editor_width_slider",
+  "ripgrep",
+  "article_uploader",
+  "preferences",
+  "updater",
+  "---",
+  "file_counter",
+  "json_rpc",
+  "test"
+]
+
+  [[right_click_menu.MENUS]]
+  NAME = "常用插件"
+  LIST = [
+  "commander",
+  "markmap",
+  "collapse_paragraph",
+  "easy_modify",
+  "custom",
+  "---",
+  "toolbar",
+  "search_multi",
+  "md_padding",
+  "---",
+  "read_only",
+  "blur",
+  "dark",
+  "no_image"
+]
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-book"
+CALLBACK = "read_only"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-asterisk"
+CALLBACK = "blur"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-eye"
+CALLBACK = "no_image"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-adjust"
+CALLBACK = "dark"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-file-text"
+CALLBACK = "templater"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-align-justify"
+CALLBACK = "md_padding"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-paste"
+CALLBACK = "easy_modify.copy_full_path"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-list"
+CALLBACK = "toc"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-sitemap"
+CALLBACK = "markmap.toggle_toc"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-font"
+CALLBACK = "text_stylize"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-search"
+CALLBACK = "search_multi"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-image"
+CALLBACK = "imageReviewer"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-filter"
+CALLBACK = "resourceOperation"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-wrench"
+CALLBACK = "preferences"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-bookmark"
+CALLBACK = "scrollBookmarker"
+
+[[pie_menu.BUTTONS]]
+ICON = "fa fa-code"
+CALLBACK = "commander"
+
+[preferences]
+IGNORE_PLUGINS = [
+  "preferences",
+  "right_click_menu",
+  "custom",
+  "json_rpc",
+  "redirectLocalRootUrl",
+  "article_uploader"
+]
+
+[file_counter]
+ENABLE = false
+ALLOW_EXT = [
+  "",
+  "md",
+  "markdown",
+  "mdown",
+  "mmd",
+  "text",
+  "txt",
+  "rmarkdown",
+  "mkd",
+  "mdwn",
+  "mdtxt",
+  "rmd",
+  "mdtext",
+  "apib"
+]
+IGNORE_FOLDERS = [ ".git", ".idea", "node_modules" ]
+
+[hotkeys]
+ENABLE = false
+
+  [[hotkeys.CUSTOM_HOTKEYS]]
+  desc = "快速插入javascript代码块"
+  enable = false
+  hotkey = "ctrl+shift+e"
+  evil = '() => this.utils.insertText(null, "```javascript\n```", false);'
+
+  [[hotkeys.CUSTOM_HOTKEYS]]
+  desc = "打开windows计算器"
+  enable = false
+  hotkey = "ctrl+shift+e"
+  evil = "() => this.utils.Package.ChildProcess.exec('cmd /C calc')"
+
+  [[hotkeys.CUSTOM_HOTKEYS]]
+  desc = "切换到第一个标签"
+  enable = false
+  hotkey = "ctrl+shift+e"
+  evil = "() => this.utils.getPlugin('window_tab').switchTab(0)"
+
+  [[hotkeys.CUSTOM_HOTKEYS]]
+  desc = "每当打开文件时都弹出提示窗口"
+  enable = false
+  hotkey = "-"
+  evil = "this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.fileOpened, filepath => window.confirm(`你打开了文件: ${filepath}`))"
+
+  [[hotkeys.CUSTOM_HOTKEYS]]
+  desc = "打开Typora时弹出问好提示框"
+  enable = false
+  hotkey = "-"
+  evil = """
+    this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.allPluginsHadInjected, () => {
+        const modal = {
+            title: "今天心情好吗",
+            components: [{
+                label: "选择你的心情：",
+                type: "radio",
+                list: [{label: "好", value: "good", checked: true}, {label: "很好", value: "very_good"}]
+            }]
+        }
+        this.utils.dialog.modal(modal, components => {
+            const mood = components[0].submit;
+            window.confirm(`Your mood today： ${mood}`);
+        })
+    })
+"""
+
+  [[hotkeys.CUSTOM_HOTKEYS]]
+  desc = "在光标位置插入看板"
+  enable = false
+  hotkey = "ctrl+shift+e"
+  plugin = "kanban"
+  function = "callback"
+
+  [[hotkeys.CUSTOM_HOTKEYS]]
+  desc = "当光标置于代码块中，按下此快捷键可以折叠/展开代码块"
+  enable = false
+  hotkey = "ctrl+["
+  plugin = "fence_enhance"
+  function = "foldFence"
+  closestSelector = "#write .md-fences"
+
+[article_uploader.upload]
+reconfirm = true
+
+  [article_uploader.upload.selenium]
+  headless = true
+
+  [article_uploader.upload.wordpress]
+  enabled = true
+  hostname = "https://blog.bugdesigner.cn"
+  loginUrl = "https://blog.bugdesigner.cn/superman/"
+  username = "demo"
+  password = "demo1"
+
+  [article_uploader.upload.cnblog]
+  enabled = true
+  username = "demo2"
+  password = "demo2"
+
+  [article_uploader.upload.csdn]
+  enabled = true
+  cookie = "log_Id_pv=27; log_Id_view=857; dc_tos=se1n4s; log_Id_click=37......"
+
+[json_rpc.SERVER_OPTIONS]
+port = 5_080
+host = "127.0.0.1"
+path = "/"
+strict = false
+
+[blur]
+ENABLE = false
+
+[dark]
+ENABLE = false
+
+[no_image]
+ENABLE = false
+
+[toolbar]
+ENABLE = false
+
+[resize_table]
+ENABLE = false
+
+[easy_modify]
+ENABLE = false
+
+[editor_width_slider]
+ENABLE = false

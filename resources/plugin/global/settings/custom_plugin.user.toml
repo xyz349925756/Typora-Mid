@@ -1,0 +1,401 @@
+[kanban]
+KANBAN_COLOR = [ "#FFE0B2", "#DAE9F4", "#FEDCCC", "#C6E5D9", "#FFF1B9" ]
+TASK_COLOR = [ "#FFFDE7", "#F8FAFF", "#FFFFF2", "#FFFCF0", "#FFFFF5" ]
+
+[abc.VISUAL_OPTIONS]
+scale = 1
+staffwidth = 400
+responsive = "resize"
+
+[callouts]
+enable = false
+
+  [[callouts.list]]
+  type = "tip"
+  background_color = "#D8F2E5"
+  left_line_color = "#3ABD7E"
+  icon = "\\f02c"
+
+  [[callouts.list]]
+  type = "bug"
+  background_color = "#FEEED3"
+  left_line_color = "#E0AC00"
+  icon = "\\f188"
+
+  [[callouts.list]]
+  type = "info"
+  background_color = "#DFF6DD"
+  left_line_color = "#3ABD7E"
+  icon = "\\f05a"
+
+  [[callouts.list]]
+  type = "note"
+  background_color = "#E1D1EB"
+  left_line_color = "#6A1B9A"
+  icon = "\\f040"
+
+  [[callouts.list]]
+  type = "quote"
+  background_color = "#FAFAFA"
+  left_line_color = "#777777"
+  icon = "\\f10d"
+
+  [[callouts.list]]
+  type = "example"
+  background_color = "#F1EDFD"
+  left_line_color = "#777777"
+  icon = "\\f133"
+
+  [[callouts.list]]
+  type = "caution"
+  background_color = "#FDE7E9"
+  left_line_color = "#C62828"
+  icon = "\\f024"
+
+  [[callouts.list]]
+  type = "failure"
+  background_color = "#F4D4D4"
+  left_line_color = "#C62828"
+  icon = "\\f00d"
+
+  [[callouts.list]]
+  type = "warning"
+  background_color = "#FEEED3"
+  left_line_color = "#E0AC00"
+  icon = "\\f071"
+
+  [[callouts.list]]
+  type = "success"
+  background_color = "#D8F2E5"
+  left_line_color = "#3ABD7E"
+  icon = "\\f00c"
+
+  [[callouts.list]]
+  type = "question"
+  background_color = "#FFF4CE"
+  left_line_color = "#E0AC00"
+  icon = "\\f128"
+
+  [[callouts.list]]
+  type = "abstract"
+  background_color = "#E5F8F8"
+  left_line_color = "#777777"
+  icon = "\\f00b"
+
+  [[callouts.list]]
+  type = "important"
+  background_color = "#D8E6F3"
+  left_line_color = "#3B83C1"
+  icon = "\\f132"
+
+[templater]
+enable = false
+
+  [[templater.template_variables]]
+  enable = false
+  name = "author"
+  callback = "() => 'obgnail'"
+
+  [[templater.template_variables]]
+  enable = false
+  name = "sum"
+  callback = "(v1 = 100, v2 = 200) => v1 + v2"
+
+  [[templater.template_variables]]
+  enable = false
+  name = "sumList"
+  callback = "args => args.reduce((x, y) => x + y, 0)"
+
+  [[templater.template_variables]]
+  enable = false
+  name = "contact"
+  callback = "(...args) => args.join('-')"
+
+  [[templater.template]]
+  name = "标准模板"
+  text = """
+---
+title: {{title}}
+date: {{date}}
+tags:
+---
+
+"""
+
+  [[templater.template]]
+  name = "日记"
+  text = """
+---
+title: {{title}}
+date: {{date}} {{weekday}}
+---
+
+"""
+
+  [[templater.template]]
+  name = "文章写作"
+  text = """
+---
+author: {{username}}
+created: {{datetime}}
+aliases: {{title}}
+description:
+tags:
+---
+## 关键字
+
+
+
+
+## 概述和背景
+
+
+
+## 注释
+
+
+"""
+
+[chineseSymbolAutoPairer]
+enable = false
+auto_pair_symbols = [
+  [ "（", "）" ],
+  [ "《", "》" ],
+  [ "‘", "’" ],
+  [ "“", "”" ],
+  [ "【", "】" ],
+  [ "「", "」" ],
+  [ "『", "』" ]
+]
+auto_swap_symbols = [
+  [ "【", "[" ],
+  [ "】", "]" ],
+  [ "（", "(" ],
+  [ "）", ")" ],
+  [ "《", "<" ],
+  [ "》", ">" ],
+  [ "！", "!" ],
+  [ "；", ";" ],
+  [ "：", ":" ],
+  [ "，", "," ],
+  [ "。", "." ],
+  [ "？", "?" ],
+  [ "·", "`" ],
+  [ "￥", "$" ]
+]
+
+[toc]
+enable = false
+
+  [toc.show_name]
+  fence = "Fence"
+  image = "Figure"
+  table = "Table"
+  link = "Link"
+  math = "Math"
+
+[resourceOperation]
+enable = false
+resource_suffix = [
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".gif",
+  ".svg",
+  ".tiff",
+  ".ico",
+  ".webp",
+  ".webm",
+  ".bmp",
+  ".mp3",
+  ".mp4",
+  ".ogg",
+  ".image",
+  ".jfif",
+  ".gif!large",
+  ".gif!small"
+]
+markdown_suffix = [
+  ".md",
+  ".markdown",
+  ".mdown",
+  ".mmd",
+  ".rmarkdown",
+  ".mkd",
+  ".mdwn",
+  ".mdtxt",
+  ".rmd",
+  ".mdtext"
+]
+ignore_folders = [ ".git", ".idea", "node_modules" ]
+
+[imageReviewer]
+first_image_strategies = [ "inViewBoxImage", "firstImage" ]
+show_message = [ "index", "title", "size" ]
+tool_function = [
+  "info",
+  "waterFall",
+  "thumbnailNav",
+  "download",
+  "play",
+  "firstImage",
+  "lastImage",
+  "restore",
+  "vFlip",
+  "hFlip",
+  "autoSize",
+  "rotateRight",
+  "scroll",
+  "location",
+  "close"
+]
+mousedown_function = [ "nextImage", "close", "previousImage" ]
+ctrl_mousedown_function = [ "hFlip", "dummy", "vFlip" ]
+shift_mousedown_function = [ "autoSize", "dummy", "dummy" ]
+alt_mousedown_function = [ "restore", "location", "dummy" ]
+wheel_function = [ "zoomIn", "zoomOut" ]
+ctrl_wheel_function = [ "rotateRight", "rotateLeft" ]
+shift_wheel_function = [ "incHSkew", "decHSkew" ]
+alt_wheel_function = [ "incVSkew", "decVSkew" ]
+hotkey_function = [
+  [ "j", "nextImage" ],
+  [ "k", "previousImage" ],
+  [ "=", "nextImage" ],
+  [ "-", "previousImage" ],
+  [ "shift+j", "lastImage" ],
+  [ "shift+k", "firstImage" ],
+  [ "l", "scroll" ],
+  [ "q", "close" ],
+  [ "escape", "close" ],
+  [ " ", "play" ],
+  [ "h", "hFlip" ],
+  [ "v", "vFlip" ],
+  [ "r", "rotateRight" ],
+  [ "shift+r", "rotateLeft" ],
+  [ "ArrowUp", "translateUp" ],
+  [ "ArrowDown", "translateDown" ],
+  [ "ArrowLeft", "translateLeft" ],
+  [ "ArrowRight", "translateRight" ],
+  [ "w", "translateUp" ],
+  [ "s", "translateDown" ],
+  [ "a", "translateLeft" ],
+  [ "d", "translateRight" ],
+  [ "z", "originSize" ],
+  [ "x", "zoomIn" ],
+  [ "c", "zoomOut" ],
+  [ "shift++", "zoomIn" ],
+  [ "shift+_", "zoomOut" ]
+]
+
+[markdownLint]
+enable = false
+
+  [markdownLint.rule_config]
+  default = true
+  MD009 = false
+  MD010 = false
+  MD012 = false
+  MD013 = false
+  MD033 = false
+  MD041 = false
+
+    [markdownLint.rule_config.MD024]
+    siblings_only = true
+
+[[quickButton.buttons]]
+disable = true
+coordinate = [ 0, 0 ]
+hint = "直达底部"
+size = "24px"
+icon = "fa fa-caret-down"
+callback = "go_top.goBottom"
+
+[[quickButton.buttons]]
+disable = false
+coordinate = [ 0, 0 ]
+hint = "直达顶部"
+size = "24px"
+icon = "fa fa-caret-up"
+callback = "go_top.goTop"
+
+[[quickButton.buttons]]
+disable = false
+coordinate = [ 1, 0 ]
+hint = "文字风格"
+size = "17px"
+icon = "fa fa-font"
+callback = "text_stylize.call"
+
+[[quickButton.buttons]]
+disable = true
+coordinate = [ 3, 0 ]
+hint = "混排优化"
+size = "17px"
+icon = "fa fa-align-justify"
+callback = "md_padding.call"
+
+[[quickButton.buttons]]
+disable = false
+coordinate = [ 0, 1 ]
+hint = "思维导图"
+size = "18px"
+icon = "fa fa-sitemap"
+callback = "markmap.onButtonClick"
+
+[[quickButton.buttons]]
+disable = false
+coordinate = [ 1, 1 ]
+hint = "图片管理"
+size = "17px"
+icon = "fa fa-image"
+callback = "imageReviewer.callback"
+
+[[quickButton.buttons]]
+disable = true
+coordinate = [ 2, 1 ]
+hint = "文档大纲"
+size = "17px"
+icon = "fa fa-list"
+callback = "toc.callback"
+
+[[quickButton.buttons]]
+disable = true
+coordinate = [ 3, 1 ]
+hint = "高亮搜索"
+size = "17px"
+icon = "fa fa-search"
+callback = "search_multi.call"
+
+[[quickButton.buttons]]
+disable = true
+coordinate = [ 4, 0 ]
+hint = "危险操作"
+size = "17px"
+icon = "ion-asterisk"
+color = "#F0F8FF"
+bgColor = "#FF4500"
+evil = "() => window.confirm('this is message')"
+
+[[quickButton.buttons]]
+disable = true
+coordinate = [ 4, 1 ]
+hint = "危险操作"
+size = "17px"
+icon = "ion-alert-circled"
+evil = '() => this.utils.insertFence("javascript")'
+
+[[quickButton.buttons]]
+disable = true
+coordinate = [ 5, 0 ]
+hint = "危险操作"
+size = "17px"
+icon = "ion-bug"
+evil = "() => this.utils.Package.ChildProcess.exec('cmd /C calc')"
+
+[[quickButton.buttons]]
+disable = true
+coordinate = [ 5, 1 ]
+hint = "危险操作"
+size = "17px"
+icon = "ion-alert"
+evil = "() => this.utils.openUrl('https://github.com/obgnail/typora_plugin')"

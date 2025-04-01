@@ -1,0 +1,3 @@
+.plugin-dark {
+    filter: invert(.9) hue-rotate(.5turn);
+}

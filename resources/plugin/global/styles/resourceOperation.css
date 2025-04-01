@@ -1,0 +1,77 @@
+#plugin-resource-operation {
+    display: flex;
+    flex-direction: column;
+    resize: both;
+    overflow: auto;
+    min-width: 120px;
+    min-height: 120px;
+}
+
+#plugin-resource-operation .plugin-resource-operation-wrap {
+    overflow: scroll;
+}
+
+#plugin-resource-operation .plugin-resource-operation-popup {
+    max-width: 500px;
+    max-height: 500px;
+    position: fixed;
+    box-shadow: 0 0 0.125em 0 rgba(0, 0, 0, .5);
+    border-radius: 0.5em;
+    background-color: var(--side-bar-bg-color);
+    z-index: 9999;
+}
+
+.non-exist-in-file-table th:first-child {
+    width: 10px;
+}
+.non-exist-in-file-table th:last-child {
+    width: 150px;
+}
+.non-exist-in-file-table td:nth-of-type(2) {
+    max-width: 200px;
+    white-space: break-spaces;
+    word-break: break-word;
+}
+.non-exist-in-file-table td:nth-of-type(3) {
+    max-width: 100px;
+    max-height: 100px;
+}
+.non-exist-in-file-table td:last-of-type {
+    text-align: center;
+}
+
+#plugin-resource-operation tbody {
+    font-size: 0.7em;
+}
+
+.plugin-resource-operation-message {
+    font-size: 1.2em;
+    margin-top: 1.2em;
+    margin-left: 0.2em;
+    padding-bottom: 2px;
+    border-bottom: 1px solid #ececec;
+    text-align: center;
+}
+
+#plugin-resource-operation textarea {
+    width: 100%;
+    margin-top: 10px;
+}
+
+#plugin-resource-operation .plugin-resource-operation-icon-group {
+    display: flex;
+    flex-direction: row-reverse;
+    font-size: 1.2em;
+    margin-right: 0.4em;
+}
+
+.plugin-resource-operation-icon-group .plugin-resource-operation-icon {
+    cursor: pointer;
+    margin-left: 0.4em;
+    opacity: 0.6;
+}
+
+.plugin-resource-operation-icon:hover {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.2);
+}

@@ -1,0 +1,2389 @@
+#-------------------------------------------------------------------------
+#  请勿修改【settings.default.toml】文件，请阅读本目录下的【README.md】
+#  请勿修改【settings.default.toml】文件，请阅读本目录下的【README.md】
+#  请勿修改【settings.default.toml】文件，请阅读本目录下的【README.md】
+#-------------------------------------------------------------------------
+
+
+################### global ###################
+[global]
+# ------------------- 总开关 -------------------
+# 用于启用或禁用全部插件
+#   true:  启用所有插件
+#   false: 禁用所有插件
+ENABLE = true
+
+# ------------------- 语言 -------------------
+# 语言
+#   auto: 跟随 Typora 语言设置
+#   en
+#   zh-CN
+#   zh-TW
+LOCALE = "auto"
+
+# ------------------- 插件兼容性 -------------------
+# 不兼容警告：当 Typora 版本低于 0.9.98 时，是否显示不兼容警告
+#   true:  显示不兼容警告
+#   false: 不显示不兼容警告
+SHOW_INCOMPATIBLE_WARNING = true
+
+# ------------------- 交互模式退出 -------------------
+# 退出交互模式：设置如何退出代码块的交互状态
+#   当使用图表插件（例如 kanban, markmap, echarts 等），并开启交互模式（`INTERACTIVE_MODE` 置为 true）时，此配置项用于定义退出交互模式的方式
+#   请确保至少填写一个退出方式，否则将无法退出交互模式
+#   支持的退出方式
+#     click_exit_button: 为图表添加一个【编辑】按钮，点击此按钮退出交互模式
+#     ctrl_click_fence:  按住 Ctrl 键并点击图表区域，退出交互模式
+EXIT_INTERACTIVE_MODE = ["click_exit_button"]
+
+
+################### window_tab ###################
+[window_tab]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 标签页外观与交互 -------------------
+# 标签页拖拽风格设置：控制标签页拖拽时的行为方式
+#   true:  采用 JetBrains 风格的标签页拖拽方式，可以更灵活地调整标签页顺序，并支持 Y 轴防抖
+#   false: 采用 VS Code 风格的标签页拖拽方式，相对简单直接
+JETBRAINS_DRAG_STYLE = true
+
+# 标签标题显示设置：标签是否显示文件扩展名
+#   true:  标签标题将显示不带扩展名的文件名 (例如: filename.md 显示为 filename)
+#   false: 标签标题将显示完整的文件名 (例如: filename.md)
+REMOVE_FILE_SUFFIX = true
+
+# 同名文件显示设置：当打开多个同名文件时，是否显示文件的父目录，以便区分
+#   true:  当打开多个同名文件时，标签标题将显示父目录和文件名 (例如: filename.md 显示为 dir/filename.md)
+#   false: 只显示文件名，当有同名文件时可能导致混淆
+SHOW_DIR_FOR_SAME_NAME_FILE = true
+
+# 鼠标悬停提示：当鼠标悬停在标签页上时，是否显示文件的完整路径
+#   true:  显示完整的文件路径，方便定位文件位置
+#   false: 不显示完整路径
+SHOW_FULL_PATH_WHEN_HOVER = true
+
+# 关闭按钮显示：是否在标签页上显示关闭按钮
+#   true:  显示关闭按钮，点击可关闭标签页
+#   false: 不显示关闭按钮，只能通过其他方式关闭标签页
+SHOW_TAB_CLOSE_BUTTON = true
+
+# 隐藏标题栏：当 Typora 使用一体化窗口样式时，是否隐藏窗口标题栏
+#   true:  隐藏标题栏，让界面更简洁
+#   false: 显示标题栏
+HIDE_WINDOW_TITLE_BAR = false
+
+# 标签页最小宽度：设置标签页的最小宽度
+#   可以使用 CSS 单位，例如 "100px", "12em"
+#   限制：不可超过 400px
+TAB_MIN_WIDTH = "100px"
+
+# 标签页最大宽度：设置标签页的最大宽度
+#   可以使用 CSS 单位，例如 "200px", "12em"，使用 "none" 则不限制宽度
+#   限制：不可超过 400px
+TAB_MAX_WIDTH = "none"
+
+# 标签栏和内容间隙：设置标签栏和正文内容之间的间隙高度
+#   单位：像素 (px)
+GAP_BETWEEN_TAB_AND_CONTENT = 0
+
+# ------------------- 标签页拖拽增强（仅当 JETBRAINS_DRAG_STYLE 为 true 时生效） -------------------
+# Y轴防抖：在拖拽标签页时，如果垂直方向的移动距离很小，则保持标签页在 Y 轴上的位置不变
+#   true:  启用 Y 轴防抖，提高拖拽时的精度，避免误操作
+#   false: 关闭 Y 轴防抖，允许标签页在垂直方向自由移动
+LIMIT_TAB_Y_AXIS_WHEN_DRAG = true
+
+# Y轴防抖幅度：当拖拽的垂直距离不超过标签页高度的多少倍时，视为无垂直移动
+#   例如：Y_AXIS_LIMIT_RANGE_WHEN_DRAG = 1 表示当垂直拖动距离不超过一个标签页高度时，保持 Y 轴位置不变
+#   取值范围：大于等于 0 的数字，推荐取值 0.5 ~ 1.5 之间
+Y_AXIS_LIMIT_RANGE_WHEN_DRAG = 1
+
+# 禁止垂直拖拽：是否禁止标签页在垂直方向的拖拽移动
+#   true:  限制标签页只能水平拖动
+#   false: 允许标签页在垂直方向自由拖动
+LIMIT_TAB_ROI = false
+
+# ------------------- 标签页拖拽高级功能 -------------------
+# 鼠标向下拖拽标签页时，当拖拽的垂直距离超过标签本身高度的多少倍时，将此标签页的文件在新窗口中打开
+#   -1: 不启用此功能
+#   大于0的数字：表示垂直拖拽的高度倍数（例如：2 表示当垂直拖动距离超过 2 个标签页高度时，会新建窗口打开）
+HEIGHT_SCALE = -1
+
+# ------------------- 标签页行为 -------------------
+# 是否允许通过按住 Ctrl 键并点击标签页，在新窗口中打开该文件
+#   true:  启用此功能
+#   false: 禁用此功能
+CTRL_CLICK_TO_NEW_WINDOW = true
+
+# 是否允许通过按住 Ctrl 键并滚动鼠标滚轮来切换标签页
+#   true:  启用此功能
+#   false: 禁用此功能
+CTRL_WHEEL_TO_SCROLL = true
+
+# 是否允许通过鼠标中键点击标签页来关闭该标签页
+#   true:  启用此功能
+#   false: 禁用此功能
+MIDDLE_CLICK_TO_CLOSE = true
+
+# 最大标签页数量限制：限制最多可以打开的标签页数量
+#   -1: 不限制标签页数量
+#   大于0的整数：表示最大标签页数量，超出时会自动关闭最左侧的标签页
+TAB_MAX_NUM = -1
+
+# 关闭最后一个标签页时的行为：当关闭最后一个标签页时，Typora的行为
+#   exit:      退出 Typora
+#   reconfirm: 弹出对话框，确认是否退出 Typora
+#   blankPage: 显示空白页 (仅新版本 Typora 支持，低版本会回退到 reconfirm)
+WHEN_CLOSE_LAST_TAB = "blankPage"
+
+# 新建标签页的位置：当新建标签页时，新标签页在标签栏中的位置
+#   end:   在标签栏的最右侧
+#   right: 在当前标签页的右侧
+NEW_TAB_AT = "right"
+
+# 关闭标签页后激活的标签页：当关闭当前标签页时，应该激活哪个标签页
+#   left:   当前标签页的左侧的标签页
+#   right:  当前标签页的右侧的标签页
+#   latest: 上一个浏览的标签页
+ACTIVE_TAB_WHEN_CLOSE = "right"
+
+# ------------------- 快捷键（若置为 []，则不启用） -------------------
+# 关闭标签页的快捷键：设置关闭当前标签页的快捷键组合
+CLOSE_HOTKEY = ["ctrl+w"]
+
+# 切换到下一个标签页的快捷键
+SWITCH_NEXT_TAB_HOTKEY = ["ctrl+PageDown", "ctrl+Tab"]
+
+# 切换到上一个标签页的快捷键
+SWITCH_PREVIOUS_TAB_HOTKEY = ["ctrl+PageUp", "ctrl+shift+Tab"]
+
+# 排序标签的快捷键
+SORT_TABS_HOTKEY = []
+
+# 临时显示/隐藏标签栏的快捷键
+TOGGLE_TAB_BAR_HOTKEY = []
+
+# 复制当前文件路径的快捷键
+COPY_PATH_HOTKEY = []
+
+# ------------------- 鼠标右键菜单 -------------------
+# 鼠标右击标签页时显示的右键菜单项列表
+#   若置为 []，则不显示右键菜单
+#   支持以下菜单项
+#     closeTab:        关闭标签页
+#     closeOtherTabs:  关闭其他标签页
+#     closeLeftTabs:   关闭当前标签页左侧的所有标签页
+#     closeRightTabs:  关闭当前标签页右侧的所有标签页
+#     copyPath:        复制当前文件路径
+#     showInFinder:    在文件资源管理器中打开文件所在位置
+#     openInNewWindow: 在新窗口中打开当前文件
+#     sortTabs:        按照文件名排序标签页
+CONTEXT_MENU = ["closeTab", "closeOtherTabs", "closeLeftTabs", "closeRightTabs", "sortTabs", "copyPath", "showInFinder", "openInNewWindow"]
+
+
+################### search_multi ###################
+[search_multi]
+# ------------------- 基础 -------------------
+# 启用或禁用多关键字查找插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，将在 Typora 的插件列表中显示
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+# 触发多关键字查找窗口的快捷键
+HOTKEY = "ctrl+shift+p"
+
+# ------------------- 窗口交互 -------------------
+# 允许通过 `Ctrl` + 鼠标拖拽输入框来移动窗口
+#   true:  启用窗口拖动功能
+#   false: 禁用窗口拖动功能
+ALLOW_DRAG = true
+
+# 当输入框为空且失去焦点时，是否自动隐藏窗口
+#   true:  启用自动隐藏功能
+#   false: 禁用自动隐藏功能
+AUTO_HIDE = false
+
+# 当输入框为空，且按下 `Backspace` 键时，隐藏窗口
+#   true:  启用此功能
+#   false: 禁用此功能
+BACKSPACE_TO_HIDE = true
+
+# ------------------- 搜索内容 -------------------
+# 搜索时是否区分大小写
+#   true:  搜索时区分大小写
+#   false: 搜索时不区分大小写
+CASE_SENSITIVE = false
+
+# ------------------- 文件过滤 -------------------
+# 允许搜索的最大文件大小，单位为字节 (bytes)
+# 注意: Typora 仅支持打开小于 2000000 字节的文件，因此不建议设置超过此值
+#   大于此值的文件在搜索时将被忽略
+#   小于 0 的值，表示不忽略任何文件
+MAX_SIZE = 2000000
+
+# 允许搜索的文件扩展名列表
+# 只有在此列表中的文件才会被搜索
+# 注意：默认值为 Typora 允许打开的所有文件扩展名列表。因此不建议添加新的扩展名
+ALLOW_EXT = ["", "md", "markdown", "mdown", "mmd", "text", "txt", "rmarkdown", "mkd", "mdwn", "mdtxt", "rmd", "mdtext", "apib"]
+
+# 搜索时需要忽略的文件夹名称列表
+# 此列表中的文件夹将被排除在搜索之外
+IGNORE_FOLDERS = [".git", ".idea", "node_modules"]
+
+# ------------------- 结果显示 -------------------
+# 展示文件路径时，使用相对路径还是绝对路径
+#   true:  使用文件的相对路径
+#   false: 使用文件的绝对路径
+RELATIVE_PATH = true
+
+# 展示文件时，是否同时显示文件的扩展名
+#   true:  展示带扩展名的文件名（例如: filename.md）
+#   false: 展示不带扩展名的文件名（例如: filename）
+SHOW_EXT = true
+
+# 鼠标悬停到搜索结果项时，是否显示文件的最后修改时间
+#   true:  启用此功能，悬停时显示修改时间
+#   false: 禁用此功能，不显示修改时间
+SHOW_MTIME = false
+
+# ------------------- 高亮 -------------------
+# 关键字高亮的颜色列表
+# 每个关键字按顺序对应一个颜色，支持自定义多个颜色
+STYLE_COLOR = [
+    "#BBEEFF", "#FFBBCC", "#88EE88", "#CCBBFF", "#FFEE88", "#FFFFA0", "#88CCCC", "#FFBB88", "#CCCCCC", "#FFAABB",
+    "#99CCFF", "#FF99CC", "#66CC66", "#CC99FF", "#FFCC66", "#FFFF80", "#DD9966", "#AAAAAA", "#66AAAA", "#DD6699",
+]
+
+# 高亮块的最大数量
+# 高亮块需要添加 HTML 标签，因此数量太大可能会影响性能，故提供此选项以限制数量
+MAX_HITS = 5000
+
+# 去掉按钮上的提示：是否去掉鼠标悬停在按钮上时显示的提示
+#   true:  去掉提示
+#   false: 保留提示
+REMOVE_BUTTON_HINT = false
+
+# ------------------- 高级 -------------------
+# 开启搜索优化
+#   true:  开启搜索优化
+#   false: 不开启搜索优化
+# 说明（适用普通用户）:
+#   1. 假设搜索内容为 `h1:sour content:pear size>2kb`，其含义为：一级标题包含 sour 并且 文件内容包含 pear 并且 文件大小大于 2KB
+#   2. 程序默认是按输入的顺序进行逐级筛选的。即：先筛选出一级标题包含 sour 的文件，在前面基础上再筛选 content，在前面基础上再筛选 size
+#   3. 然而，我们发现这三种查询属性所付出的代价是不一样的：
+#        - h1 需要读取并解析 md 文件
+#        - content 不需要解析文件，只需读取文件
+#        - size 不需要读取文件，只需读取文件属性
+#   4. 为了提高搜索效率，一般要把低开销的逻辑移动到前面，让低开销的逻辑在最开始筛掉大多数不符合的文件，减少高开销逻辑的执行次数
+#   5. 也就是说：最好要改成 `size>2kb content:pear h1:sour`
+#   6. 本选项的功能就是：将上述的流程自动化，自动调整查询属性的位置，提高搜索效率
+#   7. 此功能有一个小副作用：会影响高亮关键字的顺序
+#        1. 高亮关键字的生成顺序本来是按照用户输入的顺序生成的。`h1:sour content:pear size>2kb` 的高亮关键字是：sour、pear
+#        2. 结果现在用户输入被自动修改为 `size>2kb content:pear h1:sour`，导致高亮关键字是：pear、sour
+#        3. 在页面上的体现就是：pear 的高亮色是蓝色，sour 是红色，现在两者发生了颜色对调
+# 说明（适用程序员）:
+#   1. 优化 AST，将低开销的逻辑移动到前面，借助短路求值提高查询效率
+#   2. 优化 AST 需要对子树进行移动、旋转操作，导致评估生成的 tokens 顺序发生改变（Node reordering breaks token order）
+OPTIMIZE_SEARCH = false
+
+
+################### commander ###################
+[commander]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键与窗口行为 -------------------
+# 插件的快捷键，用于快速呼出命令行输入框
+#   示例： "ctrl+shift+c"
+#   留空则不设置快捷键
+HOTKEY = ""
+
+# 允许通过【ctrl+鼠标拖拽输入框】拖动窗口
+#   true:  启用拖动窗口功能，可以通过按住 Ctrl 键并拖动输入框来移动窗口
+#   false: 禁用拖动窗口功能
+ALLOW_DRAG = true
+
+# 当输入框为空，且键入 backspace 时，隐藏窗口
+#   true:  启用此功能
+#   false: 禁用此功能
+BACKSPACE_TO_HIDE = true
+
+# ------------------- 命令执行与回显 -------------------
+# 控制通过【快捷键】或【右键菜单】调用内建命令时，是否以及如何显示执行结果
+#   always: 总是弹出窗口显示执行结果
+#   error:  仅在命令执行出现错误时弹出窗口显示错误信息
+#   silent: 总是静默执行，不显示任何输出
+#   echo:   立即弹出窗口并实时显示命令的输出，适合需要不断打印日志的耗时任务
+QUICK_EXEC_SHOW = "error"
+
+# 控制在命令输入框中按下回车键或点击执行按钮时，命令执行结果的回显方式
+#   always: 等待程序执行完毕后，一次性输出执行结果
+#   echo:   立即回显程序输出，实时显示命令执行过程
+COMMIT_EXEC_SHOW = "echo"
+
+# ------------------- 内建命令列表 -------------------
+# 预设的常用命令列表，用户可以通过插件快速执行这些命令
+# 每个命令项包含以下属性
+#   name:    命令的显示名称，必须唯一，用于在插件菜单中标识此命令
+#   disable: 是否禁用此命令，true 为禁用，false 为启用
+#   shell:   指定命令执行的 shell 环境，支持 "cmd/bash", "powershell", "gitbash", "wsl"
+#              请确保 gitbash 和 wsl 已加入系统环境变量，非 Windows 平台后三者不可用
+#   hotkey:  (可选) 为此命令设置的快捷键，用于快速执行此命令
+#   cmd:     实际要执行的命令
+# 内置环境变量:
+#   $f: 当前编辑文件的完整路径
+#   $d: 当前编辑文件所在的目录路径
+#   $m: 当前 Typora 侧边栏的根目录路径（挂载目录）
+BUILTIN = [
+    # 占位符，不执行任何命令
+    { name = "", disable = false, shell = "cmd/bash", cmd = "" },
+    # 在资源管理器中打开当前文件所在目录
+    { name = "Explorer", disable = false, shell = "powershell", cmd = "explorer $d" },
+    # 在 VS Code 中打开当前文件
+    { name = "VScode", disable = false, shell = "cmd/bash", cmd = "code $f" },
+    # 在 Windows Terminal 中打开当前文件所在目录
+    { name = "Windows Terminal", disable = false, shell = "cmd/bash", cmd = "cd $d && wt" },
+    # 将当前挂载目录下的所有更改提交到 Git 仓库
+    { name = "Git Commit", disable = false, shell = "cmd/bash", cmd = 'cd $m && git add . && git commit -m "update"' },
+    # 在 Total Commander 中打开当前文件，此命令默认禁用，需修改 Total Commander 的路径才能使用
+    # https://xbeta.info/tc-help/totalcmd/CommandLineParameters.htm
+    { name = "TotalCommander", disable = true, shell = "cmd/bash", cmd = "D:\\software\\TotalCMD_64bit_11.03\\TOTALCMD64.EXE /O /T /P=L /L=$f" },
+]
+
+
+################### md_padding ###################
+[md_padding]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+# 触发插件功能的快捷键组合
+HOTKEY = "ctrl+shift+b"
+
+# ------------------- 作用范围 -------------------
+# 是否仅在选中的文本区域内应用格式化
+#   true:  仅对选中的文本区域应用空格优化。未选中的文本不会受到影响
+#   false: 对整个文档应用空格优化
+FORMAT_IN_SELECTION_ONLY = false
+
+# ------------------- 忽略词组 -------------------
+# 指定不希望在内部或前后添加空格的词组列表
+#   插件不会在这些词组内部或前后添加额外的空格
+#   例如：["word1", "word2", "词组1"]
+IGNORE_WORDS = []
+
+# ------------------- 忽略正则 -------------------
+# 指定不希望在内部或前后添加空格的正则表达式列表
+#   插件不会在匹配这些正则表达式的文本内部或前后添加额外的空格
+IGNORE_PATTERNS = ["<br\\s*?/?>", ":[0-9a-z_\\-]+?:", "<u>.+?</u>", '<span style=".+?">.+?</span>']
+
+
+################### read_only ###################
+[read_only]
+# ------------------- 基础 -------------------
+# 启用或禁用只读模式插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 只读模式行为 -------------------
+# 进入和脱离只读模式的快捷键
+HOTKEY = "ctrl+shift+r"
+
+# 默认使用只读模式（打开Typora就进入只读模式）
+#   true:  打开Typora时默认进入只读模式
+#   false: 打开Typora时默认不进入只读模式
+READ_ONLY_DEFAULT = false
+
+# 只读状态下，点击图片和行内公式不会自动展开
+#   true:  点击图片和行内公式不会自动展开
+#   false: 点击图片和行内公式会自动展开
+NO_EXPAND_WHEN_READ_ONLY = true
+
+# 只读状态下，自动收缩展开的图片和行内公式（当NO_EXPAND_WHEN_READ_ONLY为 true 时，此选项失效）
+# 此选项的意思是：当图片和行内公式展开后，点击其他地方，展开的图片和行内公式是否自动收回去
+#   true:  自动收缩展开的图片和行内公式
+#   false: 不自动收缩展开的图片和行内公式
+REMOVE_EXPAND_WHEN_READ_ONLY = true
+
+# 只读状态下，左键单击超链接即可打开网址（普通模式下需要 click+左键）
+#   true:  左键单击超链接即可打开网址
+#   false: 左键单击超链接需要 click+左键
+CLICK_HYPERLINK_TO_OPEN_WHEN_READ_ONLY = false
+
+# 只读状态下，禁用部分右键菜单
+#   true:  禁用部分右键菜单
+#   false: 不禁用部分右键菜单
+DISABLE_CONTEXT_MENU_WHEN_READ_ONLY = true
+
+# 只读状态下禁用右键菜单的时候，哪些菜单选项保持可用（可选值需要您打开调试工具，查找其中data-key）
+# REMAIN_AVAILABLE_MENU_KEY 为 false 时失效
+REMAIN_AVAILABLE_MENU_KEY = ["typora-plugin", "dev-tool", "copy-img"]
+
+# 开启只读模式后，右下角数字统计区域出现的提示文字
+SHOW_TEXT = "ReadOnly"
+
+
+################### blur ###################
+[blur]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+#   注意：此插件无法在低版本 Typora 上使用
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 插件快捷键 -------------------
+# 启用或禁用模糊模式的快捷键，设置后，按下此快捷键可以在模糊模式和正常模式之间切换
+#   留空则不设置快捷键
+HOTKEY = ""
+
+# ------------------- 插件默认行为 -------------------
+# 默认是否启用模糊模式，在 Typora 启动时就进入模糊模式
+#   true:  Typora 启动时默认进入模糊模式
+#   false: Typora 启动时默认不启用模糊模式
+BLUR_DEFAULT = false
+
+# ------------------- 模糊效果 -------------------
+# 模糊类型，控制非聚焦组件的显示方式
+#   blur: 非聚焦组件变模糊
+#   hide: 非聚焦组件直接隐藏
+BLUR_TYPE = "blur"
+
+# 鼠标悬停时可见：当鼠标悬停在非聚焦组件上时，是否使其恢复可见
+#   true:  鼠标悬停时恢复可见
+#   false: 鼠标悬停时依然保持模糊或隐藏 (当 BLUR_TYPE 为 "hide" 时此项失效)
+RESRTORE_WHEN_HOVER = true
+
+# 模糊等级：设置非聚焦组件的模糊程度
+#   数值越大，模糊效果越明显
+#   当 BLUR_TYPE 为 "hide" 时，此配置失效
+#   取值范围：建议使用 0-20 之间的整数， 0 表示不模糊
+BLUR_LEVEL = 10
+
+
+################### dark ###################
+[dark]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 夜间模式切换 -------------------
+# 切换夜间模式的快捷键
+#   留空则不设置快捷键
+HOTKEY = ""
+
+# 默认启动夜间模式：设置 Typora 启动时是否默认进入夜间模式
+#   true:  Typora 启动时默认启用夜间模式
+#   false: Typora 启动时默认不启用夜间模式
+DARK_DEFAULT = false
+
+
+################### no_image ###################
+[no_image]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 无图模式切换 -------------------
+# 切换无图模式的快捷键
+#   留空则不设置快捷键
+HOTKEY = ""
+
+# 默认启动无图模式：设置 Typora 启动时是否默认进入无图模式
+#   true:  Typora 启动时默认启用无图模式
+#   false: Typora 启动时默认不启用无图模式
+DEFAULT_NO_IMAGE_MODE = false
+
+# ------------------- 无图模式显示 -------------------
+# 鼠标悬停时重新显示图片：当处于无图模式时，鼠标悬停在图片上方时是否临时显示图片
+#   true:  鼠标悬停时显示图片
+#   false: 鼠标悬停时不显示图片
+RESHOW_WHEN_HOVER = true
+
+# ------------------- 动画效果 -------------------
+# 图片显示/隐藏动画持续时间：设置图片显示或隐藏时的动画过渡效果的持续时间
+#   单位：毫秒 (ms)
+TRANSITION_DURATION = 300
+
+# 图片显示/隐藏动画延迟时间：设置图片显示或隐藏时的动画效果开始前的延迟时间
+#   单位：毫秒 (ms)
+#   例如：0 表示无延迟
+TRANSITION_DELAY = 0
+
+
+################### toolbar ###################
+[toolbar]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件，允许使用快捷键或命令面板进行多功能搜索
+#   false: 禁用插件，插件功能将不可用
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+# 激活搜索框的快捷键：设置打开多功能搜索输入框的快捷键
+HOTKEY = "ctrl+j"
+
+# ------------------- 窗口行为 -------------------
+# 当输入框为空，且键入 backspace 时，隐藏窗口
+#   true:  启用此功能
+#   false: 禁用此功能
+BACKSPACE_TO_HIDE = true
+
+# 当鼠标点击搜索窗口之外的区域时，是否自动隐藏搜索窗口
+#   true:  当鼠标点击窗口外区域时，搜索窗口会自动隐藏
+#   false: 鼠标点击窗口外区域不会自动隐藏搜索窗口
+AUTO_HIDE = true
+
+# 是否等待输入法输入完毕后再执行搜索
+#   true:  当使用中文输入法等输入时，等待输入完毕才触发搜索，避免输入过程中频繁搜索
+#   false: 输入过程中的每一个字符都会触发搜索
+IGNORE_WHEN_COMPOSITION = true
+
+# ------------------- 窗口外观 -------------------
+# 搜索工具栏在页面垂直方向的位置：设置搜索工具栏在页面顶部的位置，以百分比表示
+#   例如: 20 表示工具栏显示在页面顶部 20% 的位置
+#   取值范围： 0 ~ 100 的整数
+TOOLBAR_TOP_PERCENT = 20
+
+# 搜索工具栏的宽度：设置搜索工具栏的宽度，以页面宽度的百分比表示
+#   例如: 80 表示工具栏宽度为页面宽度的 80%
+#   取值范围： 0 ~ 100 的整数
+TOOLBAR_WIDTH_PERCENT = 80
+
+# ------------------- 搜索行为 -------------------
+# 用户输入防抖时间：设置用户输入后，延迟执行搜索的时间，单位为毫秒（ms）
+#   例如：70 表示用户输入停止 70ms 后才开始搜索
+#   目的：减少频繁输入时触发的搜索次数，提升性能
+#   提示：此插件的搜索都是直接从内存读取的，所以防抖时间很短
+DEBOUNCE_INTERVAL = 70
+
+# ------------------- 默认搜索工具 -------------------
+# 默认搜索工具：当用户输入不匹配任何特定搜索工具时，使用的默认工具
+#   "":    不使用默认工具，只显示匹配的搜索工具
+#   plu:   插件搜索 (搜索已安装的插件)
+#   tab:   当前标签页搜索 (搜索当前打开的文件标签页)
+#   his:   最近文件搜索 (搜索最近打开过的文件)
+#   ops:   常用操作搜索 (搜索 Typora 的常用操作命令)
+#   mode:  切换文件模式搜索 (搜索 Typora 的文件模式，如源码模式、专注模式)
+#   theme: 切换主题搜索 (搜索 Typora 的主题)
+#   out:   文档大纲搜索 (搜索当前文档的大纲)
+#   func:  功能列表搜索 (搜索 Typora 的所有功能)
+#   all:   混合查找 (搜索所有可用项目，包括以上所有工具)
+DEFAULT_TOOL = "func"
+
+# ------------------- 负向搜索 -------------------
+# 是否启用负向查询：用于更精细地筛选搜索结果
+#   true:  启用负向查询，使用 "-" 前缀表示排除关键字。例如："plu multi -search" 表示搜索包含 "multi" 但不包含 "search" 的插件
+#   false: 禁用负向查询，所有关键字都视为包含关系。例如："plu multi -search" 表示搜索包含 "multi" 和 "-search" 关键字的插件
+#   举例1：【plu multi -search】
+#      若为true:  查找【包含multi关键字，但是不包含search关键字】的插件
+#      若为false: 查找【包含multi关键字，同时包含-search关键字】的插件
+#   举例2：【his close -win -mark 标签】
+#      若为true:  查找最近打开的文件，要求文件标题【包含close、标签，不包含win、mark】
+#      若为false: 查找最近打开的文件，要求文件标题【包含close、-win、-mark、标签】
+USE_NEGATIVE_SEARCH = true
+
+
+################### resize_image ###################
+[resize_image]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 功能修饰键 -------------------
+# 各个功能对应的修饰键设置，为空则不使用对应的功能
+#   TEMPORARY:  临时修改图片大小
+#     例如，设置为 "alt" 后，当鼠标悬停在图片上并且按住 Alt 键滚动滚轮时，会临时调整图片大小
+#   PERSISTENT: 将图片转为 HTML 格式，永久修改图片大小
+#     例如，设置为 "ctrl" 后，当鼠标悬停在图片上并且按住 Ctrl 键滚动滚轮时，会将图片转换为 HTML 格式并永久修改大小
+MODIFIER_KEY = { TEMPORARY = "alt", PERSISTENT = "" }
+
+# ------------------- 插件功能 -------------------
+# 允许图片超出范围：当图片被放缩后，是否允许图片超出其父容器的边界
+#   true:  允许图片超出父容器范围显示
+#   false: 限制图片显示在其父容器内
+ALLOW_OVERSIZE = true
+
+# 图片水平位置：设置调整后的图片在水平方向上的对齐方式
+#   center: 图片居中对齐
+#   left:   图片左对齐
+#   right:  图片右对齐
+IMAGE_ALIGN = "center"
+
+# 记住图片的放缩状态：是否记住当前文档中图片被放缩后的状态（例如图片大小，位置等），直到 Typora 关闭
+#   true:  记住放缩状态，当再次打开文档时，图片会保持之前的放缩状态
+#   false: 不记住放缩状态，每次打开文档都会恢复到默认的图片大小
+RECORD_RESIZE = true
+
+
+################### resize_table ###################
+[resize_table]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 表格调整 -------------------
+# 是否去除表格单元格最小宽度限制：控制是否去除表格单元格的最小宽度限制
+#   true:  去除最小宽度限制，允许单元格宽度调整到最小值
+#   false: 保留最小宽度限制
+REMOVE_MIN_WIDTH = true
+
+# 单元格边线的拖拽范围：设置单元格边线拖拽时的最小范围（单位：px）
+#   例如：THRESHOLD = 20 表示拖拽距离不超过 20 像素时，视为无效拖拽
+#   取值范围：大于等于 0 的数字，推荐取值 10 ~ 30 之间
+THRESHOLD = 20
+
+# 记住表格放缩状态：控制是否记住表格的放缩状态，直到关闭 Typora
+#   true:  记住表格的放缩状态，直到关闭 Typora
+#   false: 不记住表格的放缩状态
+RECORD_RESIZE = true
+
+
+################### datatables ###################
+[datatables]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = false
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 表格分页与排序 -------------------
+# 是否分页
+#   true:  启用分页功能
+#   false: 禁用分页功能
+PAGING = true
+
+# 使用分页时，单页显示的数据条数
+PAGE_LENGTH = 25
+
+# 当显示更少的记录时，是否允许表格减少高度
+#   true:  启用自动调整高度
+#   false: 固定表格高度
+SCROLL_COLLAPSE = true
+
+# 是否使用排序功能
+#   true:  启用排序功能
+#   false: 禁用排序功能
+ORDERING = true
+
+# 是否在初始化的时候排序
+#   true:  初始化时自动排序
+#   false: 初始化时不排序
+DEFAULT_ORDER = false
+
+# ------------------- 表格搜索与过滤 -------------------
+# 是否使用搜索
+#   true:  启用搜索功能
+#   false: 禁用搜索功能
+SEARCHING = true
+
+# 在搜索或者过滤时，是否区分大小写
+#   true:  搜索时区分大小写
+#   false: 搜索时不区分大小写
+CASE_INSENSITIVE = true
+
+# 对在搜索中是否正则表达式
+#   true:  启用正则表达式搜索
+#   false: 禁用正则表达式搜索
+REGEX = false
+
+
+################### go_top ###################
+[go_top]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+# 到顶的快捷键
+#   留空则不设置快捷键
+HOTKEY_GO_TOP = ""
+
+# 到底的快捷键
+#   留空则不设置快捷键
+HOTKEY_GO_BOTTOM = ""
+
+
+################### markmap ###################
+[markmap]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件，允许使用 Markmap 的所有功能
+#   false: 禁用插件，所有 Markmap 相关功能将不可用
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- TOC (思维导图) 功能 -------------------
+# 启用或禁用 TOC 功能，即以弹窗形式展示当前文件的思维导图
+#   true:  启用 TOC 功能，允许通过快捷键或菜单项打开思维导图弹窗
+#   false: 禁用 TOC 功能，以下 TOC 相关配置将全部失效
+ENABLE_TOC_MARKMAP = true
+
+# 打开 TOC 功能的快捷键
+#   留空则不设置快捷键
+TOC_HOTKEY = ""
+
+# 当大纲发生变化，是否自动更新图形
+#   true:  每当大纲发生变化，会自动更新图形
+#   false: 当大纲发生变化，不会自动更新图形，图形会一直保持不变
+AUTO_UPDATE = true
+
+# 点击思维导图节点是否跳转到文档对应章节
+#   true:  点击节点后，页面会滚动到文档中对应的标题位置
+#   false: 点击节点不会跳转到文档
+CLICK_TO_LOCALE = true
+
+# 定位时，目标章节滚动到视口的高度位置百分比
+#   取值范围：0 到 1 之间的浮点数
+#   - 0: 目标章节滚动到视口顶部
+#   - 1: 目标章节滚动到视口底部
+#   - 0.5: 目标章节滚动到视口中间位置
+#   仅当 CLICK_TO_LOCALE 为 true 时生效
+LOCALE_HEIGHT_RATIO = 0.2
+
+# 是否兼容文档中存在的跳级标题（违反 MD001 规范）
+#   true:  允许文档中存在跳级标题，并在思维导图中正确显示
+#   false: 会过滤掉跳级标题，只显示符合规范的连续标题层级
+FIX_ERROR_LEVEL_HEADER = true
+
+# 当文档内容更新导致思维导图更新时，是否自动调整图形大小以适配窗口
+#   true:  更新后自动调整图形大小，保持最佳显示效果
+#   false: 更新后图形大小保持不变，可能需要手动调整窗口大小
+AUTO_FIT_WHEN_UPDATE = true
+
+# 当用户调整窗口大小时，图形是否自动重新适配窗口大小
+#   true:  调整窗口大小后，自动调整图形大小，保持最佳显示效果
+#   false: 调整窗口大小后图形大小保持不变，可能需要手动刷新
+AUTO_FIT_WHEN_RESIZE = true
+
+# 当文档内容更新导致思维导图更新时，已折叠的节点是否保持折叠状态
+#   true:  更新后，之前折叠的节点将保持折叠状态
+#   false: 更新后，所有节点将展开，需要重新手动折叠
+REMEMBER_FOLD_WHEN_UPDATE = true
+
+# 折叠思维导图节点时，是否自动折叠对应的章节内容（实验性特性，不推荐开启，依赖 collapse_paragraph 插件）
+#   true:  折叠节点时，同时折叠文档中对应的章节内容
+#   false: 折叠节点时，不影响文档中的章节内容
+AUTO_COLLAPSE_PARAGRAPH_WHEN_FOLD = false
+
+# 初始化时，弹窗的宽度占窗口宽度的百分比
+#   取值范围：0 到 100 之间的整数
+WIDTH_PERCENT_WHEN_INIT = 90
+
+# 初始化时，弹窗的高度占窗口高度的百分比
+#  取值范围：0 到 100 之间的整数
+HEIGHT_PERCENT_WHEN_INIT = 35
+
+# 当思维导图弹窗固定到页面顶部时，弹窗的高度占窗口高度的百分比
+#   取值范围：0 到 100 之间的整数
+HEIGHT_PERCENT_WHEN_PIN_UP = 30
+
+# 当思维导图弹窗固定到页面右侧时，弹窗的宽度占窗口宽度的百分比
+#   取值范围：0 到 100 之间的整数
+WIDTH_PERCENT_WHEN_PIN_RIGHT = 50
+
+# 当鼠标悬停在思维导图节点上时，显示的边框样式
+#   可以使用 CSS 边框样式，例如 "2px solid red", "1px dashed #000000"
+BORDER_STYLE_WHEN_NODE_HOVER = "4px solid #FF7B00"
+
+# 预设的配色方案列表：用于设置思维导图节点的颜色
+#   每个配色方案是一个颜色数组，插件会按顺序使用这些颜色
+#   默认是 D3 categorical schemes：https://d3js.org/d3-scale-chromatic/categorical
+CANDIDATE_COLOR_SCHEMES = [
+    ["#B3E2CD", "#FDCDAC", "#CBD5E8", "#F4CAE4", "#E6F5C9", "#FFF2AE", "#F1E2CC", "#CCCCCC"],
+    ["#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3"],
+    ["#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666"],
+    ["#7FC97F", "#BEAED4", "#FDC086", "#FFFF99", "#386CB0", "#F0027F", "#BF5B17", "#666666"],
+    ["#FBB4AE", "#B3CDE3", "#CCEBC5", "#DECBE4", "#FED9A6", "#FFFFCC", "#E5D8BD", "#FDDAEC", "#F2F2F2"],
+    ["#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"],
+    ["#4E79A7", "#F28E2C", "#E15759", "#76B7B2", "#59A14F", "#EDC949", "#AF7AA1", "#FF9DA7", "#9C755F", "#BAB0AB"],
+    ["#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B", "#E377C2", "#7F7F7F", "#BCBD22", "#17BECF"],
+    ["#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F", "#FF7F00", "#CAB2D6", "#6A3D9A", "#FFFF99", "#B15928"],
+    ["#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69", "#FCCDE5", "#D9D9D9", "#BC80BD", "#CCEBC5", "#FFED6F"],
+]
+
+# TOC 图形默认选项：用于自定义 TOC 图形外观和行为
+#   autoFit           : 折叠/展开节点时，图形是否自动适配窗口
+#   duration          : 折叠/展开节点时，图形变换动画的持续时间 (单位：毫秒)
+#   initialExpandLevel: 首次渲染时要展开多少级分支 (-1 则展开全部)
+#   colorFreezeLevel  : 从多少级开始固定分支颜色
+#   zoom              : 是否允许用户缩放图形
+#   pan               : 是否允许用户平移图形
+#   color             : 配色方案 (填入颜色数组，例如 ["#1F77B4", "#17BECF"])
+#   maxWidth          : 节点最大长度 (0 则无长度限制)
+#   spacingHorizontal : 节点水平间距
+#   spacingVertical   : 节点垂直间距
+#   paddingX          : 节点内部边距
+#   fitRatio          : 图形的窗口填充率
+DEFAULT_TOC_OPTIONS = { autoFit = true, duration = 500, initialExpandLevel = -1, maxWidth = 0, spacingHorizontal = 80, spacingVertical = 5, fitRatio = 0.95, paddingX = 8, colorFreezeLevel = 6, zoom = true, pan = true, color = ["#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B", "#E377C2", "#7F7F7F", "#BCBD22", "#17BECF"] }
+
+# 导出选项：用于自定义导出图形和导出行为
+#   FILENAME: 文件名格式
+#     可以使用以下占位符
+#       - {{filename}}:  当前 Markdown 文件名
+#       - {{timestamp}}: 当前时间戳
+#       - {{random}}:    英文和数字的随机组合
+#       - {{uuid}}:      UUID (通用唯一识别码)
+#   FOLDER: 目录路径，为空时表示使用系统临时目录
+#     可以使用绝对路径，例如 "D:\\tmp\\img"
+#   REMOVE_USELESS_CLASSES: 是否删除无用的类名以减小文件体积
+#     true:  删除无用类名，减小 SVG 文件体积
+#     false: 保留所有类名，不进行优化
+#   REMOVE_FOREIGN_OBJECT: 是否移除 foreignObject 标签，并替换为 <text> 标签
+#     true:  移除 foreignObject 标签，提高 SVG 的兼容性，但可能丢失一些样式
+#     false: 保留 foreignObject 标签，可以保留更多样式，但可能导致部分应用无法正确处理 SVG
+#     请谨慎修改此项，若不了解 SVG，请保持默认值 false
+#   PADDING_HORIZONTAL: 图形的水平内边距
+#     例如： 25 表示图片的左右内边距为 25
+#   PADDING_VERTICAL: 图形的垂直内边距
+#     例如： 25 表示图片的上下内边距为 25
+#   IMAGE_QUALITY: 导出为 JPG 或 WebP 格式图片时，图片的质量
+#     取值范围：0 到 1 之间的浮点数，值越大质量越高，文件体积也越大
+#   KEEP_ALPHA_CHANNEL: 导出带透明通道的图片格式 (如 PNG、WEBP) 时，是否保留透明通道
+#     true:  保留透明通道，将导出带透明背景的图片
+#     false: 不保留透明通道，将使用 BACKGROUND_COLOR 设置背景颜色
+#   BACKGROUND_COLOR: 导出像素图片格式 (如 JPG、PNG、WEBP) 时，设置的背景颜色
+#     可以使用 CSS 颜色值，例如 "#FFFFFF" (白色), "#000000" (黑色)
+#   TEXT_COLOR: 字体颜色
+#     可以使用 CSS 颜色值，例如 "#FFFFFF" (白色), "#000000" (黑色)
+#   OPEN_CIRCLE_COLOR: 展开节点的颜色
+#     可以使用 CSS 颜色值，例如 "#FFFFFF" (白色), "#000000" (黑色)
+#   SHOW_PATH_INQUIRY_DIALOG: 导出前是否显示文件保存路径选择对话框
+#     true:  导出前显示对话框，允许用户选择保存路径
+#     false: 导出时直接使用默认路径，不显示对话框
+#   SHOW_IN_FINDER: 导出完成后是否自动打开文件所在的目录
+#     true:  导出后，自动打开文件所在目录
+#     false: 导出后不打开目录
+DOWNLOAD_OPTIONS = { FILENAME = "{{filename}}_{{timestamp}}.svg", FOLDER = "", REMOVE_USELESS_CLASSES = true, REMOVE_FOREIGN_OBJECT = false, PADDING_HORIZONTAL = 25, PADDING_VERTICAL = 25, IMAGE_QUALITY = 0.92, KEEP_ALPHA_CHANNEL = true, BACKGROUND_COLOR = "#FFFFFF", TEXT_COLOR = "#333333", OPEN_CIRCLE_COLOR = "#FFFFFF", SHOW_PATH_INQUIRY_DIALOG = true, SHOW_IN_FINDER = true }
+
+# ------------------- Fence (代码块) 功能 -------------------
+# 启用或禁用 Fence 功能，即插入 markmap 代码块
+#   true:  启用 Fence 功能，允许通过快捷键或菜单项插入代码块
+#   false: 禁用 Fence 功能，以下 Fence 相关配置将全部失效
+ENABLE_FENCE_MARKMAP = true
+
+# 插入 markmap 代码块的快捷键
+#   留空则不设置快捷键
+FENCE_HOTKEY = ""
+
+# 插入 markmap 代码块时使用的代码块语言
+#   强烈建议不要修改此项，如果修改，需要同时修改 FENCE_TEMPLATE 选项里的语言设置
+LANGUAGE = "markmap"
+
+# 插入的 markmap 代码块是否默认处于交互模式
+#   true:  默认处于交互模式，鼠标点击图表不会展开代码块，需要点击 "编辑" 按钮才能展开
+#   false: 默认不处于交互模式，鼠标点击图表可以直接展开代码块
+INTERACTIVE_MODE = true
+
+# 插入 markmap 代码块的默认高度
+#   可以使用 CSS 单位，例如 "300px", "20em", "50vh"
+DEFAULT_FENCE_HEIGHT = "300px"
+
+# 插入 markmap 代码块的默认背景颜色
+#   可以使用 CSS 颜色值，例如 "#F0F0F0", "white", "rgb(240, 240, 240)"
+DEFAULT_FENCE_BACKGROUND_COLOR = "#F8F8F8"
+
+# 代码块图形默认选项：用于自定义代码块图形外观和行为
+#   duration          : 折叠/展开节点时，图形变换动画的持续时间 (单位：毫秒)
+#   initialExpandLevel: 首次渲染时要展开多少级分支 (-1 则展开全部)
+#   colorFreezeLevel  : 从多少级开始固定分支颜色
+#   zoom              : 是否允许用户缩放图形
+#   pan               : 是否允许用户平移图形
+#   height            : 图形高度
+#   color             : 配色方案（填入颜色数组，例如 ["#1F77B4", "#17BECF"]）
+#   backgroundColor   : 背景颜色
+#   maxWidth          : 节点最大长度 (0 则无长度限制)
+#   spacingHorizontal : 节点水平间距
+#   spacingVertical   : 节点垂直间距
+#   paddingX          : 节点内部边距
+#   fitRatio          : 图形的窗口填充率
+DEFAULT_FENCE_OPTIONS = { duration = 500, initialExpandLevel = -1, colorFreezeLevel = 6, zoom = false, pan = false, maxWidth = 0, spacingHorizontal = 80, spacingVertical = 5, paddingX = 8, fitRatio = 0.95, height = "300px", backgroundColor = "#F8F8F8", color = ["#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B", "#E377C2", "#7F7F7F", "#BCBD22", "#17BECF"] }
+
+# 插入的 Markmap 代码块模板
+#   此模板定义了插入的 Markmap 代码块的初始内容和配置
+#   请确保此处的代码块语言与 LANGUAGE 配置一致
+FENCE_TEMPLATE = """```markmap
+---
+title: markmap
+markmap:
+  zoom: false
+  pan: false
+  maxWidth: 0
+  spacingHorizontal: 80
+  spacingVertical: 5
+  paddingX: 8
+  fitRatio: 0.95
+  initialExpandLevel: -1
+  colorFreezeLevel: 6
+  color: ["#4E79A7", "#F28E2C", "#E15759", "#76B7B2", "#59A14F", "#EDC949", "#AF7AA1", "#FF9DA7", "#9C755F", "#BAB0AB"]
+  duration: 500
+  height: 300px
+  backgroundColor: "#F8F8F8"
+---
+
+## Links
+
+- [Website](https://markmap.js.org/)
+- [GitHub](https://github.com/gera2ld/markmap)
+
+## Features
+
+Note that if blocks and lists appear at the same level, the lists will be ignored.
+
+### Lists
+
+- **strong** ~~del~~ *italic* ==highlight==
+- `inline code`
+- [x] checkbox
+- Katex: $x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}$ <!-- markmap: fold -->
+  - [More Katex Examples](#?d=gist:af76a4c245b302206b16aec503dbe07b:katex.md)
+- Now we can wrap very very very very long text based on `maxWidth` option
+
+### Blocks
+
+| Products | Price |
+|-|-|
+| Apple | 4 |
+| Banana | 2 |
+"""
+
+
+################### auto_number ###################
+[auto_number]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件，对文档中的章节、表格、图片、代码块等元素进行自动编号
+#   false: 禁用插件，不进行自动编号
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 编号元素 -------------------
+# 启用大纲自动编号：是否在 Typora 的侧边栏（TOC 目录）中显示自动编号
+#   true:  在侧边栏中显示编号
+#   false: 在侧边栏中不显示编号
+ENABLE_OUTLINE = true
+
+# 启用正文自动编号：是否在 Typora 正文内容中显示自动编号
+#   true:  在正文中显示编号
+#   false: 在正文中不显示编号
+ENABLE_CONTENT = true
+
+# 启用 TOC 自动编号：是否在 TOC (Table of Contents) 目录中显示自动编号
+#   true:  在 TOC 中显示编号
+#   false: 在 TOC 中不显示编号
+ENABLE_TOC = true
+
+# 启用表格自动编号：是否对文档中的表格进行自动编号
+#   true:  对表格进行编号
+#   false: 不对表格进行编号
+ENABLE_TABLE = true
+
+# 启用图片自动编号：是否对文档中的图片进行自动编号
+#   true:  对图片进行编号
+#   false: 不对图片进行编号
+ENABLE_IMAGE = true
+
+# 启用代码块自动编号：是否对文档中的代码块进行自动编号
+#   true:  对代码块进行编号
+#   false: 不对代码块进行编号
+ENABLE_FENCE = true
+
+# ------------------- 样式与显示控制 -------------------
+# 导出时运用样式：是否在导出为 HTML 或 PDF 等格式时保留自动编号的样式
+#   true:  导出时应用编号样式
+#   false: 导出时不应用编号样式
+ENABLE_WHEN_EXPORT = true
+
+# 展示图片的名称：是否在图片编号旁边显示图片的原始文件名
+#   注意：不建议开启此选项，会消耗较多资源，并且可能导致排版混乱
+#   仅当 ENABLE_IMAGE 为 true 时此选项有效
+#   true:  显示图片名称
+#   false: 不显示图片名称
+SHOW_IMAGE_NAME = false
+
+# 编号的下标使用的字体：设置自动编号下标的字体
+#   推荐使用等宽字体，例如 "monospace" 以保证对齐
+FONT_FAMILY = "monospace"
+
+# 编号的下标的位置：设置自动编号下标相对于元素的对齐方式
+#   left:   编号显示在元素的左侧
+#   right:  编号显示在元素的右侧
+#   center: 编号显示在元素的中间
+ALIGN = "center"
+
+# 表格编号的位置
+#   before: 先于表格出现
+#   after:  后于表格出现
+POSITION_TABLE = "after"
+
+# ------------------- 编号格式 -------------------
+# 编号格式定义：
+#   你可以在这里自定义不同元素的编号格式，支持的元素类型包括：
+#     - content-h1 ~ content-h6:  正文内容中的一级标题到六级标题
+#     - outline-h1 ~ outline-h6:  大纲视图中的一级标题到六级标题
+#     - toc-h1 ~ toc-h6:          TOC 中的一级标题到六级标题
+#     - table:                    表格
+#     - image:                    图片
+#     - fence:                    代码块
+#
+# 编号格式语法：
+#   借鉴了 Python 的 f-string 语法，它能让你轻松地组合文本和计数器。
+#   格式如下：
+#     "前缀{计数器名称:计数样式}后缀"
+#   例如：
+#     image = "图{i:cjk}"
+#   最终的图片编号是：
+#     图一, 图二, 图三, ...
+#   解释：
+#     - "图" 是前缀，表示编号前显示的文字
+#     - {i:cjk} 是编号的核心：
+#       - i 是计数器名称，代表“图片”的计数器
+#       - cjk 是计数样式，表示使用中文数字 (一, 二, 三, ...)
+#     - 后缀为空，表示编号后没有文字
+#
+#   组合多个计数器：
+#     你可以组合多个计数器和文本，创建复杂的编号格式
+#     例如：content-h4 = "{c2:ua}-{c3:cjk}.{c4:ur}"
+#     如果当前是：第 2 个二级标题，第 5 个三级标题，第 3 个四级标题，那么最终的四级标题编号会是：`B-五.III`
+#     解释：
+#       - {c2:ua} 表示使用大写英文字母计数二级标题 (A, B, C...)，结果为 B
+#       - {c3:cjk} 表示使用中文数字计数三级标题 (一, 二, 三...)，结果为 五
+#       - {c4:ur} 表示使用大写罗马数字计数四级标题 (I, II, III...)，结果为 III
+#
+# 计数器名称：
+#   - c1 ~ c6: 分别用于正文中 1 级到 6 级标题
+#   - o1 ~ o6: 分别用于大纲中 1 级到 6 级标题
+#   - t1 ~ t6: 分别用于目录中 1 级到 6 级标题
+#   - t: 用于表格的计数
+#   - i: 用于图片的计数
+#   - f: 用于代码块的计数
+#
+# 可用的计数样式：
+#   - d:   阿拉伯数字 (1, 2, 3, 4, ...)        *默认值。{c2:d}可以省略为{c2}*
+#   - dlz: 前导零的阿拉伯数字 (01, 02, 03, 04, ...)
+#   - lr:  小写罗马数字 (i, ii, iii, iv, v, ...)
+#   - ur:  大写罗马数字 (I, II, III, IV, V, ...)
+#   - la:  小写英文字母 (a, b, c, d, ...)
+#   - ua:  大写英文字母 (A, B, C, D, ...)
+#   - lg:  小写希腊字母 (α, β, γ, δ, ...)
+#   - hs:  天干 (甲, 乙, 丙, 丁, ...)
+#   - eb:  地支 (子, 丑, 寅, 卯, ...)
+#   - cjk: 汉字数字 (一, 二, 三, 四, ...)
+#   - scf: 简体中文大写数字 (壹, 贰, 叁, 肆, ...)  *注意：仅 Typora 新版本支持*
+#   - tcf: 繁体中文大写数字 (壹, 贰, 參, 肆, ...)  *注意：仅 Typora 新版本支持*
+#   - jf:  日文汉字大写数字 (壱, 弐, 参, 肆, ...)  *注意：仅 Typora 新版本支持*
+#   - hi:  平假名 (あ, い, う, ...)             *注意：仅 Typora 新版本支持*
+#   - ka:  片假名 (ア, イ, ウ, ...)             *注意：仅 Typora 新版本支持*
+#   - di:  实心圆点 (●)
+#   - ci:  空心圆点 (○)
+#   - sq:  实心方块 (■)
+#   - no:  无 (不显示编号)
+
+# 布局：
+#   你可以定义多个布局，并选择一个作为当前使用的布局
+#   每个布局都包含了一套完整的编号格式定义。若某一元素不需要编号，请置为 ""
+# 布局配置：
+#   - name: 布局名称，用于标识不同的布局
+#   - selected: 是否选中此布局。若为 true，则使用此布局的编号格式
+#   - layout: 布局的具体设置
+[[auto_number.LAYOUTS]]
+name = "Layout::Decimal"
+selected = true
+[auto_number.LAYOUTS.layout]
+content-h1 = ""
+content-h2 = "{c2}. "
+content-h3 = "{c2}.{c3} "
+content-h4 = "{c2}.{c3}.{c4} "
+content-h5 = "{c2}.{c3}.{c4}.{c5} "
+content-h6 = "{c2}.{c3}.{c4}.{c5}.{c6} "
+outline-h1 = ""
+outline-h2 = "{o2}. "
+outline-h3 = "{o2}.{o3} "
+outline-h4 = "{o2}.{o3}.{o4} "
+outline-h5 = "{o2}.{o3}.{o4}.{o5} "
+outline-h6 = "{o2}.{o3}.{o4}.{o5}.{o6} "
+toc-h1 = ""
+toc-h2 = "{t2}. "
+toc-h3 = "{t2}.{t3} "
+toc-h4 = "{t2}.{t3}.{t4} "
+toc-h5 = "{t2}.{t3}.{t4}.{t5} "
+toc-h6 = "{t2}.{t3}.{t4}.{t5}.{t6} "
+table = "Table {t}"
+image = "Image {i}"
+fence = "Fence {f}"
+
+[[auto_number.LAYOUTS]]
+name = "Layout::RomanNumeral"
+selected = false
+[auto_number.LAYOUTS.layout]
+content-h1 = "{c1:ur}. "
+content-h2 = "{c2:ua}. "
+content-h3 = "{c3}. "
+content-h4 = "{c4:la}. "
+content-h5 = "({c5}). "
+content-h6 = "({c6:la}). "
+outline-h1 = "{o1:ur}. "
+outline-h2 = "{o2:ua}. "
+outline-h3 = "{o3}. "
+outline-h4 = "{o4:la}. "
+outline-h5 = "({o5}). "
+outline-h6 = "({o6:la}). "
+toc-h1 = "{t1:ur}. "
+toc-h2 = "{t2:ua}. "
+toc-h3 = "{t3}. "
+toc-h4 = "{t4:la}. "
+toc-h5 = "({t5}). "
+toc-h6 = "({t6:la}). "
+table = "Table {t}"
+image = "Image {i}"
+fence = "Fence {f}"
+
+[[auto_number.LAYOUTS]]
+name = "Layout::ChineseThesis"
+selected = false
+[auto_number.LAYOUTS.layout]
+content-h1 = "{c1:cjk}、"
+content-h2 = "（{c2:cjk}）"
+content-h3 = "{c3}. "
+content-h4 = "（{c4}）"
+content-h5 = "{c5}）"
+content-h6 = "{c6:ua}. "
+outline-h1 = "{o1:cjk}、"
+outline-h2 = "（{o2:cjk}）"
+outline-h3 = "{o3}. "
+outline-h4 = "（{o4}）"
+outline-h5 = "{o5}）"
+outline-h6 = "{o6:ua}. "
+toc-h1 = "{t1:cjk}、"
+toc-h2 = "（{t2:cjk}）"
+toc-h3 = "{t3}. "
+toc-h4 = "（{t4}）"
+toc-h5 = "{t5}）"
+toc-h6 = "{t6:ua}. "
+table = "表 {t}"
+image = "图 {i}"
+fence = "代码 {f}"
+
+[[auto_number.LAYOUTS]]
+name = "Layout::None"
+selected = false
+[auto_number.LAYOUTS.layout]
+content-h1 = ""
+content-h2 = ""
+content-h3 = ""
+content-h4 = ""
+content-h5 = ""
+content-h6 = ""
+outline-h1 = ""
+outline-h2 = ""
+outline-h3 = ""
+outline-h4 = ""
+outline-h5 = ""
+outline-h6 = ""
+toc-h1 = ""
+toc-h2 = ""
+toc-h3 = ""
+toc-h4 = ""
+toc-h5 = ""
+toc-h6 = ""
+table = ""
+image = ""
+fence = ""
+
+
+################### fence_enhance ###################
+[fence_enhance]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 按钮功能（代码块右上角按钮） -------------------
+# 启用或禁用代码块右上角的按钮功能
+#   true:  启用按钮功能，显示复制、折叠、缩进等按钮
+#   false: 禁用按钮功能，不显示按钮，以下按钮相关的配置全部失效
+ENABLE_BUTTON = true
+
+# 按钮的大小：设置按钮的字体大小
+#   可以使用 CSS 单位，例如 "1.2em", "14px"
+BUTTON_SIZE = "1.2em"
+
+# 按钮的颜色：设置按钮的颜色
+#   可以使用 CSS 颜色值，例如 "red", "#FF0000", "currentColor"
+#   currentColor 表示使用当前元素的文本颜色
+BUTTON_COLOR = "currentColor"
+
+# 按钮的间距：设置按钮之间的间距
+#   可以使用 CSS 单位，例如 "0.4em", "5px"
+BUTTON_MARGIN = "0.4em"
+
+# 按钮距离代码块顶部的距离：设置按钮距离代码块顶部的距离
+#   可以使用 CSS 单位，例如 "0.3em", "2px"
+BUTTON_TOP = "0.3em"
+
+# 按钮距离代码块右侧的距离：设置按钮距离代码块右侧的距离
+#   可以使用 CSS 单位，例如 "0.5em", "3px"
+BUTTON_RIGHT = "0.5em"
+
+# 按钮的初始不透明度：设置按钮的初始不透明度，取值范围为 0 到 1
+#   0 表示完全透明，1 表示完全不透明
+BUTTON_OPACITY = 0.5
+
+# 鼠标悬停时按钮的不透明度：设置鼠标悬停在按钮上时的不透明度，取值范围为 0 到 1
+#   0 表示完全透明，1 表示完全不透明
+BUTTON_OPACITY_HOVER = 0.8
+
+# 去掉按钮上的功能提示：是否去掉鼠标悬停在按钮上时显示的功能提示
+#   true:  去掉功能提示
+#   false: 保留功能提示
+REMOVE_BUTTON_HINT = false
+
+# 自动隐藏按钮：设置是否在鼠标移动到代码块时才显示按钮
+#   true:  鼠标移入代码块时显示按钮，鼠标移出后隐藏按钮
+#   false: 按钮始终显示
+# 注意：即使设置为 true，在折叠状态下的代码块按钮也会始终显示，以提示用户代码块处于折叠状态
+AUTO_HIDE = false
+
+# 启用复制代码功能：是否启用代码块的复制功能
+#   true:  启用复制功能，显示复制按钮
+#   false: 禁用复制功能，不显示复制按钮
+ENABLE_COPY = true
+
+# 启用代码调整缩进功能：是否启用代码块的调整缩进功能
+#   true:  启用缩进功能，显示缩进按钮
+#   false: 禁用缩进功能，不显示缩进按钮
+#   注意：低版本 Typora 可能不支持此功能
+ENABLE_INDENT = true
+
+# 启用折叠代码功能：是否启用代码块的折叠功能
+#   true:  启用折叠功能，显示折叠按钮
+#   false: 禁用折叠功能，不显示折叠按钮
+ENABLE_FOLD = true
+
+# 默认折叠代码块：是否在加载时默认折叠代码块
+# 若置为 false，则选项 DEFAULT_FOLD_THRESHOLD 失效
+#   true:  默认折叠代码块
+#   false: 默认不折叠代码块
+DEFAULT_FOLD = false
+
+# 代码块折叠行数：开启默认折叠后，仅当代码块行数大于此值时才会被默认折叠
+#   设置为 0 则所有代码块都会被折叠
+DEFAULT_FOLD_THRESHOLD = 0
+
+# 操作成功时，icon提示的保持时间（单位：毫秒）：设置点击按钮后，图标变化（例如复制成功时的勾选标记）的显示时间
+#   单位为毫秒，例如：1000 表示 1 秒
+WAIT_RECOVER_INTERVAL = 1000
+
+# 自定义按钮：允许用户添加自定义按钮到代码块，进行更高级的操作（高级配置，需要一定的 JavaScript 基础）
+#   DISABLE: 是否禁用此按钮
+#       true:  禁用此按钮，不显示在代码块上
+#       false: 启用此按钮，显示在代码块上
+#   ICON: 按钮图标的 CSS class
+#       支持 Font Awesome 4.1.0 的图标，参考：https://www.adfwebmagazine.jp/wp-content/uploads/test_v4.1.pdf
+#       例如: "fa fa-bomb"
+#   HINT: 鼠标悬停在按钮上时显示的功能提示
+#   ON_INIT: 初始化函数字符串，此函数只在插件初始化时执行一次
+#       参数: plugin - 插件实例对象
+#       示例: "plu => console.log('custom fence button has init')"，不需要则置为空字符串 ""
+#   ON_RENDER: 渲染后回调函数字符串，每次页面渲染代码块时都会执行此函数
+#       参数: buttonElement - 按钮的 DOM 元素对象
+#       示例: "btn => console.log('btn has render')"，不需要则置为空字符串 ""
+#   ON_CLICK: 鼠标点击按钮时的回调函数字符串，点击时执行此函数
+#       参数: {ev, btn, cont, fence, cid, plu}，分别表示：click 事件对象，按钮的 DOM 元素对象，代码块文本内容，代码块的 DOM 元素对象，代码块的 CID，插件实例对象
+#       示例: "({cont}) => console.log(cont)"。此项不可为空
+CUSTOM_BUTTONS = [
+    { DISABLE = true, ICON = "fa fa-bomb", HINT = "demo", ON_INIT = "", ON_RENDER = "", ON_CLICK = "({cont}) => console.log(cont)" },
+]
+
+# ------------------- 快捷键功能 -------------------
+# 若置为 false，以下配置全部失效
+# 注意：此处的快捷键使用的是 CodeMirror 的表示方式（参考: https://codemirror.net/5/doc/manual.html#keymaps）
+# 不建议修改下面的快捷键，原因有二
+#   1. 和很多 IDE 的快捷键保持一致
+#   2. Typora 强制绑定了很多快捷键，实际可修改的快捷键并不多
+# Typora 强制绑定的快捷键如下
+#   - Ctrl-A        : selectAll
+#   - Ctrl-Up       : goDocStart
+#   - Ctrl-Down     : goDocEnd
+#   - Ctrl-Left     : goGroupLeft
+#   - Ctrl-Right    : goGroupRight
+#   - Alt-Left      : goLineStart
+#   - Alt-Right     : goLineEnd
+#   - Ctrl-Backspace: delGroupBefore
+#   - Ctrl-Delete   : delGroupAfter
+#   - Ctrl-[        : indentLess
+#   - Ctrl-]        : indentMore
+#   - Ctrl-U        : undoSelection
+#   - Shift-Ctrl-U  : redoSelection
+#   - Alt-U         : redoSelection
+ENABLE_HOTKEY = true
+
+# 将当前行和上一行互换
+SWAP_PREVIOUS_LINE = "Shift-Alt-Up"
+
+# 将当前行和下一行互换
+SWAP_NEXT_LINE = "Shift-Alt-Down"
+
+# 复制当前行到上一行
+COPY_PREVIOUS_LINE = "Ctrl-Alt-Up"
+
+# 复制当前行到下一行
+COPY_NEXT_LINE = "Ctrl-Alt-Down"
+
+# 直接在上面新建一行
+INSERT_LINE_PREVIOUS = "Shift-Ctrl-Enter"
+
+# 直接在下面新建一行
+INSERT_LINE_NEXT = "Ctrl-Enter"
+
+# ------------------- 折叠功能 -------------------
+# 支持根据代码语言的语法折叠代码
+ENABLE_LANGUAGE_FOLD = true
+
+# ------------------- 其他功能 -------------------
+# 长文本的换行会保持相同的缩进（详见：https://github.com/codemirror/codemirror5/issues/2085）
+# 不建议开启此功能，有较大的性能损失，会消耗大量时间去计算缩进
+INDENTED_WRAPPED_LINE = false
+
+# 高亮鼠标悬停的代码行
+HIGHLIGHT_WHEN_HOVER = false
+
+# 通过代码块的语言设置高亮行
+# 使用方法：在语言后面添加小括号，小括号里注明需要高亮的行（详见：https://github.com/obgnail/typora_plugin/issues/615）
+# 举例：```js(2, 5-8, 10-12)``` 表示：高亮 js 代码块的第 2 行，第 5-8，10-12 行
+HIGHLIGHT_BY_LANGUAGE = false
+
+# 代码行高亮时的颜色
+HIGHLIGHT_LINE_COLOR = "rgba(176, 178, 180, 0.4)"
+
+
+################### collapse_paragraph ###################
+[collapse_paragraph]
+# ------------------- 基础 -------------------
+# 启用或禁用章节折叠插件
+# 此插件与 Typora 的原生配置【显示当前块元素的 Markdown 源码】冲突，如果开启此插件，那么原生配置会被关闭
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = false
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 严格模式 -------------------
+# 严格模式控制折叠/展开行为的触发范围
+#   true:  只当点击到 h1 ~ h6 标题时，才触发折叠/展开操作
+#   false: 若没有直接点击 h1 ~ h6 标题，则会自动向上寻找最近的 h1 ~ h6 标题，并触发折叠/展开
+#           非严格模式可能会出现意想不到的情况：例如，在 Typora 中，ctrl + click 非常常用，当不小心点错位置时，标题可能被意外折叠
+STRICT_MODE = true
+
+# ------------------- 右键菜单中的严格模式 -------------------
+# 在右键菜单中使用严格模式的特殊设置
+# 此选项是 STRICT_MODE 的特殊情况，考虑到方便使用而添加
+#   true:  右键菜单的折叠/展开功能严格限制光标必须在标题行中，否则不显示相关菜单项
+#   false: 右键菜单不再严格限制光标必须在标题行中，在正文区域任意位置右键就可以显示所有折叠/展开菜单选项
+STRICT_MODE_IN_CONTEXT_MENU = false
+
+# ------------------- 记住章节折叠状态 -------------------
+# 是否记住章节的折叠状态
+#   true:  记住章节的折叠/展开状态，直到关闭 Typora
+#   false: 不记录章节的折叠/展开状态
+RECORD_COLLAPSE = true
+
+# ------------------- 功能对应的修饰键 -------------------
+# 为不同的折叠/展开功能设置修饰键
+#   1. 支持 ctrl/alt/shift 的随意组合，例如 "shift+alt", "ctrl+shift"
+#   2. 但是不能为 "alt" （因为 alt + click 已经被【scrollBookmarker】插件占用），也不能为 "shift" （因为 shift + click 被系统自带的【框选】功能占用）
+#   3. 为空表示不启用此功能
+#   4. 例如【COLLAPSE_SIBLINGS = "ctrl+alt"】：当用户同时按住键盘 ctrl 和 alt，并且鼠标 click 标题时，会折叠/展开父章节下所有同级的章节
+#
+# 功能
+#   COLLAPSE_SINGLE       : 折叠/展开 单个章节
+#   COLLAPSE_SIBLINGS     : 折叠/展开 父章节下所有同级的章节
+#   COLLAPSE_ALL_SIBLINGS : 折叠/展开 当前文件所有同级的章节
+#   COLLAPSE_RECURSIVE    : 递归折叠/展开 当前章节
+MODIFIER_KEY = { COLLAPSE_SINGLE = "ctrl", COLLAPSE_SIBLINGS = "ctrl+alt", COLLAPSE_ALL_SIBLINGS = "ctrl+shift+alt", COLLAPSE_RECURSIVE = "" }
+
+
+################### collapse_list ###################
+[collapse_list]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = false
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 标志颜色 -------------------
+# 缩放标志的颜色，若为空，则跟随系统配色
+TRIANGLE_COLOR = ""
+
+# ------------------- 折叠状态记忆 -------------------
+# 记住列表是否折叠（直到关闭 Typora）
+#   true:  记住列表折叠状态
+#   false: 不记住列表折叠状态
+RECORD_COLLAPSE = true
+
+
+################### collapse_table ###################
+[collapse_table]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = false
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 折叠状态记忆 -------------------
+# 记住表格是否折叠（直到关闭 Typora）
+#   true:  记住表格折叠状态
+#   false: 不记住表格折叠状态
+RECORD_COLLAPSE = true
+
+
+################### truncate_text ###################
+[truncate_text]
+# ------------------- 基础 -------------------
+# 启用或禁用文段截断插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = false
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+# 快捷键：隐藏当前选中文本段之前的所有文本
+#   留空则不设置快捷键
+HIDE_FRONT_HOTKEY = ""
+
+# 快捷键：显示所有被隐藏的文本段
+#   留空则不设置快捷键
+SHOW_ALL_HOTKEY = ""
+
+# 快捷键：根据当前视图隐藏文本段，将当前视图之外的内容隐藏
+#   留空则不设置快捷键
+HIDE_BASE_VIEW_HOTKEY = ""
+
+# ------------------- 文本截断 -------------------
+# 使用 hide_front 截断后，保留显示的文本段长度
+#  当隐藏当前选中文本之前的所有文本时，保留此长度的文本
+#  REMAIN_LENGTH = 80 表示隐藏后，保留 80 段的文本显示
+REMAIN_LENGTH = 80
+
+
+################### export_enhance ###################
+[export_enhance]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 图片下载 -------------------
+# 是否下载网络图片：控制是否下载网络图片，并将其转换为 base64 编码
+# 若设置为 false，DOWNLOAD_THREADS 配置将失效
+#   true:  下载网络图片，并转换为 base64 编码。若网络不稳定，可能会导致导出超时
+#   false: 不下载网络图片，保留原有链接
+DOWNLOAD_NETWORK_IMAGE = false
+
+# 下载网络图片的并发量：设置下载网络图片时的并发线程数
+#   不建议设置过高，否则可能触发网站或图床的反爬策略
+#   仅当 DOWNLOAD_NETWORK_IMAGE 为 true 时生效
+DOWNLOAD_THREADS = 10
+
+
+################### text_stylize ###################
+[text_stylize]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 面板外观 -------------------
+# 面板的背景颜色。若为空，则跟随 Typora 主题的配色方案
+#   支持 CSS 颜色值，例如："#FFFFFF" (白色), "rgb(255, 0, 0)" (红色)
+MODAL_BACKGROUND_COLOR = ""
+
+# ------------------- 面板交互 -------------------
+# 弹出面板的快捷键，用于快速打开文字风格化面板
+#   留空则不设置快捷键
+SHOW_MODAL_HOTKEY = ""
+
+# ------------------- 工具栏 -------------------
+# 工具栏的按钮：定义面板中显示的按钮及其顺序
+#   weight               : 加粗
+#   italic               : 斜体
+#   underline            : 下划线
+#   throughline          : 中划线
+#   overline             : 上划线
+#   superScript          : 上标
+#   subScript            : 下标
+#   emphasis             : 强调符号
+#   blur                 : 模糊
+#   title                : 标题尺寸
+#   increaseSize         : 增大尺寸 (字号)
+#   decreaseSize         : 减小尺寸 (字号)
+#   increaseLetterSpacing: 增大字符间距
+#   decreaseLetterSpacing: 减小字符间距
+#   family               : 字体
+#   foregroundColor      : 前景色 (文字颜色)
+#   backgroundColor      : 背景色
+#   borderColor          : 边框颜色
+#   erase                : 移除格式
+#   blank                : 无功能，用于占位 (分隔按钮)
+#   setBrush             : 设置格式刷
+#   useBrush             : 使用格式刷
+#   move                 : 移动工具栏
+#   close                : 关闭工具栏
+TOOLBAR = [
+    "weight", "italic", "underline", "throughline", "overline", "title", "superScript", "subScript",
+    "emphasis", "blur", "increaseLetterSpacing", "decreaseLetterSpacing", "increaseSize", "decreaseSize", "family",
+    "foregroundColor", "backgroundColor", "borderColor", "setBrush", "useBrush", "erase", "blank", "move", "close"
+]
+
+# 默认的格式刷
+#   填入 CSS 表达式。例如："color:#FF0000; text-decoration:line-through;"
+DEFAULT_FORMAT_BRUSH = ""
+
+# ------------------- 快捷键 -------------------
+# 将设置样式的动作映射为快捷键，方便快速应用样式
+#   hotkey: 快捷键组合，例如："ctrl+shift+c"。为空则禁用快捷键
+#   action: 对应的工具栏按钮 (必须是上方 TOOLBAR 中定义的按钮之一)
+ACTION_HOTKEYS = [
+    { hotkey = "", action = "foregroundColor" },
+    { hotkey = "", action = "backgroundColor" },
+]
+
+# ------------------- 颜色 -------------------
+# 预设的颜色列表，用于选择文字的前景色、背景色和边框色
+#   每种颜色使用十六进制 RGB 颜色码表示 (例如： "#FF0000" 表示红色)
+COLORS = [
+    "#330000", "#331900", "#333300", "#193300", "#003300", "#003319", "#003333", "#001933", "#000033", "#190033", "#330033", "#330019", "#000000",
+    "#660000", "#663300", "#666600", "#336600", "#006600", "#006633", "#006666", "#003366", "#000066", "#330066", "#660066", "#660033", "#202020",
+    "#990000", "#994C00", "#999900", "#4C9900", "#009900", "#00994C", "#009999", "#004C99", "#000099", "#4C0099", "#990099", "#99004C", "#404040",
+    "#CC0000", "#CC6600", "#CCCC00", "#66CC00", "#00CC00", "#00CC66", "#00CCCC", "#0066CC", "#0000CC", "#6600CC", "#CC00CC", "#CC0066", "#606060",
+    "#FF0000", "#FF8000", "#FFFF00", "#80FF00", "#00FF00", "#00FF80", "#00FFFF", "#0080FF", "#0000FF", "#7F00FF", "#FF00FF", "#FF007F", "#808080",
+    "#FF3333", "#FF9933", "#FFFF33", "#99FF33", "#33FF33", "#33FF99", "#33FFFF", "#3399FF", "#3333FF", "#9933FF", "#FF33FF", "#FF3399", "#A0A0A0",
+    "#FF6666", "#FFB266", "#FFFF66", "#B2FF66", "#66FF66", "#66FFB2", "#66FFFF", "#66B2FF", "#6666FF", "#B266FF", "#FF66FF", "#FF66B2", "#C0C0C0",
+    "#FF9999", "#FFCC99", "#FFFF99", "#CCFF99", "#99FF99", "#99FFCC", "#99FFFF", "#99CCFF", "#9999FF", "#CC99FF", "#FF99FF", "#FF99CC", "#E0E0E0",
+    "#FFCCCC", "#FFE5CC", "#FFFFCC", "#E5FFCC", "#CCFFCC", "#CCFFE5", "#CCFFFF", "#CCE5FF", "#CCCCFF", "#E5CCFF", "#FFCCFF", "#FFCCE5", "#FFFFFF",
+]
+
+# 颜色列表每行显示的颜色数量
+#   用于控制颜色选择面板的布局
+NUM_PER_LINE = 13
+
+# 默认颜色配置
+#   FOREGROUND: 默认前景色
+#   BACKGROUND: 默认背景色
+#   BORDER    : 默认边框颜色
+DEFAULT_COLORS = { FOREGROUND = "#330000", BACKGROUND = "#FFFFFF", BORDER = "#330000" }
+
+
+################### cipher ###################
+[cipher]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = false
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+# 加密文件的快捷键：设置加密当前文件的快捷键组合
+#   留空则不设置快捷键
+ENCRYPT_HOTKEY = ""
+
+# 解密文件的快捷键：设置解密当前文件的快捷键组合
+#   留空则不设置快捷键
+DECRYPT_HOTKEY = ""
+
+# ------------------- 提示弹窗 -------------------
+# 是否在加密/解密操作后显示提示弹窗
+#   true:  显示提示弹窗，告知用户操作结果
+#   false: 不显示提示弹窗
+SHOW_HINT_MODAL = true
+
+
+################### easy_modify ###################
+[easy_modify]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+# 快捷键：复制当前光标所在标题的完整路径
+HOTKEY_COPY_FULL_PATH = "ctrl+shift+y"
+
+# 快捷键：提升选中文段的标题等级
+HOTKEY_INCREASE_HEADERS_LEVEL = ""
+
+# 快捷键：降低选中文段的标题等级
+HOTKEY_DECREASE_HEADERS_LEVEL = ""
+
+# 快捷键：提取选区文字到新文件
+HOTKEY_EXTRACT_RANGE_TO_NEW_FILE = ""
+
+# 快捷键：插入思维导图 (mindmap)
+HOTKEY_INSERT_MERMAID_MINDMAP = ""
+
+# 快捷键：插入思维导图 (graph)
+HOTKEY_INSERT_MERMAID_GRAPH = ""
+
+# 快捷键：将换行符从 CRLF 转为 LF
+HOTKEY_CONVERT_CRLF_TO_LF = ""
+
+# 快捷键：将换行符从 LF 转为 CRLF
+HOTKEY_CONVERT_LF_TO_CRLF = ""
+
+# 快捷键：移除不可见字符
+HOTKEY_FILTER_INVISIBLE_CHARACTERS = ""
+
+# 快捷键：添加结尾空格 (根据严格的 Markdown 换行语法，需要在结尾添加两个空格以表示换行)
+HOTKEY_TRAILING_WHITE_SPACE = ""
+
+
+################### custom ###################
+[custom]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 隐藏插件 -------------------
+# 当插件在当前光标位置下临时处于不可用状态，是否隐藏它
+# 不建议置为 true，原因有二
+#   1. 处于不可用状态的插件会在鼠标悬停时提示不可用的原因，所以不必隐藏
+#   2. 一直隐藏处于不可用状态的插件，可能导致你忘记该插件的存在
+HIDE_DISABLE_PLUGINS = false
+
+
+################### slash_commands ###################
+[slash_commands]
+# ------------------- 基础 -------------------
+# 启用或禁用斜杠命令插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 触发命令候选框 -------------------
+# 触发显示命令候选框的正则表达式：当输入内容符合如下正则表达式时，显示命令候选框
+#  若您不了解正则表达式，请勿修改
+#  注意：keyword 需要使用命名捕获组 kw
+#  默认值：匹配一个文本，该文本以 / 或 \ 开头，后面紧跟任意数量英文字母或数字，且该文本前面不可有 <
+TRIGGER_REGEXP = "(?<!<)[\\/\\\\](?<kw>\\w*)$"
+
+# 显示命令候选框的时机
+#   on_input: 输入后立刻显示
+#   debounce: 键入 400ms 后显示（防抖）
+SUGGESTION_TIMING = "on_input"
+
+# ------------------- 匹配策略 -------------------
+# 命令的匹配策略：什么样的用户输入内容才能找到对应的命令
+#   prefix: 前缀。输入内容必须是命令的前缀。比如：输入 para 可找到 Paragraph 命令
+#   substr: 子串。输入内容必须是命令的子串。比如：输入 graph 可找到 Paragraph 命令
+#   abbr:   缩写。输入的每个字符按顺序出现在命令中。比如：输入 pgh 可找到 Paragraph 命令
+MATCH_STRATEGY = "abbr"
+
+# ------------------- 排序策略 -------------------
+# 命令的排序策略：展示命令候选框时命令的显示顺序
+#   predefined:    按照下面 COMMANDS 选项的顺序
+#   lexicographic: 字典序（字母顺序）
+#   length_based:  长度顺序
+#   earliest_hit:  最早命中（越早出现命中字符就越排在前）。比如：输入 to 时，TOC 命令排在 Strong 命令前面，因为 t 在两者的出现顺序为 1 和 2
+ORDER_STRATEGY = "predefined"
+
+# ------------------- 进阶：命令参数 -------------------
+# 命令分为无参和带参两种
+#   - 无参命令的调用形式为 /command
+#   - 带参命令的调用形式为 /command_param1_param2。使用下划线进行分隔，第一项为动态命令的标识符，其余项为命令参数
+# 举例：
+#   - 无参命令 `H1` 的功能是将当前行转为一级标题。用户输入 /h1 即可调用此命令的回调函数
+#   - 带参命令 `BlockCodeGenerator` 的功能是快速创建多个代码块。用户输入 /blockCodeGenerator_go_java_bash 时，系统会自动获取参数 ["go", "java", "bash"] 传给此命令的回调函数，创建对应的代码块
+
+# 命令的参数分离标识符
+FUNC_PARAM_SEPARATOR = "_"
+
+# ------------------- 命令列表 -------------------
+# 命令列表
+#   enable:       是否启用此命令
+#   type:         命令类型
+#                   - snippet: 插入文字片段
+#                   - command: 执行逻辑命令
+#                   - gen-snp: 插入动态文字片段(generate snippet)
+#   scope:        命令可用的范围
+#                   - plain: 默认值，在普通文本区域可用
+#                   - inline_math: 仅在行内数学公式区域可用
+#   icon:         命令的图标
+#   hint:         命令的提示信息
+#   keyword:      命令的关键词，用于匹配用户输入。不符合下面的条件会被忽略
+#                   - 不可为空
+#                   - 必须唯一（不区分大小写）
+#                   - 必须是英文字母和数字的排列组合
+#   cursorOffset: 在插入文本后，光标的偏移量。值类型是数组，第一项表示光标开始位置的偏移量，第二项表示光标结束位置的偏移量
+#                   - [0, 0]: 默认值，光标不移动
+#                   - [-2, -2]: 光标回退两个字符
+#                   - [-4, -1]: 光标开始位置回退四个字符，结束位置回退一个字符，其结果就是选中倒数第二到第四的子串
+#   callback:     回调函数或文字片段
+#                   - 若 type 为 snippet，则填入需要插入的文字片段
+#                   - 若 type 为 command，则填入逻辑函数
+#                   - 若 type 为 gen-snp，则填入返回字符串的函数
+COMMANDS = [
+    { enable = true, type = "command", icon = "📝", keyword = "H1", callback = "() => File.editor.stylize.changeBlock('header1', undefined, true)" },
+    { enable = true, type = "command", icon = "📝", keyword = "H2", callback = "() => File.editor.stylize.changeBlock('header2', undefined, true)" },
+    { enable = true, type = "command", icon = "📝", keyword = "H3", callback = "() => File.editor.stylize.changeBlock('header3', undefined, true)" },
+    { enable = true, type = "command", icon = "📝", keyword = "H4", callback = "() => File.editor.stylize.changeBlock('header4', undefined, true)" },
+    { enable = true, type = "command", icon = "📝", keyword = "H5", callback = "() => File.editor.stylize.changeBlock('header5', undefined, true)" },
+    { enable = true, type = "command", icon = "📝", keyword = "H6", callback = "() => File.editor.stylize.changeBlock('header6', undefined, true)" },
+    { enable = true, type = "command", icon = "📝", keyword = "Paragraph", callback = "() => File.editor.stylize.changeBlock('paragraph')" },
+    { enable = true, type = "command", icon = "📝", keyword = "IncreaseHeaderLevel", callback = "() => File.editor.stylize.increaseHeaderLevel()" },
+    { enable = true, type = "command", icon = "📝", keyword = "DecreaseHeaderLevel", callback = "() => File.editor.stylize.decreaseHeaderLevel()" },
+    { enable = true, type = "command", icon = "📝", keyword = "Table", callback = "() => File.editor.tableEdit.insertTable()" },
+    { enable = true, type = "command", icon = "📝", keyword = "BlockCode", callback = "() => File.editor.stylize.toggleFences()" },
+    { enable = true, type = "command", icon = "📝", keyword = "BlockMath", callback = "() => File.editor.stylize.toggleMathBlock()" },
+    { enable = true, type = "command", icon = "📝", keyword = "BlockQuote", callback = "() => File.editor.stylize.toggleIndent('blockquote')" },
+    { enable = true, type = "command", icon = "📝", keyword = "Callouts", callback = "() => File.editor.stylize.insertAlert('NOTE')" },
+    { enable = true, type = "command", icon = "📝", keyword = "OrderedList", callback = "() => File.editor.stylize.toggleIndent('ol')" },
+    { enable = true, type = "command", icon = "📝", keyword = "UnorderedList", callback = "() => File.editor.stylize.toggleIndent('ul')" },
+    { enable = true, type = "command", icon = "📝", keyword = "TaskList", callback = "() => File.editor.stylize.toggleIndent('tasklist')" },
+    { enable = true, type = "command", icon = "📝", keyword = "ListMoreIndent", callback = "() => File.editor.UserOp.moreIndent(File.editor)" },
+    { enable = true, type = "command", icon = "📝", keyword = "ListLessIndent", callback = "() => File.editor.UserOp.lessIndent(File.editor)" },
+    { enable = true, type = "command", icon = "📝", keyword = "InsertParagraphAbove", callback = "() => File.editor.UserOp.insertParagraph(true)" },
+    { enable = true, type = "command", icon = "📝", keyword = "InsertParagraphBelow", callback = "() => File.editor.UserOp.insertParagraph(false)" },
+    { enable = true, type = "command", icon = "📝", keyword = "LinkReference", callback = "() => File.editor.stylize.insertBlock('def_link')" },
+    { enable = true, type = "command", icon = "📝", keyword = "FootnoteReference", callback = "() => File.editor.stylize.insertBlock('def_footnote')" },
+    { enable = true, type = "command", icon = "📝", keyword = "HorizontalLine", callback = "() => File.editor.stylize.insertBlock('hr')" },
+    { enable = true, type = "command", icon = "📝", keyword = "TOC", callback = "() => File.editor.stylize.insertBlock('toc')" },
+    { enable = true, type = "command", icon = "📝", keyword = "FrontMatter", callback = "() => File.editor.stylize.insertMetaBlock()" },
+    { enable = true, type = "command", icon = "👕", keyword = "Strong", callback = "() => File.editor.stylize.toggleStyle('strong')" },
+    { enable = true, type = "command", icon = "👕", keyword = "Em", callback = "() => File.editor.stylize.toggleStyle('em')" },
+    { enable = true, type = "command", icon = "👕", keyword = "Underline", callback = "() => File.editor.stylize.toggleStyle('underline')" },
+    { enable = true, type = "command", icon = "👕", keyword = "Code", callback = "() => File.editor.stylize.toggleStyle('code')" },
+    { enable = true, type = "command", icon = "👕", keyword = "InlineMath", callback = "() => File.editor.stylize.toggleStyle('inline_math')" },
+    { enable = true, type = "command", icon = "👕", keyword = "Delete", callback = "() => File.editor.stylize.toggleStyle('del')" },
+    { enable = true, type = "command", icon = "👕", keyword = "Highlight", callback = "() => File.editor.stylize.toggleStyle('highlight')" },
+    { enable = true, type = "command", icon = "👕", keyword = "Superscript", callback = "() => File.editor.stylize.toggleStyle('superscript')" },
+    { enable = true, type = "command", icon = "👕", keyword = "Subscript", callback = "() => File.editor.stylize.toggleStyle('subscript')" },
+    { enable = true, type = "command", icon = "👕", keyword = "Footnote", callback = "() => File.editor.stylize.toggleStyle('footnote')" },
+    { enable = true, type = "command", icon = "👕", keyword = "Comment", callback = "() => File.editor.stylize.toggleStyle('comment')" },
+    { enable = true, type = "command", icon = "👕", keyword = "Link", callback = "() => File.editor.stylize.toggleStyle('link')" },
+    { enable = true, type = "command", icon = "👕", keyword = "Image", callback = "() => File.editor.stylize.toggleStyle('image')" },
+    { enable = true, type = "command", icon = "👕", keyword = "ClearStyle", callback = "() => File.editor.stylize.clearStyle()" },
+    { enable = true, type = "command", icon = "💻", keyword = "Golang", callback = "() => this.utils.insertFence('go')" },
+    { enable = true, type = "command", icon = "💻", keyword = "Python", callback = "() => this.utils.insertFence('python')" },
+    { enable = true, type = "command", icon = "💻", keyword = "Bash", callback = "() => this.utils.insertFence('bash')" },
+    { enable = true, type = "command", icon = "💻", keyword = "Java", callback = "() => this.utils.insertFence('java')" },
+    { enable = true, type = "command", icon = "💻", keyword = "HTML", callback = "() => this.utils.insertFence('html')" },
+    { enable = true, type = "command", icon = "💻", keyword = "SQL", callback = "() => this.utils.insertFence('sql')" },
+    { enable = true, type = "command", icon = "💻", keyword = "CSS", callback = "() => this.utils.insertFence('css')" },
+    { enable = true, type = "command", icon = "💻", keyword = "Mermaid", callback = "() => this.utils.insertFence('mermaid')" },
+    { enable = true, type = "command", icon = "💻", keyword = "JavaScript", callback = "() => this.utils.insertFence('javascript')" },
+    { enable = true, type = "command", icon = "💻", keyword = "TypeScript", callback = "() => this.utils.insertFence('typescript')" },
+    { enable = true, type = "command", icon = "🧰", keyword = "JumpTop", callback = "() => File.editor.selection.jumpTop()" },
+    { enable = true, type = "command", icon = "🧰", keyword = "JumpBottom", callback = "() => File.editor.selection.jumpBottom()" },
+    { enable = true, type = "command", icon = "🧰", keyword = "JumpToLineStart", callback = "() => File.editor.selection.jumpToLineStart()" },
+    { enable = true, type = "command", icon = "🧰", keyword = "JumpToLineEnd", callback = "() => File.editor.selection.jumpToLineEnd()" },
+    { enable = true, type = "command", icon = "🧰", keyword = "Help", callback = "() => this.call()" },
+    # 文本片段
+    { enable = true, type = "snippet", icon = "🧩", keyword = "BR", callback = "<br>" },
+    { enable = true, type = "snippet", icon = "🧩", keyword = "IMG", cursorOffset = [-14, -14], callback = '<img src="" alt="alt" />' },
+    { enable = true, type = "snippet", icon = "🧩", keyword = "SPAN", cursorOffset = [-7, -7], callback = '<span></span>' },
+    { enable = true, type = "snippet", icon = "🧩", keyword = "cursorOffsetExample", cursorOffset = [-23, -10], callback = "Enjoying Typora Plugin? Star us!" },
+    { enable = true, type = "snippet", icon = "🧩", keyword = "SnippetExample", callback = "https://github.com/obgnail/typora_plugin" },
+    # 动态文本片段
+    { enable = true, type = "gen-snp", icon = "🧩", keyword = "Datetime", callback = "() => new Date().toLocaleString(undefined, {hour12: false})" },
+    { enable = true, type = "gen-snp", icon = "🧩", keyword = "Date", callback = "() => { let d = new Date(); return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}` }" },
+    { enable = true, type = "gen-snp", icon = "🧩", keyword = "Time", callback = "() => { let d = new Date(); return `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}` }" },
+    { enable = true, type = "gen-snp", icon = "🧩", keyword = "Timestamp", callback = "() => new Date().getTime().toString()" },
+    { enable = true, type = "gen-snp", icon = "🧩", keyword = "Weekday", callback = "() => new Date().toLocaleDateString(undefined, { weekday: 'long' })" },
+    { enable = true, type = "gen-snp", icon = "🧩", keyword = "UUID", callback = "() => this.utils.getUUID()" },
+    # 行内公式内才可使用
+    { enable = true, type = "snippet", icon = "🧩", keyword = "alpha", hint = "α", scope = "inline_math", callback = "\\alpha " },
+    { enable = true, type = "snippet", icon = "🧩", keyword = "beta", hint = "β", scope = "inline_math", callback = "\\beta " },
+    { enable = true, type = "snippet", icon = "🧩", keyword = "epsilon", hint = "ε", scope = "inline_math", callback = "\\epsilon " },
+    { enable = true, type = "snippet", icon = "🧩", keyword = "rightarrow", hint = "→", scope = "inline_math", callback = "\\rightarrow " },
+    # 进阶：命令参数
+    #   代码块生成器：输入 /BlockCodeGenerator_go_java_bash 即可同时插入 go、java、bash 三个代码块
+    { enable = true, type = "gen-snp", icon = "🌟", keyword = "BlockCodeGenerator", callback = "(...langs) => langs.map(l => '```' + l.toLowerCase() + '\\n```').join('\\n\\n')" },
+    #   提示块生成器：输入 /CalloutGenerator_note_info_quote 即可同时插入 NOTE、INFO、QUOTE 三个 callout
+    { enable = true, type = "gen-snp", icon = "🌟", keyword = "CalloutGenerator", callback = "(...types) => types.map(t => `> [!${t.toUpperCase()}]\\n>\\n> `).join('\\n\\n')" },
+    #   表格生成器：输入 /TableGenerator_3_4 即可插入三列四行的表格
+    { enable = true, type = "command", icon = "🌟", keyword = "TableGenerator", callback = "(col, row) => { col = parseInt(col); row = parseInt(row); const c = ['      ', ' ---- ', ...Array(row - 1).fill('      ')].map(e => `|${Array(col).fill(e).join('|')}|`).join('\\n'); this.utils.insertText(null, c, false) }" },
+]
+
+
+################### right_click_menu ###################
+[right_click_menu]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 菜单外观 -------------------
+# 展示插件的快捷键：控制是否在右键菜单中显示插件的快捷键提示
+#   此选项仅在正式版 Typora 可用
+#   true:  显示快捷键提示
+#   false: 不显示快捷键提示
+SHOW_PLUGIN_HOTKEY = true
+
+# 是否在动作选项的前面添加图标，和普通选项做区分
+#   true:  添加图标
+#   false: 不添加图标
+SHOW_ACTION_OPTIONS_ICON = true
+
+# 右键菜单二、三级菜单的最小宽度：防止菜单过宽占用过多屏幕空间
+#   - ""      : 保持默认宽度 (和第一级菜单相同宽度)
+#   - inherit : 最小宽度根据文本长度自适应
+#   - 232px   : 最小宽度为 232px (可以设置为任何正整数值)
+MENU_MIN_WIDTH = ""
+
+# 点击后是否隐藏菜单：控制点击右键菜单选项后，菜单是否自动隐藏
+#   true:  点击后不隐藏菜单
+#   false: 点击后隐藏菜单
+DO_NOT_HIDE = false
+
+# ------------------- 菜单选项管理 -------------------
+# 移除右键菜单中除了插件以外的选项：控制是否只显示插件相关的右键菜单项
+#   true:  移除 Typora 原生的右键菜单项，仅显示插件菜单
+#   false: 保留 Typora 原生的右键菜单项
+HIDE_OTHER_OPTIONS = false
+
+# 对于【启用但是没有出现在下面 MENUS 选项】的插件，自动将其加入到最后一个 MENU
+#  控制是否自动将已启用但未在 `MENUS` 中配置的插件添加到最后一个一级菜单中
+#  强烈建议将此选项置为 true，若置为 false，且在 MENUS 中删去那些处于启用状态的插件，那么
+#     1. 那些插件依旧处于启用状态，但是就不能通过右键菜单调用了
+#     2. 如果插件系统后续新增了插件，那么你就根本无法感知到新增插件的存在
+#   true:  自动添加
+#   false: 不自动添加
+FIND_LOST_PLUGIN = true
+
+# ------------------- 自定义右键菜单 -------------------
+# 自定义右键菜单：`MENUS` 数组中的每一项对应一个一级菜单，允许无限添加一级菜单，允许重复添加同一个插件
+#   NAME: 一级菜单的名称
+#   LIST: 二级菜单的插件列表，`---` 代表在页面上插入一个分隔横线。允许填入 pluginName (插件，如：help) 或者 pluginName.callArg (插件的其中一个选项，如：help.donate)
+[[right_click_menu.MENUS]]
+NAME = "__LESS_USED_PLUGINS__"
+LIST = [
+    "window_tab",
+    "fence_enhance",
+    "auto_number",
+    "datatables",
+    "resize_image",
+    "resize_table",
+    "collapse_list",
+    "collapse_table",
+    "truncate_text",
+    "export_enhance",
+    "cipher",
+    "right_click_menu",
+    "help",
+    "---",
+    "pie_menu",
+    "go_top",
+    "slash_commands",
+    "text_stylize",
+    "hotkeys",
+    "editor_width_slider",
+    "ripgrep",
+    "article_uploader",
+    "preferences",
+    "updater",
+    "---",
+    "file_counter",
+    "json_rpc",
+    "test",
+]
+[[right_click_menu.MENUS]]
+NAME = "__OFTEN_USED_PLUGINS__"
+LIST = [
+    "commander",
+    "markmap",
+    "collapse_paragraph",
+    "easy_modify",
+    "custom",
+    "---",
+    "toolbar",
+    "search_multi",
+    "md_padding",
+    "---",
+    "read_only",
+    "blur",
+    "dark",
+    "no_image",
+]
+
+
+################### pie_menu ###################
+[pie_menu]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = false
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+# 触发圆盘菜单的快捷键，为空则不使用快捷键触发
+#   例如："ctrl+shift+m" 表示按下 Ctrl+Shift+M 键触发
+HOTKEY = ""
+
+# 修饰键设置：与鼠标右键结合使用，触发圆盘菜单的修饰键
+#   支持 ctrl / alt / shift 的任意组合 (如 "shift+alt", "ctrl+shift")
+#   例如：若设置为 "ctrl"，则使用 Ctrl + 鼠标右键 调出圆盘菜单
+#   若为空，则使用鼠标右键直接调出
+MODIFIER_KEY = "ctrl"
+
+# ------------------- 按钮 -------------------
+# 圆盘菜单上的按钮配置，最多支持 16 个按钮（前 8 个按钮显示在内圈，后 8 个按钮显示在外圈）
+#   每个按钮包含以下属性
+#     ICON: 按钮图标的 CSS class，使用 Font Awesome 图标库
+#              例如： "fa fa-book" 表示书本图标
+#     CALLBACK: 按钮点击后的回调函数，格式为 pluginName.action
+#              pluginName 为插件的名称
+#              action 为插件的某个具体选项，如 "help.donate"
+#              如果插件只有一个选项，则无需 action，如 "read_only"
+BUTTONS = [
+    { ICON = "fa fa-book", CALLBACK = "read_only" },
+    { ICON = "fa fa-asterisk", CALLBACK = "blur" },
+    { ICON = "fa fa-eye", CALLBACK = "no_image" },
+    { ICON = "fa fa-adjust", CALLBACK = "dark" },
+    { ICON = "fa fa-file-text", CALLBACK = "templater" },
+    { ICON = "fa fa-align-justify", CALLBACK = "md_padding" },
+    { ICON = "fa fa-paste", CALLBACK = "easy_modify.copy_full_path" },
+    { ICON = "fa fa-list", CALLBACK = "toc" },
+    { ICON = "fa fa-sitemap", CALLBACK = "markmap.toggle_toc" },
+    { ICON = "fa fa-font", CALLBACK = "text_stylize" },
+    { ICON = "fa fa-search", CALLBACK = "search_multi" },
+    { ICON = "fa fa-image", CALLBACK = "imageReviewer" },
+    { ICON = "fa fa-filter", CALLBACK = "resourceOperation" },
+    { ICON = "fa fa-wrench", CALLBACK = "preferences" },
+    { ICON = "fa fa-bookmark", CALLBACK = "scrollBookmarker" },
+    { ICON = "fa fa-code", CALLBACK = "commander" }
+]
+
+
+################### preferences ###################
+[preferences]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+# 插件快捷键：用于快速启动或关闭插件设置面板的快捷键
+#   留空则不设置快捷键
+HOTKEY = ""
+
+# ------------------- 忽略插件列表 -------------------
+# 不允许通过此插件修改启停的插件列表
+#   列在此列表中的插件，将无法被 启停插件 启用或禁用
+IGNORE_PLUGINS = ["preferences", "right_click_menu", "custom", "json_rpc", "redirectLocalRootUrl", "article_uploader"]
+
+
+################### file_counter ###################
+[file_counter]
+# ------------------- 基础 -------------------
+# 启用或禁用文件计数插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在 Typora 侧边栏显示
+NAME = ""
+
+# ------------------- 文件计数过滤 -------------------
+# 当目录下的文件数量少于等于 IGNORE_MIN_NUM 时，忽略此目录，不显示计数
+#   例如：设置为 1，则目录中文件数小于等于 1 时，不显示文件计数
+IGNORE_MIN_NUM = 0
+
+# Typora 允许的最大文件（单位：字节），大于此大小的文件将被忽略
+#   若 MAX_SIZE 小于 0，则不过滤文件大小
+#   例如：设置为 2000000 表示文件大小限制为 2 MB
+MAX_SIZE = 2000000
+
+# Typora 允许打开的文件的扩展名列表，不在此列表中的文件在搜索时将被忽略
+#   例如：["md", "txt"] 表示只统计 .md 和 .txt 文件
+ALLOW_EXT = ["", "md", "markdown", "mdown", "mmd", "text", "txt", "rmarkdown", "mkd", "mdwn", "mdtxt", "rmd", "mdtext", "apib"]
+
+# 忽略的目录名列表，在此列表中的目录将被忽略，不进行文件计数
+#   例如：[".git", "node_modules"] 表示忽略 .git 和 node_modules 目录
+IGNORE_FOLDERS = [".git", ".idea", "node_modules"]
+
+# ------------------- 侧边栏滚动增强 -------------------
+# 当侧边栏出现横向滚动条时，允许通过按住 Ctrl 键并滚动鼠标滚轮进行横向滚动
+#   true:  启用此功能
+#   false: 禁用此功能
+CTRL_WHEEL_TO_SCROLL_SIDEBAR_MENU = true
+
+# ------------------- 文本样式 -------------------
+# 文本字体粗细，填写 font-weight 的 CSS 值
+#   例如：设置为 "bold" 表示加粗文本
+#   若留空 ""，则保持默认字体粗细
+FONT_WEIGHT = "bold"
+
+# 文本字体颜色，填写 color 的 CSS 值
+#   例如：设置为 "red" 表示文本颜色为红色
+#   若留空 ""，则保持默认字体颜色
+COLOR = ""
+
+# 文本背景颜色，填写 background-color 的 CSS 值
+#   例如：设置为 "#F0F0F0" 表示文本背景颜色为浅灰色
+#   若留空 ""，则保持默认背景颜色
+BACKGROUND_COLOR = ""
+
+# 文本插入前缀，即在文件计数前显示的文本
+#   若留空 ""，则不添加前缀
+BEFORE_TEXT = ""
+
+
+################### hotkeys ###################
+[hotkeys]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+# 查看注册的快捷键列表的快捷键，若为空，则不设置
+HOTKEY = ""
+
+# ------------------- 自定义快捷键 -------------------
+# 此配置是高级配置，仅对有 javascript 基础的用户开放
+# 使用说明:
+#   - 用于配置自定义快捷键
+#   - 以声明的形式，为【插件系统的任意函数】或【自定义函数】设置快捷键，也就是说让快捷键支持的最小粒度达到函数级别
+#   - 请通过阅读源码获取具体可用的函数
+#   - 此插件不能覆盖现有的快捷键，此插件充分信任用户，没有做任何防护措施 (也意味着很简陋，需要你自己调试)
+# 参数说明:
+#   desc:            描述。可填写任意内容，对功能没有影响
+#   enable:          是否启用此快捷键
+#   hotkey:          快捷键组合
+#   plugin:          调用的插件名称
+#   function:        调用插件的函数名
+#   closestSelector: 定位到当前光标的父元素，并将其作为参数传入 function。如果 function 没有参数，则不需要此选项
+#   evil:            自定义回调函数，这里的文本内容会被 `eval()`。如果设置此参数，那么参数 plugin、function、closestSelector 都会失效
+# 注意:
+#   - `eval` 是邪恶的，极端情况下会让你的电脑中毒，请谨慎处理 —— 试试将下面的 【openCalc】 的 enable 置为 true，接着在 Typora 键入快捷键
+#   - 如果你有把握，`eval` 确实是很方便 —— 试试将下面的 【switchFirstTab】 的 enable 置为 true，接着在 Typora 键入快捷键
+#   - 由于 `eval` 的强大，你甚至可以注入插件系统，修改插件系统的行为（此时要将 hotkey 设置为 【-】） —— 试试将下面的 【alertWhenOpenFile】 的 enable 置为 true
+CUSTOM_HOTKEYS = [
+    # 简单使用：insertBlockCode
+    { enable = false, hotkey = "ctrl+shift+e", desc = "Insert JavaScript BlockCode", evil = "() => this.utils.insertFence('javascript')" },
+    # 支持但邪恶的使用方法：openCalc
+    { enable = false, hotkey = "ctrl+shift+e", desc = "Open Windows Calculator", evil = "() => this.utils.Package.ChildProcess.exec('cmd /C calc')" },
+    # 支持但不推荐的使用方法：switchFirstTab
+    { enable = false, hotkey = "ctrl+shift+e", desc = "Switch to the first window tab", evil = "() => this.utils.getPlugin('window_tab').switchTab(0)" },
+    # 支持但是不正常不推荐的使用方法：alertWhenOpenFile
+    { enable = false, hotkey = "-", desc = "Pop up a prompt window", evil = "this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.fileOpened, filepath => window.confirm(`You opened the file: ${filepath}`))" },
+    # 正规使用方法：insertKanban
+    { enable = false, hotkey = "ctrl+shift+e", desc = "Insert Kanban BlockCode", plugin = "kanban", function = "callback" },
+    # 正规使用方法：foldFence
+    { enable = false, hotkey = "ctrl+[", desc = "Folding/unfolding BlockCode", plugin = "fence_enhance", function = "foldFence", closestSelector = "#write .md-fences" },
+]
+
+
+################### help ###################
+[help]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+
+################### editor_width_slider ###################
+[editor_width_slider]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 写作区宽度调整 -------------------
+# 宽度百分比（小于 0 视为不启用）
+#   例如：WIDTH_RATIO = 80 表示写作区宽度为最大宽度的80%
+WIDTH_RATIO = -1
+
+
+################### article_uploader ###################
+[article_uploader]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = false
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 插件界面控制 -------------------
+# 在右键菜单中隐藏此插件的上传选项
+#   true:  不在右键菜单中显示上传选项
+#   false: 在右键菜单中显示上传选项
+HIDE = false
+
+# ------------------- 快捷键 -------------------
+# 一键上传所有支持平台的快捷键设置
+#   留空则不设置快捷键
+UPLOAD_ALL_HOTKEY = ""
+
+# 一键上传到 WordPress 平台的快捷键设置
+#   留空则不设置快捷键
+UPLOAD_WORDPRESS_HOTKEY = ""
+
+# 一键上传到 博客园 平台的快捷键设置
+#   留空则不设置快捷键
+UPLOAD_CNBLOG_HOTKEY = ""
+
+# 一键上传到 CSDN 平台的快捷键设置
+#   留空则不设置快捷键
+UPLOAD_CSDN_HOTKEY = ""
+
+# ------------------- 上传相关 -------------------
+[article_uploader.upload]
+# 是否在上传之前弹出确认框，防止误操作
+#   true:  上传前弹出确认框
+#   false: 上传前不弹出确认框
+reconfirm = true
+
+# 是否使用 headless 模式运行 Selenium 浏览器
+#   true:  以无头模式运行，不在屏幕上显示浏览器窗口
+#   false: 以正常模式运行，可以看到浏览器操作过程 (调试时推荐设置为 false)
+selenium = { headless = true }
+
+# ------------------- 各平台上传 -------------------
+# WordPress 平台上传配置
+#   enabled: 是否启用上传到此平台
+#   hostname: WordPress 博客的域名或 IP 地址 (例如: https://blog.bugdesigner.cn)
+#   loginUrl: WordPress 后台登录页面的 URL (例如: https://blog.bugdesigner.cn/wp-login.php)
+#   username: WordPress 登录用户名
+#   password: WordPress 登录密码
+wordpress = { enabled = true, hostname = "https://blog.bugdesigner.cn", loginUrl = "https://blog.bugdesigner.cn/superman/", username = "demo", password = "demo1" }
+
+# 博客园 平台上传配置
+#   enabled: 是否启用上传到此平台
+#   username: 博客园 登录用户名
+#   password: 博客园 登录密码
+cnblog = { enabled = true, username = "demo2", password = "demo2" }
+
+# CSDN 平台上传配置
+#   enabled: 是否启用上传到此平台
+#   cookie:  用于登录 CSDN 的 Cookie 信息，可能需要定期更新 (可以在浏览器开发者工具中找到)
+#   **注意：该 Cookie 的有效期可能较短，请定期更新，建议两周到一个月更新一次**
+csdn = { enabled = true, cookie = "log_Id_pv=27; log_Id_view=857; dc_tos=se1n4s; log_Id_click=37......" }
+
+
+################### ripgrep ###################
+[ripgrep]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = false
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+#  触发插件的快捷键
+#   留空则不设置快捷键
+HOTKEY = ""
+
+# ------------------- 窗口行为 -------------------
+# 当输入框为空，且键入 backspace 时，隐藏搜索窗口
+#   true:  启用此功能
+#   false: 禁用此功能
+BACKSPACE_TO_HIDE = true
+
+# 搜索窗口宽度，以页面百分比表示
+#  例如，80 表示窗口宽度为页面宽度的 80%
+WIDTH_PERCENT = 80
+
+# 搜索窗口出现时距离页面顶部的距离，以页面百分比表示
+#  例如，20 表示窗口顶部距离页面顶部 20% 的位置
+TOP_PERCENT = 20
+
+
+################### json_rpc ###################
+[json_rpc]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   警告：开启此插件后，外部将拥有 node、browser 两套环境，能完全控制电脑，因此如果您不是开发人员，请勿开启此插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = false
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- RPC Server 选项 -------------------
+# RPC Server 的配置选项
+SERVER_OPTIONS = { port = 5080, host = "127.0.0.1", path = "/", strict = false }
+
+
+################### updater ###################
+[updater]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = true
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+# 升级插件的快捷键，用于手动触发升级
+#   留空则不设置快捷键
+HOTKEY = ""
+
+# ------------------- 代理 -------------------
+# 众所周知，有些地区无法裸连 GitHub，需要使用代理 (如：http://127.0.0.1:7890)
+# 若值为空，则将弹出窗口，让用户填入代理；若值不为空，则将直接使用此代理，不再弹出窗口
+# 除非你固定使用某代理，否则不建议使用此配置
+PROXY = ""
+
+# ------------------- 自动升级 -------------------
+# 是否启用自动静默升级（若为 false，则以下自动升级配置全部失效）
+# 自动升级有两个策略：
+#   策略一：打开 Typora 一段时间后，执行一次升级流程
+#   策略二：每隔一段时间，执行一次升级流程
+AUTO_UPDATE = false
+
+# ------------------- 自动升级策略一 -------------------
+# 策略一：打开 Typora 后，延迟指定时间后执行升级流程
+# 单位：毫秒 (ms)
+# 若小于 0，则不使用此策略；若小于 1 分钟 (60000 ms)，则置为 1 分钟
+START_UPDATE_INTERVAL = 300000   # 1000 * 60 * 5 (5分钟)
+
+# ------------------- 自动升级策略二 -------------------
+# 策略二：每隔指定时间执行一次升级流程
+# 单位：毫秒 (ms)
+# 若小于 0，则不使用此策略；若小于 1 小时 (3600000 ms)，则置为 1 小时
+UPDATE_LOOP_INTERVAL = -1
+
+
+################### test ###################
+[test]
+# ------------------- 基础 -------------------
+# 启用或禁用整个插件
+#   true:  启用插件
+#   false: 禁用插件
+# 此插件乃开发者于开发阶段使用，请勿开启
+ENABLE = false
+
+# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+NAME = ""

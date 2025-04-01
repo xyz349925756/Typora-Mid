@@ -1,0 +1,1158 @@
+:root {
+    --bg-color: #444444;
+    --text-color: #b9b9b9;
+
+    --monospace: "FiraCode Nerd Font Mono",  Menlo, "Ubuntu Mono", Consolas, HYZhengYuan;
+    /*代码的等宽字体 "华康手札体W5P",*/
+
+    --text-font-size: 12px;
+    --body-height: 1.5;
+
+    --first-color: #1F1F1F;
+    --second-color: #333333;
+    --third-color: #444444;
+
+    --text-color-1: #AAAAAA;
+    --text-color-3: #5f9ea0;
+    --text-color-4: #ffffff;
+
+    --h1-1: #ff5555;
+    --h1-2: #368eff;
+    --h1-3: #B0C4DE;
+    --h2-1: #4169E1;
+    --h2-2: #FFA500;
+    --h2-3: #FFFFFF;
+    --h3-1: #FF3B30;
+    --h3-2: #34C759;
+    --h3-3: #FFBE2E;
+    --h4-1: #B284BE;
+    --h4-2: #9370DB;
+    --h4-3: #E9C6FF;
+    --h5-1: #8B4513;
+    --h5-2: #F1C40F;
+    --h5-3: #A3E4D7;
+    --h6-1: #56ab2f;
+    --h6-2: #a8e063;
+    --h6-3: #F5F5DC;
+
+    --a-link-color: #3178C6;
+    --a-hover-color: #1A5F8E;
+    --a-visited-color: #23527C;
+
+    --lightyellow: #F7DC6F;
+    --brightgreen: #1ABC9C;
+    --brightyellow: #F1C40F;
+    --green: #34C759;
+    --deekgreen: #2D6A4A;
+    --darkgreen: #009688;
+    --yellow: #FFBE2E;
+    --red: #FF3B30;
+    --orange: #E6994C;
+    --blue: #4C8EF4;
+
+
+    --lightpurple: #E9C6FF;
+    --purple: #B284BE;
+    --pink: #FF69B4;
+    --lilac: #E4D6F5;
+    --beige: #D2B48C;
+    --lightorange: #FFA07A;
+    --palepink: #FFB3BA;
+    --paleyellow: #FFD7BE;
+    --lightred: #FF4444;
+
+
+    --note-color: #3170A6;
+    --note-color-2: #2277B8;
+    --tip-color: #41AE3B;
+    --tip-color-2: #66B700;
+    --important-color: #282955;
+    --important-color-2: #967FF4;
+    --warning-color: #DBA014;
+    --warning-color-2: #FF9003;
+    --caution-color: #8D211E;
+    --caution-color-2: #7D0101;
+
+    --box-shadow: #696161;
+    --box-shadow-d-1: rgba(0, 0, 0, 0.1);
+    --box-shadow-d-2: rgba(0, 0, 0, 0.2);
+    --box-shadow-d-3: rgba(0, 0, 0, 0.7);
+
+    --box-shadow-l-1: rgba(255, 255, 255, 0.1);
+    --box-shadow-l-2: rgba(255, 255, 255, 0.2);
+    --box-shadow-l-3: rgba(255, 255, 255, 0.7);
+
+    --bg-transparent: transparent;
+
+
+    --md-char-color: var(--orange-3);
+    /*`号颜色*/
+    --meta-content-color: var(--a-hover-color);
+    /*超链接地址*/
+
+    --active-file-bg-color: var(--box-shadow-l-2);
+    /*文件树或文件列表中当前项的背景色*/
+    --active-file-text-color: inherit;
+    --active-file-border-color: none;
+
+    --side-bar-bg-color: var(--bg-color);
+    /*侧边栏颜色*/
+
+    --item-hover-bg-color: var(--box-shadow-l-1);
+    /*鼠标在大纲标题栏上悬停时的颜色*/
+    --item-hover-text-color: var(--text-color-1);
+}
+
+
+
+/* ================================================UI界面背景================================================ */
+body {
+    font-family: var(--monospace);
+    font-size: var(--text-font-size);
+    height: var(--body-height);
+}
+
+/* 标题栏 */
+#top-titlebar {
+    background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%);
+    height: 100% !important;
+    /* font-size: 12px; */
+
+    span.ty-menu-btn-area-sub.ty-menu-btn-area-sub3 {
+        color: var(--yellow) !important;
+    }
+
+    span.ty-menu-btn-area-sub.ty-menu-btn-area-sub2 {
+        color: var(--green) !important;
+    }
+
+    span.ty-menu-btn-area-sub.ty-menu-btn-area-sub1 {
+        color: var(--red) !important;
+    }
+}
+
+/* write */
+content {
+    background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%);
+}
+
+/* write footer */
+footer.stopselect.ty-footer {
+    background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%);
+    border-top: none;
+}
+
+/* 侧边栏底部 */
+#ty-sidebar-footer {
+    background: transparent;
+    border-top: 0.5px solid var(--darkgreen);
+}
+
+/* ================================================侧边栏================================================ */
+
+/* 查找 */
+#file-library-search-panel {
+    border-bottom: 0.5px solid var(--deekgreen);
+    padding: 5px;
+
+    input {
+        background: var(--box-shadow-d-2);
+        border-radius: 5px;
+        margin-bottom: 5px;
+    }
+}
+
+/* 侧边栏标题 */
+.active-tab-files #info-panel-tab-file .info-panel-tab-border,
+.active-tab-outline #info-panel-tab-outline .info-panel-tab-border,
+.ty-show-search #info-panel-tab-search .info-panel-tab-border {
+    height: 0.5px;
+    background-color: var(--darkgreen);
+}
+
+/* 鼠标移动到文件|大纲 */
+.info-panel-tab-title,
+.info-panel-tab:hover {
+    font-family: system-ui;
+}
+
+/* 侧边栏字体颜色 */
+.file-node-content {
+    line-height: 1.4;
+    margin-bottom: 0;
+    color: var(--yellow);
+    font-family: "Segoe UI";
+    font-size: 13px;
+
+    &:hover {
+        color: var(--text-color-1);
+        background: var(--box-shadow-l-2);
+        border-radius: 5px;
+    }
+}
+
+/* 突出当前展开的文件夹 */
+.file-library-node.file-tree-node.file-node-expanded {
+    background: var(--box-shadow-d-1);
+    border-radius: 5px;
+}
+
+/* 文件后缀名 */
+span.file-node-title-ext-part {
+    color: var(--red);
+    font-size: 12px;
+}
+
+/* 鼠标点击文件栏出现的边框 */
+.file-library-node:not(.file-node-root):focus>.file-node-content {
+    outline: none !important;
+}
+
+/* 当前打开的文件 */
+.file-tree-node.active>.file-node-background {
+    background-color: var(--box-shadow-d-2);
+    border-left: 4px solid var(--green);
+    border-radius: 4px;
+}
+
+/* 标识当前打开的文件 */
+.file-tree-node.active>.file-node-content {
+    color: var(--green);
+}
+
+/* 提示当前打开文件所在文件夹 */
+.file-library-node.file-tree-node.file-node-collapsed:has(.file-library-node.file-tree-node.file-library-file-node.active) {
+    background: var(--box-shadow-d-2);
+
+    .fa-folder:before {
+        content: "\f044";
+        color: var(--orange);
+        margin-left: 5px;
+        font-size: 14px;
+    }
+}
+
+/* ================================================文件夹图标================================================ */
+/* 取消文件夹前面图标 */
+.fa-caret-right,
+.fa-caret-down {
+    --fa: none;
+
+    &:before {
+        content: none;
+    }
+}
+
+/* 一级图标 */
+.file-node-root .file-node-content>i.file-node-icon.fa.fa-folder:before {
+    content: " \f015";
+    color: var(--red);
+    margin-right: 3px;
+}
+
+/* 其他文件夹图标 */
+.file-node-children .file-node-content>i.file-node-icon.fa.fa-folder:before {
+    content: " \f216";
+    color: var(--blue);
+    margin-right: 3px;
+}
+
+/* 文件图标 */
+.fa-file-text-o:before {
+    content: "\f260";
+    color: var(--green);
+    margin-right: 3px;
+}
+
+/* ================================================大纲================================================ */
+#outline-content {
+    font-family: system-ui;
+    line-height: 1rem;
+    font-size: 12px;
+    color: var(--text-color-3);
+}
+
+/* 一级标题不显示可以折叠效果 */
+.outline-item-wrapper.outline-h1 .outline-expander:hover:before {
+    content: "\f260";
+    font-size: 12px;
+    margin-right: 5px;
+    color: var(--green);
+}
+
+/* 其他级显示可以折叠效果 */
+.outline-item-wrapper:not(.outline-h1) .outline-expander:hover:before {
+    content: "\f261";
+    font-size: 12px;
+    margin-right: 5px;
+    color: var(--red);
+}
+
+/* 已经展开 */
+.outline-item-open>.outline-item>.outline-expander:before {
+    content: "\f261";
+    font-size: 12px;
+    margin-right: 5px;
+    color: var(--green);
+}
+
+/* 可以展开 */
+.outline-expander:before {
+    content: "\f260";
+    color: var(--yellow);
+    font-size: 12px;
+    margin-right: 5px;
+}
+
+/* 激活当前标题 */
+.outline-item.outline-item-active {
+    background: var(--box-shadow-d-2);
+    border-radius: 4px;
+    border-left: 4px solid var(--green);
+    color: var(--blue);
+}
+
+/* 鼠标移动到标题 */
+.outline-item:hover {
+    margin-left: -1px;
+    margin-right: -1px;
+    color: var(--orange);
+    background-color: var(--box-shadow-l-2);
+    border-radius: 5px;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+}
+
+/* 查找退出图标 */
+.ion-close-round:before {
+    content: "\f29f";
+    margin: 3px 12px 3px 0;
+    font-size: 20px;
+    color: var(--orange);
+}
+
+/* ================================================设置================================================ */
+#megamenu-menu-sidebar {
+    background: var(--bg-color);
+    font-family: system-ui;
+}
+
+#megamenu-section-open {
+    font-family: system-ui;
+}
+
+.megamenu-menu-list li a.active,
+.megamenu-menu-list:not(.saved) li a:hover {
+    background-color: var(--box-shadow-l-1);
+    border-radius: 4px;
+    margin: 0 5px;
+}
+
+.megamenu-menu-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--red);
+}
+
+#megamenu-content {
+    background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%);
+
+    input {
+        background-color: var(--box-shadow-l-2);
+        border-radius: 4px;
+    }
+
+    #recent-file-panel-action-btn {
+        background-color: var(--box-shadow-l-2);
+        border-radius: 4px;
+        border: none;
+    }
+
+    table {
+
+        tbody tr:nth-child(2n-1) {
+            background-color: var(--text-color-1);
+        }
+    }
+}
+
+.ion-android-arrow-back:before {
+    content: "\f21d";
+}
+
+.long-btn {
+    border-radius: 4px;
+
+    &:hover {
+        background-color: var(--box-shadow-l-1);
+        border-radius: 4px;
+    }
+}
+
+.about-content-slogon>.ty-link {
+    color: var(--lightorange) !important;
+}
+
+.about-content-meta a.ty-link {
+    color: var(--blue);
+}
+
+tbody.list-js-list a {
+    color: var(--brightyellow);
+}
+
+/* ================================================正文内容================================================ */
+
+/* h1-h6 */
+#write {
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: "Fira Code Light";
+        position: relative;
+        border-radius: 0 5px 5px 0;
+
+        span {
+            position: relative;
+            border-radius: 0 5px 5px 0;
+        }
+    }
+
+    h1 {
+        font-size: 2rem;
+        text-align: center;
+        padding: 25px 0px;
+        margin: 0px;
+
+        span {
+            background: linear-gradient(135deg, var(--bg-transparent) 80%, var(--h1-1) 10%);
+            padding: 0 50px;
+            border-radius: 0 5px 5px 0;
+            border-bottom: 0.5px solid;
+            color: var(--text-color-4);
+
+            &:hover {
+                box-shadow: 6px 6px 2px 4px var(--box-shadow-d-2);
+
+                &::before {
+                    content: "H1";
+                    position: absolute;
+                    font-size: 12px;
+                    color: var(--h1-2);
+                    left: 0px;
+                }
+            }
+        }
+    }
+
+    h2 {
+        border-bottom: solid 1px var(--h2-2);
+        background: linear-gradient(135deg, transparent 85%, var(--h2-3) 15%);
+
+        &:hover {
+            box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
+
+            &::before {
+                content: "H2";
+                position: absolute;
+                font-size: 12px;
+                color: var(--h2-3);
+                right: 50%;
+            }
+        }
+
+        span {
+            background: linear-gradient(135deg, transparent 90%, var(--h2-1) 90%, var(--h2-1) 95%, var(--h2-2) 95%) !important;
+            padding: 2px 30px 2px;
+            color: var(--h2-1);
+            display: inline-block;
+            width: 100%;
+
+            &:hover {
+                color: var(--h2-2);
+
+                &::before {
+                    content: "H2";
+                    position: absolute;
+                    font-size: 12px;
+                    color: var(--h2-1);
+                    left: 3px;
+                }
+            }
+        }
+    }
+
+    h3 {
+        border-bottom: solid 1px var(--h3-2);
+        background: linear-gradient(135deg, transparent 85%, var(--h3-1) 15%);
+
+        &:hover {
+            box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
+
+            &::before {
+                content: "H3";
+                position: absolute;
+                font-size: 12px;
+                color: var(--h3-1);
+                right: 50%;
+            }
+        }
+
+        span {
+            background: linear-gradient(135deg, transparent 90%, var(--h3-3) 90%, var(--h3-3) 95%, var(--h3-2) 95%) !important;
+            padding: 2px 30px 2px;
+            color: var(--h3-1);
+            display: inline-block;
+            width: 100%;
+
+            &:hover {
+                color: var(--h3-2);
+
+                &::before {
+                    content: "H3";
+                    position: absolute;
+                    font-size: 12px;
+                    color: var(--h3-3);
+                    left: 3px;
+                }
+            }
+        }
+    }
+
+    h4 {
+        border-bottom: solid 1px var(--h4-2);
+        background: linear-gradient(135deg, transparent 85%, var(--h4-3) 15%);
+
+        &:hover {
+            box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
+
+            &::before {
+                content: "H4";
+                position: absolute;
+                font-size: 12px;
+                color: var(--h4-3);
+                right: 50%;
+            }
+        }
+
+        span {
+            background: linear-gradient(135deg, transparent 90%, var(--h4-1) 90%, var(--h4-1) 95%, var(--h4-2) 95%) !important;
+            padding: 2px 30px 2px;
+            color: var(--h4-2);
+            display: inline-block;
+            width: 100%;
+
+            &:hover {
+                color: var(--h4-3);
+
+                &::before {
+                    content: "H4";
+                    position: absolute;
+                    font-size: 12px;
+                    color: var(--h4-1);
+                    left: 3px;
+                }
+            }
+        }
+    }
+
+    h5 {
+        border-bottom: solid 1px var(--h5-3);
+        background: linear-gradient(135deg, transparent 85%, var(--h5-2) 15%);
+
+        &:hover {
+            box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
+
+            &::before {
+                content: "H5";
+                position: absolute;
+                font-size: 12px;
+                color: var(--h5-2);
+                right: 50%;
+            }
+        }
+
+        span {
+            background: linear-gradient(135deg, transparent 90%, var(--h5-1) 90%, var(--h5-1) 95%, var(--h5-3) 95%) !important;
+            padding: 2px 30px 2px;
+            color: var(--h5-2);
+            display: inline-block;
+            width: 100%;
+
+            &:hover {
+                color: var(--h5-1);
+
+                &::before {
+                    content: "H5";
+                    position: absolute;
+                    font-size: 12px;
+                    color: var(--h5-3);
+                    left: 3px;
+                }
+            }
+        }
+    }
+
+    h6 {
+        border-bottom: solid 1px var(--h6-1);
+        background: linear-gradient(135deg, transparent 85%, var(--h6-3) 15%);
+
+        &:hover {
+            box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
+
+            &::before {
+                content: "h6";
+                position: absolute;
+                font-size: 12px;
+                color: var(--h6-3);
+                right: 50%;
+            }
+        }
+
+        span {
+            background: linear-gradient(135deg, transparent 90%, var(--h6-2) 90%, var(--h6-2) 95%, var(--h6-1) 95%) !important;
+            padding: 2px 30px 2px;
+            color: var(--h6-1);
+            display: inline-block;
+            width: 100%;
+
+            &:hover {
+                color: var(--h6-3);
+
+                &::before {
+                    content: "h6";
+                    position: absolute;
+                    font-size: 12px;
+                    color: var(--h6-2);
+                    left: 3px;
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+    strong {
+        color: var(--text-color-3);
+        font-family: "Fira Code Light";
+    }
+
+    em {
+        color: var(--text-color-2);
+    }
+
+    del {
+        color: var(--red);
+    }
+
+    u {
+        color: var(--blue);
+    }
+
+    mark {
+        border: .1em solid transparent;
+        color: var(--yellow);
+        background-color: var(--lightred);
+        padding: .1rem .5rem;
+        border-radius: 3px;
+        margin: 0 .2rem;
+        font-size: .95rem;
+    }
+
+    code {
+        margin: 0 2px;
+        color: var(--green);
+    }
+
+    /*有序无序列表*/
+    ul.ul-list,
+    ol.ol-list {
+        padding: 0;
+        margin: 0;
+    }
+
+    li>p.md-end-block.md-p {
+        margin: 5px 5px;
+        flex: 1 1 calc(100% - 50px);
+    }
+
+    .md-list-item {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        padding-left: 30px;
+
+        /* 任务列表 */
+        input[type="checkbox"] {
+            vertical-align: middle;
+            height: 23px;
+            margin-left: 10px;
+        }
+    }
+
+    /* 无序 */
+    ul>li.md-list-item:before {
+        content: "\f005";
+        color: #F44336;
+    }
+
+    /* 有序 */
+    .ol-list {
+        counter-reset: list-counter;
+    }
+
+    li>ul,
+    li>ol {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .first-line-indent ol ol li,
+    .first-line-indent ul ol li,
+    .first-line-indent ol ul li,
+    .first-line-indent ul ul li {
+        margin-left: 0em !important;
+    }
+
+    ol>li.md-list-item:before {
+        counter-increment: list-counter;
+        content: counter(list-counter);
+        /* background-color: var(--second-color); */
+        color: var(--text-color-4);
+        padding: 1px 6px;
+        margin-right: 5px;
+        border-radius: 50%;
+        position: absolute;
+        left: 8px;
+        top: 5px;
+        box-shadow: 1px 0 10px 0 var(--box-shadow);
+        }
+
+    a {
+        color: var(--a-link-color);
+
+        &:hover {
+            color: var(--a-hover-color);
+        }
+
+        &:visited {
+            color: var(--a-visited-color);
+        }
+
+        &:active {
+            color: var(--a-link-color);
+        }
+    }
+
+    pre {
+        width: 100%;
+    }
+
+    .md-image>.md-meta {
+        color: var(--purple);
+    }
+
+    /* 多元化引用 */
+    .md-alert-text-note .md-alert-text-container:after {
+        content: "笔记";
+    }
+
+    .md-alert-text-tip .md-alert-text-container:after {
+        content: "小贴士";
+    }
+
+    .md-alert-text-important .md-alert-text-container:after {
+        content: "重要";
+    }
+
+    .md-alert-text-warning .md-alert-text-container:after {
+        content: "警告";
+    }
+
+    .md-alert-text-caution .md-alert-text-container:after {
+        content: "注意";
+    }
+
+    /* 引用样式 */
+    .md-alert.md-alert-note {
+        border-left: var(--note-color) 1px solid;
+        background-image: linear-gradient(45deg, var(--note-color) 2%, transparent 0%, var(--note-color) 90%);
+        padding: 4px 0px 4px 20px;
+        border-radius: 5px;
+        border-top: var(--note-color) 1px solid;
+        border-bottom: var(--note-color) 1px solid;
+    }
+
+    .md-alert.md-alert-tip {
+        border-left: var(--tip-color) 1px solid;
+        background-image: linear-gradient(45deg, var(--tip-color) 2%, transparent 0%, var(--tip-color) 90%);
+        padding: 4px 0px 4px 20px;
+        border-radius: 5px;
+        border-top: var(--tip-color) 1px solid;
+        border-bottom: var(--tip-color) 1px solid;
+    }
+
+    .md-alert.md-alert-important {
+        border-left: var(--important-color) 1px solid;
+        background-image: linear-gradient(135deg, var(--important-color) 2%, transparent 0%, var(--important-color) 90%);
+        padding: 4px 0px 4px 20px;
+        border-radius: 5px;
+        border-top: var(--important-color) 1px solid;
+        border-bottom: var(--important-color) 1px solid;
+    }
+
+    .md-alert.md-alert-warning {
+        border-left: var(--warning-color) 1px solid;
+        background-image: linear-gradient(135deg, var(--warning-color) 2%, transparent 0%, var(--warning-color) 90%);
+        padding: 4px 0px 4px 20px;
+        border-radius: 5px;
+        border-top: var(--warning-color) 1px solid;
+        border-bottom: var(--warning-color) 1px solid;
+    }
+
+    .md-alert.md-alert-caution {
+        border-left: var(--caution-color) 1px solid;
+        background-image: linear-gradient(135deg, var(--caution-color) 2%, transparent 0%, var(--caution-color) 90%);
+        padding: 4px 0px 4px 20px;
+        border-radius: 5px;
+        border-top: var(--caution-color) 1px solid;
+        border-bottom: var(--caution-color) 1px solid;
+    }
+
+    blockquote {
+        background: var(--bg-color);
+        border-radius: 5px;
+        box-shadow: 0 10px 30px 0 var(--box-shadow-d-2);
+        padding: 30px 10px 8px;
+        position: relative;
+        font-size: 12px;
+        font-family: "FiraCode Nerd Font Mono";
+
+        &:before {
+            content: ' ';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 12px;
+            height: 12px;
+            /* border-radius: 50%; */
+            background: #fc625d;
+            box-shadow: 20px 0 #35cd4b, 40px 0 #fdbc40;
+            z-index: 1;
+        }
+    }
+
+    pre.md-meta-block.md-end-block {
+        width: 100%;
+        background: var(--box-shadow-d-1);
+        margin: 0;
+        padding: 5px;
+        border-radius: 5px;
+
+    }
+
+    /* ================================================code======================================== */
+    /* 在原有 .md-fences 样式基础上修改 */
+    .md-fences {
+        background: var(--bg-color);
+        border-radius: 5px;
+        box-shadow: 0 10px 30px 0 var(--box-shadow-d-2);
+        padding-top: 30px;
+        position: relative;
+        /* 新增定位上下文 */
+        margin: 15px 0;
+        /* 保持原有外边距 */
+        font-size: 12px;
+        font-family: "FiraCode Nerd Font Mono";
+        /* padding-bottom: 8px; */
+        line-height: inherit;
+    }
+
+    /* 添加 Mac 风格窗口按钮 */
+    .md-fences::before {
+        content: ' ';
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #fc625d;
+        box-shadow: 20px 0 #35cd4b, 40px 0 #fdbc40;
+        z-index: 1;
+    }
+
+    /* 调整代码内容位置 */
+    .md-fences .code-tooltip {
+        margin-top: -20px;
+        /* 补偿顶部 padding */
+    }
+
+    /* 保持代码区域高度 */
+    .md-fences pre {
+        padding-top: 4px;
+        /* 调整代码与按钮的间距 */
+    }
+
+    /* ================================================code style======================================== */
+    /*代码正文*/
+    .cm-s-inner {
+        background-color: var(--box-shadow-d-1);
+        color: var(--text-color);
+        border-radius: 0 0 0 5px;
+        font-family: "FiraCode Nerd Font Mono";
+
+        /* 行号 */
+        .CodeMirror-gutters {
+            background: transparent;
+            border: none;
+        }
+
+        .CodeMirror-guttermarker,
+        .CodeMirror-guttermarker-subtle,
+        .CodeMirror-linenumber {
+            color: var(--blue);
+        }
+
+        /*注释*/
+        .cm-comment,
+        .cm-s-inner.cm-comment {
+            color: var(--beige);
+        }
+
+        /*多行注释*/
+        .cm-string {
+            color: var(--text-color-3);
+        }
+
+        /*变量*/
+        .cm-variable {
+            color: var(--brightgreen);
+        }
+
+        /*赋值*/
+        .cm-operator {
+            color: var(--blue);
+        }
+
+        /* 常量 */
+        .cm-number {
+            color: var(--orange);
+            font-weight: 600;
+        }
+
+        /*关键字*/
+        .cm-keyword {
+            color: var(--important-color-2);
+        }
+
+        /* 函数名 */
+        .cm-def {
+            color: var(--blue);
+        }
+
+        /* self */
+        .cm-variable-2 {
+            color: var(--red);
+            font-style: italic;
+        }
+
+        /* 函数属性 */
+        .cm-property {
+            color: var(--blue);
+        }
+
+        /* 调用输出函数 */
+        .cm-builtin {
+            color: var(--lightorange);
+        }
+
+        /* css :root */
+        .cm-variable-3 {
+            color: var(--lilac);
+        }
+
+        /* css 赋值 */
+        .cm-atom {
+            color: var(--lightyellow);
+        }
+
+        /* body */
+        .cm-tag {
+            color: var(--orange);
+        }
+
+        /* class */
+        .cm-qualifier {
+            color: var(--yellow);
+        }
+
+        /* bash 括号 */
+        .cm-quote {
+            color: var(--darkgreen);
+        }
+
+        /* 比较 */
+        .cm-attribute {
+            color: var(--text-color-3);
+        }
+
+        /* error */
+        .cm-error {
+            color: var(--lightred);
+        }
+
+        /* powershell 命令 */
+        .cm-identifier {
+            color: var(--text-color-2);
+        }
+
+        .cm-punctuation {
+            color: var(--lightred);
+        }
+
+        /* 光标 */
+        .CodeMirror-cursor {
+            border-left: 1px solid var(--text-color);
+            margin-top: 4px !important;
+            height: 15px !important;
+        }
+
+        /* 选择文字 */
+        .CodeMirror-selected,
+        .CodeMirror-selectedtext {
+            background: var(--box-shadow-l-2) !important;
+            color: var(--text-color) !important;
+        }
+
+        /* 行号颜色 */
+        .CodeMirror-guttermarker,
+        .CodeMirror-guttermarker-subtle,
+        .CodeMirror-linenumber {
+            color: rgb(83, 127, 126);
+        }
+
+
+        /* .CodeMirror-focused div.CodeMirror-selected {
+            background: rgba(255, 255, 255, 0.10);
+        } */
+
+        .CodeMirror-matchingbracket {
+            text-decoration: underline;
+            color: var(--red) !important;
+        }
+
+        /* 兼容性 */
+        .CodeMirror-line::selection,
+        .CodeMirror-line>span::selection,
+        .CodeMirror-line>span>span::selection {
+            background: rgba(255, 255, 255, 0.10);
+        }
+
+        .CodeMirror-line::-moz-selection,
+        .CodeMirror-line>span::-moz-selection,
+        .CodeMirror-line>span>span::-moz-selection {
+            background: rgba(255, 255, 255, 0.10);
+        }
+
+    }
+
+    /* 光标所在行 */
+    .md-focus .cm-s-inner .CodeMirror-activeline-background {
+        background: var(--box-shadow-l-1);
+        border-radius: 5px;
+        margin-right: 20px;
+    }
+
+    /* ================================================分割线======================================== */
+    hr {
+        height: 0.5px;
+        padding: 0;
+        margin: 16px 0;
+        background-image: linear-gradient(to left, #42a5f5, white);
+        border: 0 none;
+        overflow: hidden;
+        box-sizing: content-box;
+    }
+
+    /* ================================================table======================================== */
+
+    table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        border: none;
+        margin: 1.5em 0;
+        /* border-top: 2px solid var(--second-color); */
+        border-bottom: 0.5px solid var(--text-color-1);
+
+        thead {
+            background: linear-gradient(135deg, var(--third-color) 80%, var(--note-color) 10%);
+
+            &:hover {
+                background: var(--box-shadow-l-1);
+            }
+        }
+
+        /* 表头线（中间线） */
+        tr:first-child th {
+            border-bottom: 1.5px solid var(--text-color-1);
+        }
+
+        /* 单元格样式 */
+        td,
+        th {
+            border: none;
+            padding: 8px 12px;
+            background: transparent;
+            border: 0.5px solid var(--box-shadow-d-1);
+        }
+
+        tr:hover {
+            background: var(--box-shadow-l-2);
+        }
+
+        /* 表头文字样式 */
+        th {
+            font-weight: 600;
+            color: var(--orange);
+            text-align: center;
+            border: 0.5px solid var(--third-color);
+        }
+
+        /* 斑马纹 */
+        tr:nth-child(2n) {
+            background: linear-gradient(135deg, var(--third-color) 70%, transparent 30%);
+
+            &:hover {
+                background: var(--box-shadow-l-2);
+            }
+        }
+    }
+
+
+
+
+
+
+}
+
+/* 导出 */
+.btn-default.btn-xs.btn {
+    background: var(--box-shadow-l-2);
+    border-radius: 5px;
+}
+
+.md-notification-content {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+    align-items: center;
+}

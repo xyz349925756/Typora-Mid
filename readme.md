@@ -12,6 +12,10 @@ Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件
 
 ## UPdate
 
+[2025.4.1]
+
+- 重写css，[预览地址](https://sub.cloudb.pub/style.html)
+
 [2025.3.7]
 
 - 修复有序、无序列表样式。
