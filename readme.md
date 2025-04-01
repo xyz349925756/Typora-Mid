@@ -8,7 +8,7 @@
 
 Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件几个项目整合起来的。 在不修改typora，typora_plugin 的基础上实现的。因为系统的差异性如果打包成固定的，会出现各种奇葩的问题，体验很不好。
 
-> 如果喜欢这个项目请点击 Star
+> typora-mid.css 在css文件夹里面，其他替换的文件在 resources 文件夹对应的目录下。目前 typora 1.10.8。
 
 ## UPdate
 
@@ -33,6 +33,18 @@ Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件
 
 
 ## 主题预览
+
+typora-mid主题
+
+![image-20250401144300786](./.readme.assets/image-20250401144300786.png)
+
+![image-20250401144332484](./.readme.assets/image-20250401144332484.png)
+
+![image-20250401144528653](./.readme.assets/image-20250401144528653.png)
+
+![image-20250401144553788](./.readme.assets/image-20250401144553788.png)
+
+DrakeTyporaTheme
 
 ![image-20250301211818031](./.readme.assets/image-20250301211818031.png)
 
