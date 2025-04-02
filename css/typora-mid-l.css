@@ -55,7 +55,7 @@
     --h6-2: #a8e063;
     --h6-3: #F5F5DC;
 
-    --a-link-color: #007AFF;
+    --a-link-color: var(--second-color);
     --a-hover-color: #1A5F8E;
     --a-visited-color: #23527C;
 
@@ -272,7 +272,7 @@ span.file-node-title-ext-part {
 /* 一级图标 */
 .file-node-root .file-node-content>i.file-node-icon.fa.fa-folder:before {
     content: "\f015";
-    color: var(--red);
+    color: var(--first-color);
     margin-right: 3px;
 }
 
@@ -500,7 +500,7 @@ tbody.list-js-list a {
         span {
             background: linear-gradient(135deg, transparent 90%, var(--h2-1) 90%, var(--h2-1) 95%, var(--h2-2) 95%) !important;
             padding: 2px 30px 2px;
-            color: var(--h2-2);
+            color: var(--first-color);
             display: inline-block;
             width: 100%;
 
@@ -529,7 +529,7 @@ tbody.list-js-list a {
                 content: "H3";
                 position: absolute;
                 font-size: 12px;
-                color: var(--h3-1);
+                color: var(--h3-3);
                 right: 50%;
             }
         }
@@ -537,18 +537,18 @@ tbody.list-js-list a {
         span {
             background: linear-gradient(135deg, transparent 90%, var(--h3-3) 90%, var(--h3-3) 95%, var(--h3-2) 95%) !important;
             padding: 2px 30px 2px;
-            color: var(--h3-1);
+            color: var(--first-color);
             display: inline-block;
             width: 100%;
 
             &:hover {
-                color: var(--h3-2);
+                color: var(--h3-1);
 
                 &::before {
                     content: "H3";
                     position: absolute;
                     font-size: 12px;
-                    color: var(--h3-3);
+                    color: var(--h3-1);
                     left: 3px;
                 }
             }
@@ -574,18 +574,18 @@ tbody.list-js-list a {
         span {
             background: linear-gradient(135deg, transparent 90%, var(--h4-1) 90%, var(--h4-1) 95%, var(--h4-2) 95%) !important;
             padding: 2px 30px 2px;
-            color: var(--h4-2);
+            color: var(--first-color);
             display: inline-block;
             width: 100%;
 
             &:hover {
-                color: var(--h4-3);
+                color: var(--h4-2);
 
                 &::before {
                     content: "H4";
                     position: absolute;
                     font-size: 12px;
-                    color: var(--h4-1);
+                    color: var(--h4-2);
                     left: 3px;
                 }
             }
@@ -611,12 +611,12 @@ tbody.list-js-list a {
         span {
             background: linear-gradient(135deg, transparent 90%, var(--h5-3) 90%, var(--h5-3) 95%, var(--h5-1) 95%) !important;
             padding: 2px 30px 2px;
-            color: var(--h5-1);
+            color: var(--first-color);
             display: inline-block;
             width: 100%;
 
             &:hover {
-                color: var(--h5-2);
+                color: var(--h5-1);
 
                 &::before {
                     content: "H5";
@@ -640,7 +640,7 @@ tbody.list-js-list a {
                 content: "h6";
                 position: absolute;
                 font-size: 12px;
-                color: var(--h6-3);
+                color: var(--h6-1);
                 right: 50%;
             }
         }
@@ -648,12 +648,12 @@ tbody.list-js-list a {
         span {
             background: linear-gradient(135deg, transparent 90%, var(--h6-2) 90%, var(--h6-2) 95%, var(--h6-1) 95%) !important;
             padding: 2px 30px 2px;
-            color: var(--h6-1);
+            color: var(--first-color);
             display: inline-block;
             width: 100%;
 
             &:hover {
-                color: var(--h6-3);
+                color: var(--h6-2);
 
                 &::before {
                     content: "h6";
