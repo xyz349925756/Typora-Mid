@@ -1,6 +1,6 @@
 :root {
     --bg-color: var(--third-color);
-    --text-color: #ffffff;
+    --text-color: var(--first-color);
 
     --monospace: "FiraCode Nerd Font Mono", Menlo, "Ubuntu Mono", Consolas, HYZhengYuan;
     /*代码的等宽字体 "华康手札体W5P",*/
@@ -16,23 +16,7 @@
     --text-color-1: #1D1D1F;
     --text-color-2: #F5F5F7;
     --text-color-3: #8E8E8E;
-    /* H1：#0F2027（原色，用于最重要标题）
-    H2：#2D4A6C（原色，次重要标题）
-    H3：#6B8DD6（原色，中层标题）
-    H4：#4B8 очер васянный (#0077B6)
-    颜色说明：一种更明亮的蓝色，适合中层标题，既保留了蓝色系的连贯性，又增加了鲜明感。
-    H5：#00B4D8
-    颜色说明：明亮的天蓝色，清晰且活泼，适合较低层次的标题。
-    H6：#90E0EB
-    颜色说明：柔和的浅蓝色，适合细节标题，视觉上更轻盈。
-    #FF6B6B（亮红色）
-#4ECDC4（亮绿色）
-#45B7D1（亮蓝色）
-#96CEB4（亮薄荷绿）
-#FFEEAD（亮黄色）
-#333333（深灰色）或 #2D4A6C
-    
-    */
+
     --h1-1: #ff5555;
     --h1-2: #368eff;
     --h1-3: #F5F5F7;
@@ -700,7 +684,7 @@ tbody.list-js-list a {
 
     code {
         margin: 0 2px;
-        color: var(--green);
+        color: var(--text-color-2);
     }
 
     /*有序无序列表*/
@@ -967,7 +951,7 @@ tbody.list-js-list a {
 
         /*变量*/
         .cm-variable {
-            color: var(--brightgreen);
+            color: var(--brightyellow);;
         }
 
         /*赋值*/
@@ -1029,7 +1013,7 @@ tbody.list-js-list a {
 
         /* bash 括号 */
         .cm-quote {
-            color: var(--darkgreen);
+            color: var(--lightred);
         }
 
         /* 比较 */

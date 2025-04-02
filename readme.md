@@ -15,6 +15,7 @@ Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件
 [2025.4.1]
 
 - 重写css，[预览地址](https://sub.cloudb.pub/style.html)
+- 图标预览地址，[图标](https://sub.cloudb.pub/font1.html)
 
 [2025.3.7]
 
