@@ -923,7 +923,7 @@ tbody.list-js-list a {
     .cm-s-inner {
         background-color: var(--second-color);
         color: var(--text-color);
-        border-radius: 0 0 0 5px;
+        border-radius: 5px;
         font-family: "FiraCode Nerd Font Mono";
 
         /* 行号 */

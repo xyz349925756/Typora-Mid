@@ -226,7 +226,7 @@ span.file-node-title-ext-part {
 
     .fa-folder:before {
         content: "\f044";
-        color: var(--orange);
+        color: var(--blue);
         margin-left: 5px;
         font-size: 14px;
     }
@@ -245,15 +245,15 @@ span.file-node-title-ext-part {
 
 /* 一级图标 */
 .file-node-root .file-node-content>i.file-node-icon.fa.fa-folder:before {
-    content: " \f015";
+    content: "\f015";
     color: var(--red);
     margin-right: 3px;
 }
 
 /* 其他文件夹图标 */
 .file-node-children .file-node-content>i.file-node-icon.fa.fa-folder:before {
-    content: " \f216";
-    color: var(--blue);
+    content: "\f1c0";
+    color: var(--orange);
     margin-right: 3px;
 }
 
@@ -401,6 +401,13 @@ tbody.list-js-list a {
 }
 
 /* ================================================正文内容================================================ */
+/* 鼠标选中内容 */ 
+::selection{
+    background: var(--box-shadow-l-2);
+    color: var(--blue);
+    border-radius: 5px;
+}
+
 
 /* h1-h6 */
 #write {
@@ -906,7 +913,7 @@ tbody.list-js-list a {
     .cm-s-inner {
         background-color: var(--box-shadow-d-1);
         color: var(--text-color);
-        border-radius: 0 0 0 5px;
+        border-radius: 5px;
         font-family: "FiraCode Nerd Font Mono";
 
         /* 行号 */
@@ -1135,8 +1142,6 @@ tbody.list-js-list a {
             }
         }
     }
-
-
 
 
 
