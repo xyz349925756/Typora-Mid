@@ -1142,8 +1142,10 @@ tbody.list-js-list a {
             }
         }
     }
-
-
+/* html代码鼠标移动上去背景透明 */
+.md-htmlblock:hover .md-htmlblock-container {
+    background-color: transparent !important;
+}
 
 
 }
