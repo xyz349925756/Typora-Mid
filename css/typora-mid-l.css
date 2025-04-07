@@ -923,7 +923,7 @@ tbody.list-js-list a {
     .cm-s-inner {
         background-color: var(--second-color);
         color: var(--text-color);
-        border-radius: 5px;
+        border-radius: 0 0 5px 5px;
         font-family: "FiraCode Nerd Font Mono";
 
         /* 行号 */
@@ -1157,7 +1157,9 @@ tbody.list-js-list a {
 .md-htmlblock:hover .md-htmlblock-container {
     background-color: transparent !important;
 }
-
+.md-rawblock-control:not(.md-rawblock-tooltip) {
+    background: transparent;
+}
 
 }
 
