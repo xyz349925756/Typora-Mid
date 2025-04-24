@@ -402,11 +402,11 @@ tbody.list-js-list a {
 
 /* ================================================正文内容================================================ */
 /* 鼠标选中内容 */ 
-::selection{
+/* ::selection{
     background: var(--box-shadow-l-2);
     color: var(--blue);
     border-radius: 5px;
-}
+} */
 
 
 /* h1-h6 */
@@ -682,6 +682,7 @@ tbody.list-js-list a {
     ol.ol-list {
         padding: 0;
         margin: 0;
+        /* display: list-item; */
     }
 
     li>p.md-end-block.md-p {
@@ -690,10 +691,10 @@ tbody.list-js-list a {
     }
 
     .md-list-item {
-        display: flex;
+        display: flex !important;
         align-items: center;
         flex-wrap: wrap;
-        padding-left: 30px;
+        padding-left: 30px; 
 
         /* 任务列表 */
         input[type="checkbox"] {
@@ -704,7 +705,7 @@ tbody.list-js-list a {
     }
 
     /* 无序 */
-    ul>li.md-list-item:before {
+    ul>li.md-list-item::before {
         content: "\f005";
         color: #F44336;
     }
@@ -728,10 +729,10 @@ tbody.list-js-list a {
         margin-left: 0em !important;
     }
 
-    ol>li.md-list-item:before {
+    ol>li.md-list-item::before {
         counter-increment: list-counter;
-        content: counter(list-counter);
-        /* background-color: var(--second-color); */
+        content: counter(list-counter); 
+        background-color: var(--second-color);
         color: var(--text-color-4);
         padding: 1px 6px;
         margin-right: 5px;
@@ -739,7 +740,7 @@ tbody.list-js-list a {
         position: absolute;
         left: 8px;
         top: 5px;
-        box-shadow: 1px 0 10px 0 var(--box-shadow);
+        /* box-shadow: 1px 0 10px 0 var(--box-shadow); */
         }
 
     a {
@@ -922,10 +923,12 @@ tbody.list-js-list a {
             border: none;
         }
 
+        /* 行号颜色 */
         .CodeMirror-guttermarker,
         .CodeMirror-guttermarker-subtle,
         .CodeMirror-linenumber {
-            color: var(--blue);
+            color: rgb(83, 127, 126);
+            padding-top: 5px;
         }
 
         /*注释*/
@@ -1039,12 +1042,7 @@ tbody.list-js-list a {
             color: var(--text-color) !important;
         }
 
-        /* 行号颜色 */
-        .CodeMirror-guttermarker,
-        .CodeMirror-guttermarker-subtle,
-        .CodeMirror-linenumber {
-            color: rgb(83, 127, 126);
-        }
+
 
 
         /* .CodeMirror-focused div.CodeMirror-selected {

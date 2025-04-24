@@ -700,7 +700,7 @@ tbody.list-js-list a {
     }
 
     .md-list-item {
-        display: flex;
+        display: flex !important;
         align-items: center;
         flex-wrap: wrap;
         padding-left: 30px;
