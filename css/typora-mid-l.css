@@ -1,6 +1,6 @@
 :root {
     --bg-color: var(--third-color);
-    --text-color: var(--first-color);
+    --text-color: #333333;
 
     --monospace: "FiraCode Nerd Font Mono", Menlo, "Ubuntu Mono", Consolas, HYZhengYuan;
     /*代码的等宽字体 "华康手札体W5P",*/
@@ -421,6 +421,9 @@ tbody.list-js-list a {
 
 /* h1-h6 */
 #write {
+    pre[cid="n0"] {
+        font-size: 14px;
+    }
 
     h1,
     h2,
@@ -951,7 +954,8 @@ tbody.list-js-list a {
 
         /*变量*/
         .cm-variable {
-            color: var(--brightyellow);;
+            color: var(--brightyellow);
+            ;
         }
 
         /*赋值*/
@@ -1153,13 +1157,14 @@ tbody.list-js-list a {
         }
     }
 
-/* html代码鼠标移动上去背景透明 */
-.md-htmlblock:hover .md-htmlblock-container {
-    background-color: transparent !important;
-}
-.md-rawblock-control:not(.md-rawblock-tooltip) {
-    background: transparent;
-}
+    /* html代码鼠标移动上去背景透明 */
+    .md-htmlblock:hover .md-htmlblock-container {
+        background-color: transparent !important;
+    }
+
+    .md-rawblock-control:not(.md-rawblock-tooltip) {
+        background: transparent;
+    }
 
 }
 

@@ -1,16 +1,16 @@
 :root {
-    --bg-color: #555555;
-    --text-color: #b4b4b4;
+    --bg-color: #4A5A6A;
+    --text-color: #b3b3b3;
 
-    --monospace: "FiraCode Nerd Font Mono",  Menlo, "Ubuntu Mono", Consolas, HYZhengYuan;
+    --monospace: "FiraCode Nerd Font Mono", Menlo, "Ubuntu Mono", Consolas, HYZhengYuan;
     /*代码的等宽字体 "华康手札体W5P",*/
 
     --text-font-size: 12px;
     --body-height: 1.5;
 
-    --first-color: #1F1F1F;
-    --second-color: #333333;
-    --third-color: #555555;
+    --first-color: #1A293C;
+    --second-color: #3A506B;
+    --third-color: #4A5A6A;
 
     --text-color-1: #AAAAAA;
     --text-color-3: #5f9ea0;
@@ -401,7 +401,7 @@ tbody.list-js-list a {
 }
 
 /* ================================================正文内容================================================ */
-/* 鼠标选中内容 */ 
+/* 鼠标选中内容 */
 /* ::selection{
     background: var(--box-shadow-l-2);
     color: var(--blue);
@@ -411,6 +411,7 @@ tbody.list-js-list a {
 
 /* h1-h6 */
 #write {
+
     pre[cid="n0"] {
         font-size: 14px;
     }
@@ -697,7 +698,7 @@ tbody.list-js-list a {
         display: flex !important;
         align-items: center;
         flex-wrap: wrap;
-        padding-left: 30px; 
+        padding-left: 30px;
 
         /* 任务列表 */
         input[type="checkbox"] {
@@ -734,7 +735,7 @@ tbody.list-js-list a {
 
     ol>li.md-list-item::before {
         counter-increment: list-counter;
-        content: counter(list-counter); 
+        content: counter(list-counter);
         background-color: var(--second-color);
         color: var(--text-color-4);
         padding: 1px 6px;
@@ -744,7 +745,7 @@ tbody.list-js-list a {
         left: 8px;
         top: 5px;
         /* box-shadow: 1px 0 10px 0 var(--box-shadow); */
-        }
+    }
 
     a {
         color: var(--a-link-color);
@@ -1144,13 +1145,14 @@ tbody.list-js-list a {
         }
     }
 
-/* html代码鼠标移动上去背景透明 */
-.md-htmlblock:hover .md-htmlblock-container {
-    background-color: transparent !important;
-}
-.md-rawblock-control:not(.md-rawblock-tooltip) {
-    background: transparent;
-}
+    /* html代码鼠标移动上去背景透明 */
+    .md-htmlblock:hover .md-htmlblock-container {
+        background-color: transparent !important;
+    }
+
+    .md-rawblock-control:not(.md-rawblock-tooltip) {
+        background: transparent;
+    }
 
 }
 
