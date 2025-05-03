@@ -1,5 +1,5 @@
 :root {
-    --bg-color: #555555;
+    --bg-color: #1e2233;
     --text-color: #b4b4b4;
 
     --monospace: "FiraCode Nerd Font Mono",  Menlo, "Ubuntu Mono", Consolas, HYZhengYuan;
@@ -8,9 +8,9 @@
     --text-font-size: 12px;
     --body-height: 1.5;
 
-    --first-color: #1F1F1F;
-    --second-color: #333333;
-    --third-color: #555555;
+    --first-color: #101c34;
+    --second-color: #141824;
+    --third-color: #1e2233;
 
     --text-color-1: #AAAAAA;
     --text-color-3: #5f9ea0;
@@ -252,7 +252,7 @@ span.file-node-title-ext-part {
 
 /* 其他文件夹图标 */
 .file-node-children .file-node-content>i.file-node-icon.fa.fa-folder:before {
-    content: "\f1c0";
+    content: "\f114";
     color: var(--orange);
     margin-right: 3px;
 }
@@ -370,7 +370,7 @@ span.file-node-title-ext-part {
     table {
 
         tbody tr:nth-child(2n-1) {
-            background-color: var(--text-color-1);
+            background-color: var(--third-color);
         }
     }
 }
@@ -494,6 +494,18 @@ tbody.list-js-list a {
             }
         }
     }
+    h3.md-focus:before, 
+    h4.md-focus:before, 
+    h5.md-focus:before, 
+    h6.md-focus:before{
+        color: var(--text-color-3);
+        position: absolute;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: normal;
+        left: 50%;
+        border:  none;
+    }
 
     h3 {
         border-bottom: solid 1px var(--h3-2);
@@ -502,14 +514,16 @@ tbody.list-js-list a {
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
-            &::before {
+            /* &::before {
                 content: "H3";
                 position: absolute;
                 font-size: 12px;
                 color: var(--h3-1);
-                right: 50%;
-            }
-        }
+                left: 50%;
+                border:  none;
+            } */
+    }
+        
 
         span {
             background: linear-gradient(135deg, transparent 90%, var(--h3-3) 90%, var(--h3-3) 95%, var(--h3-2) 95%) !important;
@@ -539,13 +553,14 @@ tbody.list-js-list a {
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
-            &::before {
+            /* &::before {
                 content: "H4";
                 position: absolute;
                 font-size: 12px;
                 color: var(--h4-3);
                 right: 50%;
-            }
+                border:  none;
+            } */
         }
 
         span {
@@ -576,13 +591,14 @@ tbody.list-js-list a {
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
-            &::before {
+            /* &::before {
                 content: "H5";
                 position: absolute;
                 font-size: 12px;
                 color: var(--h5-2);
                 right: 50%;
-            }
+                border:  none;
+            } */
         }
 
         span {
@@ -613,13 +629,14 @@ tbody.list-js-list a {
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
-            &::before {
+            /* &::before {
                 content: "h6";
                 position: absolute;
                 font-size: 12px;
                 color: var(--h6-3);
                 right: 50%;
-            }
+                border:  none;
+            } */
         }
 
         span {

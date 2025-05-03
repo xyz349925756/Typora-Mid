@@ -495,21 +495,34 @@ tbody.list-js-list a {
             }
         }
     }
-
+    h3.md-focus:before, 
+    h4.md-focus:before, 
+    h5.md-focus:before, 
+    h6.md-focus:before{
+        color: var(--text-color-3);
+        position: absolute;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: normal;
+        left: 50%;
+        border:  none;
+    }
     h3 {
         border-bottom: solid 1px var(--h3-2);
         background: linear-gradient(135deg, transparent 85%, var(--h3-1) 15%);
 
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
-
-            &::before {
+			
+            /* &::before {
                 content: "H3";
                 position: absolute;
                 font-size: 12px;
                 color: var(--h3-1);
                 right: 50%;
-            }
+                border:  none;
+
+            } */
         }
 
         span {
@@ -540,13 +553,15 @@ tbody.list-js-list a {
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
-            &::before {
+            /* &::before {
                 content: "H4";
                 position: absolute;
                 font-size: 12px;
                 color: var(--h4-3);
                 right: 50%;
-            }
+                border:  none;
+
+            } */
         }
 
         span {
@@ -577,13 +592,15 @@ tbody.list-js-list a {
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
-            &::before {
+            /* &::before {
                 content: "H5";
                 position: absolute;
                 font-size: 12px;
                 color: var(--h5-2);
                 right: 50%;
-            }
+                border:  none;
+
+            } */
         }
 
         span {
@@ -614,13 +631,15 @@ tbody.list-js-list a {
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
-            &::before {
+            /* &::before {
                 content: "h6";
                 position: absolute;
                 font-size: 12px;
                 color: var(--h6-3);
                 right: 50%;
-            }
+                border:  none;
+
+            } */
         }
 
         span {
