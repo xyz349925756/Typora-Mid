@@ -729,8 +729,12 @@ tbody.list-js-list a {
 
     /* 无序 */
     ul>li.md-list-item::before {
+        top: 4px;
         content: "\f005";
-        color: #F44336;
+        color: #FF9800;
+        position: absolute;
+        /* padding-left: 0; */
+        margin-left: -8px;
     }
 
     /* 有序 */
