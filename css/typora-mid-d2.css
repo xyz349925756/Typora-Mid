@@ -1188,3 +1188,21 @@ tbody.list-js-list a {
     flex-direction: row;
     align-items: center;
 }
+
+.text-inner-tspan{
+	font-family: sans-serif;
+	font-size: 16px;
+	fill: #FF5722;
+}
+		
+.edge {
+	stroke-width: 1 !important;
+	stroke: #8BC34A !important;
+	fill: none;
+}
+.node-bkg {
+	fill: none;
+	stroke: #F44336 !important;
+	stroke-width: 1px !important;
+	stroke-dasharray: 8 !important;
+}

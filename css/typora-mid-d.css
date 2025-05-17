@@ -2,7 +2,7 @@
     --bg-color: #1e2233;
     --text-color: #b4b4b4;
 
-    --monospace: "FiraCode Nerd Font Mono",  Menlo, "Ubuntu Mono", Consolas, HYZhengYuan;
+    --monospace: "FiraCode Nerd Font Mono", "JetBrains Mono", Menlo, "Ubuntu Mono", Consolas, HYZhengYuan;
     /*代码的等宽字体 "华康手札体W5P",*/
 
     --text-font-size: 12px;
@@ -928,7 +928,9 @@ tbody.list-js-list a {
         padding-top: 4px;
         /* 调整代码与按钮的间距 */
     }
+	
 
+	
     /* ================================================code style======================================== */
     /*代码正文*/
     .cm-s-inner {
@@ -1183,4 +1185,22 @@ tbody.list-js-list a {
     -webkit-flex-direction: row;
     flex-direction: row;
     align-items: center;
+}
+
+.text-inner-tspan{
+	font-family: sans-serif;
+	font-size: 16px;
+	fill: #FF5722;
+}
+		
+.edge {
+	stroke-width: 1 !important;
+	stroke: #8BC34A !important;
+	fill: none;
+}
+.node-bkg {
+	fill: none;
+	stroke: #F44336 !important;
+	stroke-width: 1px !important;
+	stroke-dasharray: 8 !important;
 }
