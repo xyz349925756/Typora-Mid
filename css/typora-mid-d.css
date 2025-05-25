@@ -182,7 +182,7 @@ footer.stopselect.ty-footer {
     margin-bottom: 0;
     color: var(--yellow);
     font-family: "Segoe UI";
-    font-size: 13px;
+    font-size: 12px;
 
     &:hover {
         color: var(--text-color-1);
@@ -402,11 +402,11 @@ tbody.list-js-list a {
 
 /* ================================================正文内容================================================ */
 /* 鼠标选中内容 */ 
-/* ::selection{
+::selection{
     background: var(--box-shadow-l-2);
     color: var(--blue);
     border-radius: 5px;
-} */
+} 
 
 
 /* h1-h6 */

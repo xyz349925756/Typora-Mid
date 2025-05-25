@@ -189,7 +189,7 @@ footer.stopselect.ty-footer {
     margin-bottom: 0;
     color: var(--text-color);
     font-family: "Segoe UI";
-    font-size: 13px;
+    font-size: 12px;
 
     &:hover {
         color: var(--text-color-2);
