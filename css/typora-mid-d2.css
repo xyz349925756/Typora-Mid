@@ -122,7 +122,7 @@ body {
 
 /* 标题栏 */
 #top-titlebar {
-    background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%);
+    /* background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%); */
     height: 100% !important;
     /* font-size: 12px; */
 
@@ -141,12 +141,12 @@ body {
 
 /* write */
 content {
-    background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%);
+    /* background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%); */
 }
 
 /* write footer */
 footer.stopselect.ty-footer {
-    background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%);
+    /* background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%); */
     border-top: none;
 }
 
@@ -430,7 +430,7 @@ tbody.list-js-list a {
     h4,
     h5,
     h6 {
-        font-family: "Fira Code Light";
+        font-family: "sans-serif";
         position: relative;
         /* border-radius: 0 5px 5px 0; */
 
@@ -486,7 +486,7 @@ tbody.list-js-list a {
         span {
             /* background: linear-gradient(135deg, transparent 90%, var(--h2-1) 90%, var(--h2-1) 95%, var(--h2-2) 95%) !important; */
             padding: 2px 30px 2px;
-            color: var(--h2-1);
+            color: var(--text-color-4);
             display: inline-block;
             width: 100%;
 
@@ -537,7 +537,7 @@ tbody.list-js-list a {
         span {
             /* background: linear-gradient(135deg, transparent 90%, var(--h3-3) 90%, var(--h3-3) 95%, var(--h3-2) 95%) !important; */
             padding: 2px 30px 2px;
-            color: var(--h3-1);
+            color: var(--text-color-4);
             display: inline-block;
             width: 100%;
 
@@ -576,7 +576,7 @@ tbody.list-js-list a {
         span {
             /* background: linear-gradient(135deg, transparent 90%, var(--h4-1) 90%, var(--h4-1) 95%, var(--h4-2) 95%) !important; */
             padding: 2px 30px 2px;
-            color: var(--h4-2);
+            color: var(--text-color-4);
             display: inline-block;
             width: 100%;
 
@@ -615,7 +615,7 @@ tbody.list-js-list a {
         span {
             /* background: linear-gradient(135deg, transparent 90%, var(--h5-1) 90%, var(--h5-1) 95%, var(--h5-3) 95%) !important; */
             padding: 2px 30px 2px;
-            color: var(--h5-2);
+            color: var(--text-color-4);
             display: inline-block;
             width: 100%;
 
@@ -654,7 +654,7 @@ tbody.list-js-list a {
         span {
             /* background: linear-gradient(135deg, transparent 90%, var(--h6-2) 90%, var(--h6-2) 95%, var(--h6-1) 95%) !important; */
             padding: 2px 30px 2px;
-            color: var(--h6-1);
+            color: var(--text-color-4);
             display: inline-block;
             width: 100%;
 
