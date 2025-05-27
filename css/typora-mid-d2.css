@@ -13,6 +13,7 @@
     --third-color: #4A5A6A;
 
     --text-color-1: #AAAAAA;
+    --text-color-2: #8BC34A;
     --text-color-3: #5f9ea0;
     --text-color-4: #ffffff;
 
@@ -35,12 +36,12 @@
     --h6-2: #a8e063;
     --h6-3: #F5F5DC;
 
-    --a-link-color: #3178C6;
-    --a-hover-color: #1A5F8E;
-    --a-visited-color: #23527C;
+    --a-link-color: #FFC107;
+    --a-hover-color: #4caf50;
+    --a-visited-color: #9920be;
 
     --lightyellow: #F7DC6F;
-    --brightgreen: #1ABC9C;
+    --brightgreen: #4caf50;
     --brightyellow: #F1C40F;
     --green: #34C759;
     --deekgreen: #2D6A4A;
@@ -49,6 +50,7 @@
     --red: #FF3B30;
     --orange: #E6994C;
     --blue: #4C8EF4;
+    --blue-1: #2196F3;
 
 
     --lightpurple: #E9C6FF;
@@ -56,6 +58,7 @@
     --pink: #FF69B4;
     --lilac: #E4D6F5;
     --beige: #D2B48C;
+    --beige-1: #607D8B;
     --lightorange: #FFA07A;
     --palepink: #FFB3BA;
     --paleyellow: #FFD7BE;
@@ -64,14 +67,19 @@
 
     --note-color: #3170A6;
     --note-color-2: #2277B8;
+    --note-color-3: #FFC107;
     --tip-color: #41AE3B;
     --tip-color-2: #66B700;
+    --tip-color-3: #101010;
     --important-color: #282955;
     --important-color-2: #967FF4;
+    --important-color-3: #4CAF50;
     --warning-color: #DBA014;
     --warning-color-2: #FF9003;
+    --warning-color-3: #0D47A1;
     --caution-color: #8D211E;
     --caution-color-2: #7D0101;
+    --caution-color-3: #FFEB3B;
 
     --box-shadow: #696161;
     --box-shadow-d-1: rgba(0, 0, 0, 0.1);
@@ -424,11 +432,11 @@ tbody.list-js-list a {
     h6 {
         font-family: "Fira Code Light";
         position: relative;
-        border-radius: 0 5px 5px 0;
+        /* border-radius: 0 5px 5px 0; */
 
         span {
             position: relative;
-            border-radius: 0 5px 5px 0;
+            /* border-radius: 0 5px 5px 0; */
         }
     }
 
@@ -461,7 +469,7 @@ tbody.list-js-list a {
 
     h2 {
         border-bottom: solid 1px var(--h2-2);
-        background: linear-gradient(135deg, transparent 85%, var(--h2-3) 15%);
+        /* background: linear-gradient(135deg, transparent 85%, var(--h2-3) 15%); */
 
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
@@ -476,7 +484,7 @@ tbody.list-js-list a {
         }
 
         span {
-            background: linear-gradient(135deg, transparent 90%, var(--h2-1) 90%, var(--h2-1) 95%, var(--h2-2) 95%) !important;
+            /* background: linear-gradient(135deg, transparent 90%, var(--h2-1) 90%, var(--h2-1) 95%, var(--h2-2) 95%) !important; */
             padding: 2px 30px 2px;
             color: var(--h2-1);
             display: inline-block;
@@ -495,38 +503,39 @@ tbody.list-js-list a {
             }
         }
     }
-    h3.md-focus:before, 
-    h4.md-focus:before, 
-    h5.md-focus:before, 
-    h6.md-focus:before{
+
+    h3.md-focus:before,
+    h4.md-focus:before,
+    h5.md-focus:before,
+    h6.md-focus:before {
         color: var(--text-color-3);
         position: absolute;
         font-size: 14px;
         font-weight: 400;
         line-height: normal;
         left: 50%;
-        border:  none;
+        border: none;
     }
+
     h3 {
         border-bottom: solid 1px var(--h3-2);
-        background: linear-gradient(135deg, transparent 85%, var(--h3-1) 15%);
+        /* background: linear-gradient(135deg, transparent 85%, var(--h3-1) 15%); */
 
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
-			
-            /* &::before {
+
+            &::before {
                 content: "H3";
                 position: absolute;
                 font-size: 12px;
                 color: var(--h3-1);
                 right: 50%;
                 border:  none;
-
-            } */
+            }
         }
 
         span {
-            background: linear-gradient(135deg, transparent 90%, var(--h3-3) 90%, var(--h3-3) 95%, var(--h3-2) 95%) !important;
+            /* background: linear-gradient(135deg, transparent 90%, var(--h3-3) 90%, var(--h3-3) 95%, var(--h3-2) 95%) !important; */
             padding: 2px 30px 2px;
             color: var(--h3-1);
             display: inline-block;
@@ -548,12 +557,12 @@ tbody.list-js-list a {
 
     h4 {
         border-bottom: solid 1px var(--h4-2);
-        background: linear-gradient(135deg, transparent 85%, var(--h4-3) 15%);
+        /* background: linear-gradient(135deg, transparent 85%, var(--h4-3) 15%); */
 
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
-            /* &::before {
+            &::before {
                 content: "H4";
                 position: absolute;
                 font-size: 12px;
@@ -561,11 +570,11 @@ tbody.list-js-list a {
                 right: 50%;
                 border:  none;
 
-            } */
+            }
         }
 
         span {
-            background: linear-gradient(135deg, transparent 90%, var(--h4-1) 90%, var(--h4-1) 95%, var(--h4-2) 95%) !important;
+            /* background: linear-gradient(135deg, transparent 90%, var(--h4-1) 90%, var(--h4-1) 95%, var(--h4-2) 95%) !important; */
             padding: 2px 30px 2px;
             color: var(--h4-2);
             display: inline-block;
@@ -587,12 +596,12 @@ tbody.list-js-list a {
 
     h5 {
         border-bottom: solid 1px var(--h5-3);
-        background: linear-gradient(135deg, transparent 85%, var(--h5-2) 15%);
+        /* background: linear-gradient(135deg, transparent 85%, var(--h5-2) 15%); */
 
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
-            /* &::before {
+            &::before {
                 content: "H5";
                 position: absolute;
                 font-size: 12px;
@@ -600,11 +609,11 @@ tbody.list-js-list a {
                 right: 50%;
                 border:  none;
 
-            } */
+            }
         }
 
         span {
-            background: linear-gradient(135deg, transparent 90%, var(--h5-1) 90%, var(--h5-1) 95%, var(--h5-3) 95%) !important;
+            /* background: linear-gradient(135deg, transparent 90%, var(--h5-1) 90%, var(--h5-1) 95%, var(--h5-3) 95%) !important; */
             padding: 2px 30px 2px;
             color: var(--h5-2);
             display: inline-block;
@@ -626,12 +635,12 @@ tbody.list-js-list a {
 
     h6 {
         border-bottom: solid 1px var(--h6-1);
-        background: linear-gradient(135deg, transparent 85%, var(--h6-3) 15%);
+        /* background: linear-gradient(135deg, transparent 85%, var(--h6-3) 15%); */
 
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
-            /* &::before {
+            &::before {
                 content: "h6";
                 position: absolute;
                 font-size: 12px;
@@ -639,11 +648,11 @@ tbody.list-js-list a {
                 right: 50%;
                 border:  none;
 
-            } */
+            }
         }
 
         span {
-            background: linear-gradient(135deg, transparent 90%, var(--h6-2) 90%, var(--h6-2) 95%, var(--h6-1) 95%) !important;
+            /* background: linear-gradient(135deg, transparent 90%, var(--h6-2) 90%, var(--h6-2) 95%, var(--h6-1) 95%) !important; */
             padding: 2px 30px 2px;
             color: var(--h6-1);
             display: inline-block;
@@ -819,46 +828,56 @@ tbody.list-js-list a {
     .md-alert.md-alert-note {
         border-left: var(--note-color) 1px solid;
         background-image: linear-gradient(45deg, var(--note-color) 2%, transparent 0%, var(--note-color) 90%);
-        padding: 4px 0px 4px 20px;
+        padding: 4px 20px;
+        margin: 4px;
         border-radius: 5px;
         border-top: var(--note-color) 1px solid;
         border-bottom: var(--note-color) 1px solid;
+        color: var(--note-color-3);
     }
 
     .md-alert.md-alert-tip {
         border-left: var(--tip-color) 1px solid;
         background-image: linear-gradient(45deg, var(--tip-color) 2%, transparent 0%, var(--tip-color) 90%);
-        padding: 4px 0px 4px 20px;
+        padding: 4px 20px;
+        margin: 4px;
         border-radius: 5px;
         border-top: var(--tip-color) 1px solid;
         border-bottom: var(--tip-color) 1px solid;
+        color: var(--tip-color-3);
     }
 
     .md-alert.md-alert-important {
         border-left: var(--important-color) 1px solid;
         background-image: linear-gradient(135deg, var(--important-color) 2%, transparent 0%, var(--important-color) 90%);
-        padding: 4px 0px 4px 20px;
+        padding: 4px 20px;
+        margin: 4px;
         border-radius: 5px;
         border-top: var(--important-color) 1px solid;
         border-bottom: var(--important-color) 1px solid;
+        color: var(--important-color-3);
     }
 
     .md-alert.md-alert-warning {
         border-left: var(--warning-color) 1px solid;
         background-image: linear-gradient(135deg, var(--warning-color) 2%, transparent 0%, var(--warning-color) 90%);
-        padding: 4px 0px 4px 20px;
+        padding: 4px 20px;
+        margin: 4px;
         border-radius: 5px;
         border-top: var(--warning-color) 1px solid;
         border-bottom: var(--warning-color) 1px solid;
+        color: var(--warning-color-3);
     }
 
     .md-alert.md-alert-caution {
         border-left: var(--caution-color) 1px solid;
         background-image: linear-gradient(135deg, var(--caution-color) 2%, transparent 0%, var(--caution-color) 90%);
-        padding: 4px 0px 4px 20px;
+        padding: 4px 20px;
+        margin: 4px;
         border-radius: 5px;
         border-top: var(--caution-color) 1px solid;
         border-bottom: var(--caution-color) 1px solid;
+        color: var(--caution-color-3);
     }
 
     blockquote {
@@ -961,7 +980,7 @@ tbody.list-js-list a {
         /*注释*/
         .cm-comment,
         .cm-s-inner.cm-comment {
-            color: var(--beige);
+            color: var(--beige-1);
         }
 
         /*多行注释*/
@@ -987,7 +1006,7 @@ tbody.list-js-list a {
 
         /*关键字*/
         .cm-keyword {
-            color: var(--important-color-2);
+            color: var(--blue-1);
         }
 
         /* 函数名 */
@@ -1193,20 +1212,21 @@ tbody.list-js-list a {
     align-items: center;
 }
 
-.text-inner-tspan{
-	font-family: sans-serif;
-	font-size: 16px;
-	fill: #FF5722;
+.text-inner-tspan {
+    font-family: sans-serif;
+    font-size: 16px;
+    fill: #FF5722;
 }
-		
+
 .edge {
-	stroke-width: 1 !important;
-	stroke: #8BC34A !important;
-	fill: none;
+    stroke-width: 1 !important;
+    stroke: #8BC34A !important;
+    fill: none;
 }
+
 .node-bkg {
-	fill: none;
-	stroke: #F44336 !important;
-	stroke-width: 1px !important;
-	stroke-dasharray: 8 !important;
+    fill: none;
+    stroke: #F44336 !important;
+    stroke-width: 1px !important;
+    stroke-dasharray: 8 !important;
 }
