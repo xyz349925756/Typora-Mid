@@ -1,0 +1,1862 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2023 劉強東 https://github.com/liangjingkanji
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+@import url(./drake/font.css);
+@include-when-export url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+:root {
+	--text-font: "FiraCode Nerd Font Mono";
+    --text-color: #19191C;
+    --bg-color: #fffefe;
+    --control-text-color: var(--text-color);
+    --meta-content-color: var(--text-color);
+    --active-file-border-color: var(--drake-accent);
+    --rawblock-edit-panel-bd: var(--code-block-bg-color);
+    --item-hover-bg-color: #E5E5E596;
+    --active-file-bg-color: var(--item-hover-bg-color);
+
+    --blur-text-color: rgba(51, 51, 51, 0.5);
+    --drake-accent: #307FFF;
+    --drake-highlight: #19191C;
+    --a-color: var(--text-color);
+    --variable-color: var(--drake-highlight);
+    --outline-active-color: var(--text-color);
+    --code-block-bg-color: #2b2b2b;
+    --code-block-color: #A9B7C6;
+    --title-color: #273849;
+    --blockquote-border-color: rgba(255, 255, 255, 0);
+    --blockquote-color: #19191CB3;
+    --blockquote-bg-color: #f4f4f4;
+    --strong-color: #000000;
+    --h2-underline-color: var(--title-color);
+    --horizontal-divider-color: var(--title-color);
+    --height-light-color: var(--drake-highlight);
+    --height-light-border-color: rgb(25, 25, 28, 0.3);
+    --yaml-color: #777777;
+    --yaml-bg-color: #f7f7f7;
+    --footnotes-bg-color: #3c3d3e;
+    --footnotes-highlight: #FFD760;
+    --table-border-color: #dfdfdf;
+    --table-header-bg-color: transparent;
+    --table-bg-color: transparent;
+    --table-n2-bg-color: transparent;
+    --input-bg-color: var(--item-hover-bg-color);
+    --btn-hover-bg-color: var(--item-hover-bg-color);
+    --checkbox-checked: url("data:image/svg+xml,%3Csvg class='icon' viewBox='0 0 1024 1024' xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cpath d='M425.984 726.016l384-384-59.99-61.995-324.01 324.011-152.021-152.021L213.973 512zm384-598.016q36.01 0 61.013 25.984T896 213.974v596.01q0 34.005-25.003 59.99t-61.013 25.983h-596.01q-36.011 0-61.014-25.984t-25.003-59.989v-596.01q0-34.006 25.003-59.99T213.973 128h596.011z' fill='%2319191C'/%3E%3C/svg%3E");
+    --checkbox-unchecked: url("data:image/svg+xml,%3Csvg class='icon' viewBox='0 0 1024 1024' xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cpath d='M810.667 213.333v597.334H213.333V213.333h597.334m0-85.333H213.333C166.4 128 128 166.4 128 213.333v597.334C128 857.6 166.4 896 213.333 896h597.334C857.6 896 896 857.6 896 810.667V213.333C896 166.4 857.6 128 810.667 128z' fill='%23333333'/%3E%3C/svg%3E");
+}/* 取消文件夹前面图标 */
+.fa-caret-right,
+.fa-caret-down {
+    --fa: none;
+
+    &:before {
+        content: none;
+    }
+}
+/* 编辑区域透明 */
+#write {
+    background: transparent !important;
+    background-color: transparent !important;
+    padding: 20px !important;
+}
+#write pre {
+	width: 100% !important;
+}
+/*代码行号*/
+.cm-s-inner .CodeMirror-linenumber {
+    color: #5c6773 !important;
+    padding-top: 5px !important;
+}
+/* 内容区透明 */
+content {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* 侧边栏透明 */
+.sidebar-content {
+    background: transparent !important;
+}
+
+/* 自定义 */
+span.file-node-title-name-part {
+    color: #285e8e !important;
+    font-size: 12px !important;
+}
+span.file-node-title-name-part:hover {
+    color: #000 !important;
+}
+span.file-node-title-ext-part {
+    color: #f21100 !important;
+    font-size: 12px !important;
+}
+strong {
+    color: #368eff !important;
+    font-weight: 100 !important;
+	font-family: system-ui !important;
+}
+#write mark {
+    border: .1em solid transparent !important;
+    color: #FFEB3B !important;
+    background-color: #ff5555 !important;
+    padding: .1rem .5rem !important;
+    border-radius: 3px !important;
+    margin: 0 .2rem !important;
+    font-size: .95rem !important;
+}
+
+/* 鼠标点击文件烂出现的边框 */
+.file-library-node:not(.file-node-root):focus>.file-node-content {
+    /* outline-color: #000; */
+    outline: none !important;
+}
+
+.md-alert-text {
+    font-size: small !important;
+    font-weight: 100 !important;
+}
+
+/* 多元化引用 */
+.md-alert-text-note .md-alert-text-container:after {
+    content: "注意";
+  }
+  .md-alert-text-tip .md-alert-text-container:after {
+    content: "提示";
+  }
+  .md-alert-text-important .md-alert-text-container:after {
+    content: "重要";
+  }
+  .md-alert-text-warning .md-alert-text-container:after {
+    content: "警告";
+  }
+  .md-alert-text-caution .md-alert-text-container:after {
+    content: "小心";
+  }
+
+/* 大纲层级 */
+.outline-item-open > .outline-item > .outline-expander:before {
+    color: #2196F3;
+    content: "\f261";
+    font-size: 14px;
+    padding-right: 4px;
+}
+
+span.outline-expander::before {
+    content: "\f260";
+    color: #F44336;
+    font-size: 14px;
+    padding-right: 4px;
+}
+.outline-expander:hover:before {
+    content: "\f261";
+    color: #ffc107;
+    font-size: 14px;
+    padding-right: 4px;
+}
+
+
+/* 标题样式 */
+#top-titlebar, #top-titlebar * {
+    /* background-color: inherit; */
+    color: #202124;
+}
+span.ty-menu-btn-area-sub.ty-menu-btn-area-sub3 {
+    color: #ffeb3b !important;
+}
+
+span.ty-menu-btn-area-sub.ty-menu-btn-area-sub2 {
+    color: #4CAF50 !important;
+}
+
+span.ty-menu-btn-area-sub.ty-menu-btn-area-sub1 {
+    color: #E91E63 !important;
+}
+
+/* 在原有 .md-fences 样式基础上修改 */
+.md-fences {
+  /* background: var(--bg-color)  !important; */
+  border-radius: 5px !important;
+  box-shadow: 0 10px 30px 0 rgba(0, 0, 0, .4) !important;
+  padding-top: 30px !important;
+  position: relative !important; /* 新增定位上下文 */
+  margin: 15px 0  !important;    /* 保持原有外边距 */
+  font-size: 12px  !important;
+  font-family: "FiraCode Nerd Font Mono"  !important;
+  padding-bottom: 8px  !important;
+  line-height: inherit  !important;
+}
+
+/* 添加 Mac 风格窗口按钮 */
+.md-fences::before {
+    content: ' ';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fc625d;
+    box-shadow: 20px 0 #35cd4b, 40px 0 #fdbc40;
+    z-index: 1;
+}
+
+/* 调整代码内容位置 */
+.md-fences .code-tooltip {
+  margin-top: -20px; /* 补偿顶部 padding */
+}
+
+/* 保持代码区域高度 */
+.md-fences pre {
+  padding-top: 4px; /* 调整代码与按钮的间距 */
+}
+
+.info-panel-tab-title {
+    color: #6495ed !important;
+}
+
+/* 文件大纲 */
+.active-tab-files #info-panel-tab-file .info-panel-tab-border, .active-tab-outline #info-panel-tab-outline .info-panel-tab-border {
+    height: 1px;
+    /* background-color: transparent; */
+    border-bottom: var(--focus-ring-color) 1px solid;
+}
+
+
+/* 引用样式 */
+.md-alert.md-alert-note {
+    border-left-color: #0969da;
+    background-image: linear-gradient(90deg, #0969da60, transparent);
+    border-bottom: #0969da20 1px solid;
+    padding: 4px 0px 0px 20px;
+    border-radius: 5px 0px 0px 5px;
+	/* color: white; */
+}
+
+.md-alert.md-alert-important {
+	border-left-color: #8250df;
+    background-image: linear-gradient(90deg, #8250df60, transparent);
+    border-bottom: #8250df20 1px solid;
+    padding: 4px 0px 0px 20px;
+    border-radius: 5px 0px 0px 5px;
+	/* color: white; */
+}
+.md-alert.md-alert-warning {
+	border-left-color: #9a6700;
+    background-image: linear-gradient(90deg, #9a670060, transparent);
+    border-bottom: #9a670020 1px solid;
+    padding: 4px 0px 0px 20px;
+    border-radius: 5px 0px 0px 5px;
+	/* color: white; */
+}
+.md-alert.md-alert-tip {
+	border-left-color: #1f883d;
+    background-image: linear-gradient(90deg, #1f883d60, transparent);
+    border-bottom: #1f883d20 1px solid;
+    padding: 4px 0px 0px 20px;
+    border-radius: 5px 0px 0px 5px;
+	/* color: white; */
+}
+.md-alert.md-alert-caution {
+	border-left-color: #cf222e;
+    background-image: linear-gradient(90deg, #cf222e60, transparent);
+    border-bottom: #cf222e20 1px solid;
+    padding: 4px 0px 0px 20px;
+    border-radius: 5px 0px 0px 5px;
+	/* color: white; */
+}
+
+.file-node-expanded {
+    background: #3c3d3e20  !important;
+	border-radius: 5px;
+}
+.file-node-open-state {
+    margin-right: 0rem !important;
+}
+/* 水平线 */
+hr {
+    height: 1px !important;
+    padding: 0 !important;
+    margin: 16px 0 !important;
+	background-image: linear-gradient(to left, #42a5f5,white) !important;
+    border: 0 none !important;
+    overflow: hidden !important;
+    box-sizing: content-box !important;
+}
+
+blockquote:before {
+    content: ' ';
+    position: absolute !important;
+    top: 10px !important;
+    left: 10px !important;
+    width: 12px !important;
+    height: 12px !important;
+    /* border-radius: 50%; */
+    background: #fc625d !important;
+    box-shadow: 20px 0 #35cd4b, 40px 0 #fdbc40 !important;
+    z-index: 1 !important;
+}
+
+blockquote {
+	background: var(--bg-color) !important;
+    border-radius: 5px !important;
+    box-shadow: 0 10px 30px 0 rgba(0, 0, 0, .4) !important;
+    padding-top: 30px !important;
+    position: relative !important;
+    margin: 15px 0 !important;
+    font-size: 12px !important;
+    font-family: "FiraCode Nerd Font Mono" !important;
+    padding-bottom: 8px !important;
+    line-height: inherit !important;
+    border-radius: 5px !important;
+    background-image: linear-gradient(125deg, transparent, #8BC34A) !important;
+}	
+	
+/* 标题	 */
+	
+#write h1 {
+    font-size: 2rem;
+    text-align: center;
+    padding: 25px 0px;
+    margin: 0px;
+}
+
+#write h1 span {
+    border-radius: 50px 10px;
+    border-left: #ff5555 20px solid;
+    border-right: #368eff 20px solid;
+    padding: 0px 30px;
+    box-shadow: 4px 4px 2px #ff5555;
+    /* color: white; */
+}
+#write h1 span:hover {
+    box-shadow: 0 0 20px 10px #ff5555;
+}
+#write h2 {
+    border-bottom: solid 1px #03A9F4;
+}
+#write h2:hover{
+    box-shadow: 0 10px 5px -5px #03A9F4;
+}
+#write h2 span:hover {
+    box-shadow: 0 0 20px 10px #3F51B5;
+}
+
+#write h2 span {
+    background-image: linear-gradient(to right, #3F51B5, #03A9F4);
+    border-radius: 0px 5px 0px 0px;
+    padding: 2px 30px 2px;
+    color: white;
+    border-top: solid 1px white;
+    box-shadow: 4px 4px 2px #3F51B5;
+}
+
+
+#write h3 {
+    border-bottom: solid 1px #ff9800;
+}
+#write h3:hover{
+    box-shadow: 0 10px 5px -5px #ff9800;
+}
+#write h3 span:hover {
+    box-shadow: 0 0 20px 10px #cb3066;
+}
+#write h3 span {
+    background-image: linear-gradient(to right, #cb3066, #ff9800);
+    border-radius: 0px 5px 0px 0px;
+    padding: 2px 30px 2px;
+    color: white;
+    border-top: solid 1px white;
+    box-shadow: 4px 4px 2px #cb3066;
+}
+#write h4 {
+    border-bottom: solid 1px #16bffd;
+}
+#write h4:hover{
+    box-shadow: 0 10px 5px -5px #16bffd;
+}
+#write h4 span:hover {
+    box-shadow: 0 0 20px 10px #ff9800;
+}
+#write h4 span {
+    background-image: linear-gradient(to right, #ff9800, #16bffd);
+    border-radius: 0px 5px 0px 0px;
+    padding: 2px 30px 2px;
+    color: white;
+    border-top: solid 1px white;
+    box-shadow: 4px 4px 2px #ff9800;
+}
+#write h5 {
+    border-bottom: solid 1px #673AB7;
+}
+#write h5:hover{
+    box-shadow: 0 10px 5px -5px #673AB7;
+}
+#write h5 span:hover {
+    box-shadow: 0 0 20px 10px #673AB7;
+}
+#write h5 span {
+    background-image: linear-gradient(to right, #673AB7, #ffc107);
+    border-radius: 0px 4px 0px 0px;
+    padding: 2px 30px 2px;
+    color: white;
+    border-top: solid 1px white;
+    box-shadow: 4px 4px 2px #673ab7;
+}
+#write h6 {
+    border-bottom: solid 1px #56ab2f;
+}
+#write h6:hover{
+    box-shadow: 0 10px 5px -5px #56ab2f;
+}
+#write h6 span:hover {
+    box-shadow: 0 0 20px 10px #56ab2f;
+}
+#write h6 span {
+    background-image: linear-gradient(to right, #56ab2f, #a8e063);
+    border-radius: 0px 4px 0px 0px;
+    padding: 2px 30px 2px;
+    color: white;
+    border-top: solid 1px white;
+    box-shadow: 4px 4px #56ab2f;
+}
+
+/* 表格	 */
+/* ================= 三线表完整样式 ================= */
+/* table { */
+  /* border-collapse: collapse !important; */
+  /* border-spacing: 0 !important; */
+  /* border: none !important; */
+  /* margin: 1.5em 0 !important; */
+/* } */
+
+/* 顶线 */
+/* table { */
+  /* border-top: 2px solid #333 !important; */
+/* } */
+
+/* 底线 */
+/* table { */
+  /* border-bottom: 2px solid #333 !important; */
+/* } */
+
+/* 表头线（中间线） */
+/* thead tr:first-child th { */
+  /* border-bottom: 1.5px solid #666 !important; */
+/* } */
+
+/* 单元格样式 */
+/* td, th { */
+  /* border: none !important; */
+  /* padding: 8px 12px !important; */
+  /* background: transparent !important; */
+/* } */
+
+/* 表头文字样式 */
+/* th { */
+  /* font-weight: 600 !important; */
+  /* color: #2c3e50 !important; */
+/* } */
+
+/* 移除斑马纹 */
+/* tr:nth-child(2n) { */
+  /* background: transparent !important; */
+/* } */
+
+/* 调整对齐方式 */
+th {
+  text-align: center !important;
+}
+td {
+  text-align: left !important;
+}
+
+table thead {
+    background-image: linear-gradient(45deg, #428bca, transparent);
+    text-align: center;
+}
+table tr:nth-child(1n) {
+    background-image: linear-gradient(45deg, #428bca60, transparent);
+}
+table tr:nth-child(2n) {
+    background-image: linear-gradient(45deg, #ffcc660d, transparent);
+}
+
+/*大纲*/
+.outline-item:hover {
+    margin-left: -28px;
+    margin-right: -28px;
+    border-left: 28px double #8BC34A;
+    color: var(--red);
+    background: transparent;
+}
+
+.outline-label:hover {
+    text-decoration: none;
+}
+
+
+.outline-content li, .outline-content ul {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    list-style: none;
+    overflow-wrap: anywhere;
+    margin: 1px 0px;
+    box-shadow: 0px 0px 1px 0px #8bc34a;
+}
+
+
+/*文件*/
+
+
+/*文件图标hover color*/
+/* .file-node-content:hover { */
+    /* color: #FFC107; */
+/* } */
+
+/*文件夹下文件*/
+.file-library-node.file-tree-node.file-library-file-node:hover {
+	background-image: linear-gradient(45deg, #673ab740, #8be9fd);
+    border-radius: 4px;
+    /* border-left: 6px #585b74 solid; */
+}
+
+/*鼠标移动到文件夹上的样式*/
+.file-library-node.file-tree-node.file-node-collapsed:hover {
+    background: #585b7420;
+    border-radius: 5px;
+}
+
+/* 控制文件栏图标颜色 */
+i.file-node-icon.fa.fa-file-text-o:before {
+    color: #101010 !important;
+	content: "\f219" !important;
+}
+i.file-node-icon.fa.fa-folder:before {
+    color: black !important;
+	content: "\f216" !important;
+}
+	
+/*选中文件样式*/
+.file-tree-node.active>.file-node-background {
+    border-left: 4px solid  #00bcd480;
+    /* border-radius: 50%; */
+    /* background-image: linear-gradient(60deg, #3b82f680, #8be9fd); */
+	background: transparent;
+	/* margin-left: 15px; */
+}
+
+/*有序无序列表*/
+.ol-list{
+	counter-reset: list-counter;
+}
+li > ul, li > ol {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-left: 5px;
+}
+li.md-list-item {
+    list-style: none;
+    display: flex !important;
+    /* align-items: center; */
+	align-items: flex-start; 
+	flex-wrap: wrap;
+	position: relative;      /* 为伪元素定位 */
+    padding-left: 35px;  
+}
+#write.first-line-indent ol ol li,
+#write.first-line-indent ul ol li,
+#write.first-line-indent ol ul li,
+#write.first-line-indent ul ul li {
+    margin-left: 0em !important;
+}
+ul.ul-list,
+ol.ol-list {
+    padding: 0em !important;
+}
+
+ol > li.md-list-item:before {
+    counter-increment: list-counter;
+    content: counter(list-counter);
+    background-color: var(--background);
+    color: white;
+    padding: 1px 6px;
+    margin-right: 5px;
+    border-radius: 50%;
+    position: absolute;
+    left: 8px;
+    top: 5px;
+    box-shadow: 1px 0 10px 0 var(--border);
+}
+ul > li.md-list-item:before {
+	content: "\f005";
+    color: #F44336;
+    position: absolute;
+    left: 8px;
+    top: 5px;
+    padding-left: 20px;
+}
+li > p.md-end-block.md-p {
+    margin: 5px 5px;
+	flex: 1 1 calc(100% - 50px);
+}
+	
+/*kbd*/	
+
+kbd {
+  position: relative !important;
+  display: inline-block !important;
+  padding: 2px 8px !important;
+  margin: 0 4px !important;
+  font-family: system-ui, sans-serif !important;
+  font-size: 0.9em !important;
+  color: #e0e0e0 !important;
+  background: linear-gradient(
+    145deg,
+    #4a4a4a 0%,
+    #2d2d2d 30%,
+    #1a1a1a 50%,
+    #2d2d2d 70%,
+    #4a4a4a 100%
+  ) !important;
+  border-radius: 4px !important;
+  border: 1px solid #1a1a1a !important;
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.4),
+    0 4px 6px rgba(0, 0, 0, 0.3) !important;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5) !important;
+  transform: translateY(0) !important;
+  transition: all 0.1s ease !important;
+}
+
+/* 金属边缘高光 */
+kbd::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  border-radius: 3px !important;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 按下效果 */
+kbd:active {
+  transform: translateY(2px) !important;
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.3),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.2),
+    0 2px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+
+/*反引号样式*/
+#write code, tt {
+    margin: 0 2px !important;
+    color: #4caf50 !important;
+	border: none !important;
+    background: none !important;
+}
+/*link*/
+#write a {
+    color: #E91E63 !important;
+    text-decoration: none !important;
+}
+#write h2 a .md-plain {
+    border-bottom: .2rem solid var(--a-color) !important;
+}
+.on-focus-mode #write a .md-plain, .on-focus-mode .md-htmlblock-container a:hover {
+    border-bottom: .1rem solid var(--blur-text-color) !important;
+}
+#write a .md-plain, .md-htmlblock-container a:hover,
+.on-focus-mode #write .md-focus a .md-plain, .md-focus .md-htmlblock-container a:hover {
+    border-bottom: .1rem dashed var(--a-color) !important;
+}
+	
+/* 自定义结束 */
+html {
+    font-size: var(--text-size);
+}
+
+body {
+    font-family: var(--text-font) !important;
+    color: var(--text-color);
+    -webkit-font-feature-settings: "liga" on, "calt" on;
+    -webkit-font-smoothing: subpixel-antialiased;
+    text-rendering: optimizeLegibility;
+    letter-spacing: 0;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+p {
+    line-height: var(--text-line-height);
+}
+
+/*code block*/
+.md-fences {
+    font-size: 1rem;
+    /* padding: 0.5rem !important; */
+    border-radius: 2px;
+    word-wrap: normal;
+    background-color: var(--code-block-bg-color);
+    color: var(--code-block-color);
+    border: none;
+    line-height: var(--code-line-height);
+}
+.on-focus-mode .CodeMirror.cm-s-inner:not(.CodeMirror-focused) *,
+.on-focus-mode .md-fences.md-focus .CodeMirror-code > :not(.CodeMirror-activeline) *,
+.on-focus-mode .md-htmlblock.md-focus .CodeMirror-code > :not(.CodeMirror-activeline) * {
+    color: #909090 !important
+}
+
+/*inline latex*/
+.MathJax {
+    font-size: 120% !important;
+}
+.MathJax text, .MathJax use {
+    font-family: var(--latex-font);
+}
+/*math-block latex*/
+.md-math-block .MathJax {
+    font-size: 130% !important;
+}
+
+/*mermaid*/
+[id^=mermaidChart] .cluster rect {
+    fill: var(--table-n2-bg-color) !important;
+    stroke: var(--table-border-color) !important;
+}
+[id^=mermaidChart] .grid .tick text,
+[id^=mermaidChart] .titleText {
+    fill: var(--text-color) !important;
+}
+[id^=mermaidChart] .clusters span.nodeLabel {
+    color: var(--text-color) !important;
+    line-height: 1.8rem;
+}
+[mermaid-type="journey"] line {
+    stroke: #7a7a7a !important;
+}
+[mermaid-type="journey"] .label {
+    color: #333 !important;
+}
+[id^=mermaidChart] .relationshipLabelBox {
+    fill: var(--bg-color) !important;
+    opacity: 1 !important;
+    background-color: var(--bg-color) !important;
+}
+[id^=mermaidChart] .legend {
+    fill: var(--text-color) !important;
+}
+[id^=mermaidChart] g.label {
+    font-size: 1rem !important;
+}
+[id^=mermaidChart] line.divider {
+    stroke: var(--table-border-color) !important;
+}
+[id^=mermaidChart] span.nodeLabel {
+    color: var(--code-block-color) !important;
+    line-height: 1.8rem;
+}
+tspan {
+    color: var(--text-color)
+}
+[id^=mermaidChart] .entityLabel {
+    fill: var(--code-block-color) !important;
+}
+[id^=mermaidChart] {
+    fill: var(--text-color) !important;
+}
+[id^=mermaidChart] rect.rect {
+    fill: rgba(175, 255, 212, 0.3) !important;
+}
+.md-diagram-panel-preview text.actor > tspan { /*方块文字*/
+    fill: var(--code-block-color) !important;
+    stroke: none !important;
+    font-family: var(--text-font) !important;
+    font-size: 1rem !important;
+}
+.md-diagram-panel-preview .actor, .md-diagram-panel-preview .entityBox { /*方块*/
+    stroke: var(--table-border-color) !important;
+    fill: var(--code-block-bg-color) !important;
+}
+.md-diagram-panel-preview .actor-line { /*竖线*/
+    stroke: var(--text-color) !important;
+    stroke-width: 1px;
+}
+.md-diagram-panel-preview .messageLine0 { /*横线*/
+    stroke-width: 1.5;
+    stroke-dasharray: none;
+    stroke: var(--text-color) !important;
+}
+.md-diagram-panel-preview .messageLine1 { /*虚线*/
+    stroke-width: 1.5 !important;
+    stroke-dasharray: 2, 2 !important;
+    stroke: var(--text-color) !important;
+}
+.md-diagram-panel-preview .messageText { /*描述文字*/
+    fill: var(--text-color) !important;
+    font-family: var(--text-font) !important;
+    font-size: 1rem !important;
+}
+.md-diagram-panel-preview .activation0 { /*长方形*/
+    fill: #e6e6e6 !important;
+    stroke: var(--text-color) !important;
+}
+.md-diagram-panel-preview .labelText, .md-diagram-panel-preview .labelText > tspan { /*循环标记*/
+    fill: var(--code-block-color) !important;
+    font-family: var(--text-font) !important;
+    font-size: 1rem !important;
+    dominant-baseline: unset;
+    alignment-baseline: unset;
+}
+.md-diagram-panel-preview .labelBox { /*循环标记背景*/
+    stroke: var(--table-border-color) !important;
+    fill: var(--code-block-bg-color) !important;
+}
+.md-diagram-panel-preview .loopLine { /*循环标记虚线*/
+    stroke: var(--text-color) !important;
+}
+.md-diagram-panel-preview .loopText, .md-diagram-panel-preview .loopText > tspan { /*循环名称*/
+    fill: var(--text-color) !important;
+    font-size: 1rem !important;
+}
+.md-diagram-panel-preview .sequenceNumber { /*序号*/
+    fill: var(--bg-color) !important;
+}
+pre.md-fences-advanced.md-focus .md-fences-adv-panel {
+    border: none;
+}
+.md-diagram-panel-preview .edgePath .path { /*箭头*/
+    stroke: var(--text-color) !important;
+}
+.md-diagram-panel-preview .edgeLabel rect { /*条件文字背景*/
+    fill: var(--bg-color) !important;
+}
+.md-diagram-panel-preview .edgeLabel span { /*条件文字*/
+    color: var(--text-color) !important;
+    background: var(--bg-color) !important;
+}
+.md-diagram-panel-preview .node rect,
+.md-diagram-panel-preview .node circle,
+.md-diagram-panel-preview .node ellipse,
+.md-diagram-panel-preview .node polygon,
+.md-diagram-panel-preview .node path { /*形状*/
+    stroke: var(--table-border-color) !important;
+    fill: var(--code-block-bg-color) !important;
+}
+#write .md-diagram-panel .md-diagram-panel-preview div { /*形状内文字*/
+    color: var(--code-block-color);
+    font-family: var(--text-font) !important;
+    font-size: 1rem !important;
+}
+
+/*code snippet*/
+#write code, tt {
+    margin: 0 2px;
+    color: var(--drake-highlight);
+    background-color: #19191C0D;
+    padding: 3px 6px;
+    border-radius: 4px;
+}
+
+/*variable*/
+var {
+    color: var(--variable-color);
+    font-weight: bold;
+}
+
+/*raw block*/
+.md-rawblock-control:not(.md-rawblock-tooltip) {
+    border-radius: 2px 0 2px 2px;
+    padding: 0.2rem !important;
+}
+.md-rawblock:hover > .md-rawblock-container {
+    background: none;
+}
+.md-rawblock-input {
+    font-size: 1rem;
+}
+.md-rawblock-tooltip-btn:hover {
+    background: none;
+}
+.md-rawblock:hover > .md-rawblock-tooltip {
+    border-radius: 2px 2px 0 0;
+    margin-bottom: 2px !important;
+}
+.md-rawblock-tooltip.md-rawblock-control {
+    border-radius: 2px 2px 0 0;
+    color: var(--code-block-color);
+}
+.md-rawblock-tooltip-name {
+    color: var(--code-block-color);
+    opacity: 1;
+}
+
+/*quote block*/
+blockquote:before {
+    display: block;
+    position: absolute;
+    content: '';
+    width: 4px;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background-color: var(--blockquote-border-color);
+    border-radius: 2px;
+}
+
+blockquote {
+    color: var(--blockquote-color);
+    border-radius: 2px;
+    padding: 16px;
+    background-color: var(--blockquote-bg-color);
+    position: relative;
+    border-left: none;
+}
+
+strong {
+    color: var(--strong-color);
+    font-weight: bold;
+}
+#write blockquote strong {
+    color: var(--blockquote-color);
+}
+
+/*link*/
+#write a {
+    color: var(--a-color);
+    text-decoration: none;
+}
+#write h2 a .md-plain {
+    border-bottom: .2rem solid rgb(25, 25, 28, 0.2);
+}
+.on-focus-mode #write a .md-plain, .on-focus-mode .md-htmlblock-container a:hover {
+    border-bottom: .1rem solid rgb(25, 25, 28, 0.2);
+}
+#write a .md-plain, .md-htmlblock-container a:hover,
+.on-focus-mode #write .md-focus a .md-plain, .md-focus .md-htmlblock-container a:hover {
+    border-bottom: .1rem solid rgb(25, 25, 28, 0.2);
+}
+[md-inline=link] a {
+    margin: 0 .2rem;
+}
+a:any-link {
+    color: var(--a-color);
+}
+
+img {
+    border-left: none;
+    border-right: none;
+    vertical-align: baseline;
+    border-radius: 2px;
+}
+
+#write {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 30px 100px;
+}
+#typora-source .CodeMirror-lines {
+    max-width: 1200px;
+}
+
+#write > ul:first-child,
+#write > ol:first-child {
+    margin-top: 30px;
+}
+
+body > *:first-child {
+    margin-top: 0 !important;
+}
+
+body > *:last-child {
+    margin-bottom: 0 !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--title-font);
+    position: relative;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    line-height: 1.4;
+    cursor: text;
+    color: var(--title-color);
+}
+
+h3.md-focus:before, h4.md-focus:before, h5.md-focus:before, h6.md-focus:before {
+    visibility: hidden;
+}
+
+h1 {
+    font-size: 2rem;
+    text-align: center;
+    margin-top: 0;
+}
+
+h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.on-focus-mode h2.md-end-block.md-heading:not(.md-focus):not(.md-focus-container):after {
+    background-color: var(--blur-text-color) !important;
+}
+
+h3 {
+    font-size: 1.4rem;
+}
+
+h4 {
+    font-size: 1.2rem;
+}
+
+h5 {
+    font-size: 1rem;
+}
+
+h6 {
+    font-size: 1rem;
+}
+
+h1:hover a.anchor,
+h2:hover a.anchor,
+h3:hover a.anchor,
+h4:hover a.anchor,
+h5:hover a.anchor,
+h6:hover a.anchor {
+    text-decoration: none;
+}
+
+h1 tt,
+h1 code {
+    font-size: inherit !important;
+}
+
+h2 tt,
+h2 code {
+    font-size: inherit !important;
+}
+
+h3 tt,
+h3 code {
+    font-size: inherit !important;
+}
+
+h4 tt,
+h4 code {
+    font-size: inherit !important;
+}
+
+h5 tt,
+h5 code {
+    font-size: inherit !important;
+}
+
+h6 tt,
+h6 code {
+    font-size: inherit !important;
+}
+
+p, blockquote, ul, ol, dl, table {
+    margin: var(--p-spacing) 0;
+}
+
+li > ol,
+li > ul {
+    margin: 0 0;
+}
+li {
+    margin: 0.5em 0;
+}
+
+hr {
+    height: 2px;
+    padding: 0;
+    margin: 16px 0;
+    background-color: var(--horizontal-divider-color);
+    border: 0 none;
+    overflow: hidden;
+    box-sizing: content-box;
+}
+
+body > h2:first-child {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+body > h1:first-child {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+body > h1:first-child + h2 {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+body > h3:first-child,
+body > h4:first-child,
+body > h5:first-child,
+body > h6:first-child {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+a:first-child h1,
+a:first-child h2,
+a:first-child h3,
+a:first-child h4,
+a:first-child h5,
+a:first-child h6 {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+h1 p,
+h2 p,
+h3 p,
+h4 p,
+h5 p,
+h6 p {
+    margin-top: 0;
+}
+
+li p.first {
+    display: inline-block;
+}
+
+ul, ol {
+    padding-inline-start: 2em;
+}
+
+ul:first-child,
+ol:first-child {
+    margin-top: 0;
+}
+
+ul:last-child,
+ol:last-child {
+    margin-bottom: 0;
+}
+
+.ty-table-edit {
+    margin-top: -1rem !important;
+}
+#write table {
+    margin-top: 1rem;
+    word-break: initial;
+    background-color: var(--table-bg-color);
+}
+tbody tr {
+    border-top: .1em solid var(--table-border-color);
+    margin: 0;
+    padding: 0;
+}
+table th {
+    font-weight: bold;
+    border-bottom: 0;
+    margin: 0;
+    padding: 10px 13px;
+}
+table td {
+    border-top: .1em solid var(--table-border-color);
+    margin: 0;
+    padding: 10px 13px;
+}
+table thead {
+    background-color: var(--table-header-bg-color);
+}
+table tr:nth-child(2n) {
+    background-color: var(--table-n2-bg-color);
+}
+table tr th:first-child,
+table tr td:first-child {
+    margin-top: 0;
+}
+table tr th:last-child,
+table tr td:last-child {
+    margin-bottom: 0;
+}
+
+#write em {
+    padding: 0 5px 0 2px;
+}
+
+/* height light */
+#write mark {
+    border: .1em solid var(--height-light-border-color);
+    color: var(--height-light-color);
+    background-color: transparent;
+    padding: .3rem .6rem;
+    border-radius: 2rem;
+    margin: 0 .2rem;
+    font-size: .95rem;
+}
+
+/*shortcut*/
+kbd {
+    border: .1em solid rgba(25, 25, 28, 0.2);
+    background: #19191C0D;
+    color: var(--text-color);
+    margin: 0 .4rem;
+    font-family: var(--text-font) !important;
+    font-size: .95rem;
+    padding: .3em .4em;
+    border-radius: .4em;
+    box-shadow: none;
+}
+
+#write del {
+    padding: 1px 2px;
+}
+
+.md-task-list-item > input {
+    margin-left: -1.3em;
+}
+
+@media print {
+    html {
+        font-size: 12px;
+    }
+
+    table,
+    pre {
+        page-break-inside: avoid;
+    }
+
+    pre {
+        word-wrap: break-word;
+    }
+}
+
+/*YAML*/
+#write pre.md-meta-block {
+    padding: 1rem;
+    font-size: 1rem;
+    line-height: 1.45;
+    background-color: var(--yaml-bg-color);
+    border: 0;
+    border-radius: 2px;
+    color: var(--yaml-color);
+    margin-top: 0 !important;
+}
+
+.mathjax-block > .code-tooltip {
+    bottom: .375rem;
+}
+
+#write > h3.md-focus:before {
+    left: -1.5625rem;
+    top: .375rem;
+}
+
+#write > h4.md-focus:before {
+    left: -1.5625rem;
+    top: .285714286rem;
+}
+
+#write > h5.md-focus:before {
+    left: -1.5625rem;
+    top: .285714286rem;
+}
+
+#write > h6.md-focus:before {
+    left: -1.5625rem;
+    top: .285714286rem;
+}
+
+.md-image > .md-meta {
+    border-radius: 2px;
+    font-family: initial;
+    padding: 2px 0 0 4px;
+    color: inherit;
+}
+
+.md-tag {
+    color: inherit;
+}
+
+.md-toc {
+    margin-top: 20px;
+    padding-bottom: 20px;
+}
+
+.typora-quick-open-item {
+    font-size: 1rem !important;
+    height: 50px;
+    padding-left: 8px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+#typora-quick-open {
+    box-shadow: 0 0 8px #00000045;
+    padding: 0;
+}
+
+.ty-quick-open-category.ty-has-prev .ty-quick-open-category-title {
+    border-top: none;
+}
+
+#typora-quick-open-input {
+    margin: 8px;
+    box-shadow: none;
+    border-radius: 2px;
+}
+
+#typora-quick-open-input input {
+    font-size: 1rem;
+    box-shadow: none;
+    padding-top: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+    line-height: 32px;
+    max-height: 32px;
+    border: none;
+}
+
+.modal-dialog#typora-quick-open {
+    border-radius: 8px;
+}
+
+.ty-quick-open-category-title {
+    padding-left: 8px;
+    color: #BEBEBE;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+}
+
+.typora-quick-open-item-path {
+    font-size: 0.8rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 1px;
+}
+
+/*export background*/
+.export-detail,
+.export-item.active,
+.export-items-list-control {
+    background: var(--active-file-bg-color) !important;
+}
+
+/*source code mode*/
+.cm-s-typora-default .CodeMirror-activeline-background,
+.typora-sourceview-on #toggle-sourceview-btn {
+    background: var(--active-file-bg-color);
+}
+
+/*search input*/
+.form-control {
+    border: none;
+    border-radius: 2px;
+    box-shadow: none;
+}
+
+#md-searchpanel .btn {
+    border-radius: 2px;
+}
+
+#search-panel-replaceall-btn {
+    padding-right: 5px !important;
+    text-align: center !important;
+}
+
+#search-panel-replace-btn {
+    text-align: center !important;
+}
+
+#md-searchpanel input {
+    background: var(--input-bg-color);
+    border-radius: 2px;
+}
+
+.searchpanel-search-option-btn {
+    border-radius: 2px;
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+}
+
+.searchpanel-search-option-btn.active {
+    background: var(--text-color);
+    color: var(--bg-color);
+}
+
+.form-control:focus {
+    box-shadow: none;
+}
+
+#md-notification:before {
+    top: 10px;
+}
+
+/** focus mode */
+.on-focus-mode blockquote {
+    border-left-color: rgba(85, 85, 85, 0.12);
+}
+
+header,
+.context-menu,
+.megamenu-content,
+footer {
+    font-family: initial;
+}
+
+/*sidebar*/
+.file-library-node.file-tree-node.file-node-root {
+    font-size: var(--file-tree-text-size);
+}
+.file-node-content:hover .file-node-icon,
+.file-node-content:hover .file-node-open-state {
+    visibility: visible;
+}
+.file-node-content {
+    display: flex;
+    align-items: center;
+}
+.file-node-open-state {
+    margin-right: .5rem;
+}
+.file-node-icon {
+    margin-right: .5rem;
+}
+
+#typora-sidebar {
+    font-size: inherit;
+    font-family: var(--title-font);
+    color: rgba(60, 60, 60, 0.7);
+}
+
+.sidebar-tabs {
+    border-bottom: none;
+}
+
+.file-list-item-summary, .file-list-item-parent-loc, .file-list-item-time, .file-list-item-summary {
+    font-size: 0.9rem !important;
+    font-family: var(--text-font);
+}
+
+.file-list-item-file-ext-part {
+    display: none;
+}
+
+.outline-item {
+    font-size: var(--toc-text-size);
+}
+
+/*footnotes mark*/
+#write .md-footnote {
+    background-color: inherit;
+    color: var(--drake-highlight);
+    font-size: 0.9rem;
+    border-radius: 0.9rem;
+    padding-left: 0;
+}
+
+#write .md-footnote:before {
+    content: "[";
+}
+
+#write .md-footnote:after {
+    content: "]";
+}
+
+/*footnotes content*/
+.md-hover-tip .code-tooltip-content {
+    border-radius: 2px;
+}
+
+/*footnotes title*/
+span.md-def-name {
+    padding-right: 3ch;
+    padding-left: 0;
+    position: relative;
+    font-weight: normal;
+}
+
+/*footnotes desc*/
+.footnotes {
+    font-size: 1rem;
+    font-weight: normal;
+    color: var(--text-color);
+    position: relative;
+}
+
+/*footnotes tooltip text*/
+.code-tooltip-content .md-plain {
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.code-tooltip-content code {
+    padding: 0 2px;
+    font-family: inherit;
+    color: var(--footnotes-highlight);
+    background-color: inherit;
+}
+
+.code-tooltip-content a {
+    color: var(--footnotes-highlight);
+}
+
+div.code-tooltip-content {
+    box-shadow: 0 0 8px #00000045;
+    background: var(--footnotes-bg-color);
+}
+
+.footnotes {
+    opacity: 1;
+}
+
+.md-def-name:after {
+    content: ". ^";
+    color: var(--text-color);
+}
+
+.md-def-footnote .md-def-name:before {
+    content: "";
+    color: var(--text-color);
+    position: absolute;
+}
+
+.md-def-name:before {
+    content: "";
+    color: var(--text-color);
+    position: absolute;
+}
+
+.md-content.md-url, .md-def-content.md-def-url.md-auto-disp {
+    text-decoration: none;
+    border-bottom: .1rem solid rgb(25, 25, 28, 0.2);
+}
+
+.CodeMirror-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.file-list-item-summary {
+    font-size: 1em;
+}
+
+.pin-outline #outline-content .outline-active strong, .pin-outline .outline-active {
+    font-weight: 500;
+    color: var(--outline-active-color);
+}
+
+.file-list-item.active {
+    border-left: 4px solid var(--drake-accent);
+}
+
+#md-searchpanel .btn:not(.close-btn):hover {
+    box-shadow: none;
+    background: var(--btn-hover-bg-color);
+}
+
+/*checkbox*/
+#write input[type=checkbox] {
+    opacity: 0;
+    height: 1.6rem;
+    width: 1.6rem;
+    margin-left: -2em;
+    margin-top: 0;
+    top: 0;
+}
+
+#write .ul-list li.md-task-list-item.task-list-done::before {
+    content: "";
+    background: var(--checkbox-checked) 0 0 no-repeat;
+    background-size: 100%;
+    display: inline-block;
+    position: absolute;
+    height: 1.6rem;
+    width: 1.6rem;
+    margin-left: -2em;
+}
+#write .ul-list li.md-task-list-item.task-list-not-done::before {
+    content: "";
+    background: var(--checkbox-unchecked) 0 0 no-repeat;
+    background-size: 100%;
+    display: inline-block;
+    position: absolute;
+    height: 1.6rem;
+    width: 1.6rem;
+    margin-left: -2em;
+}
+.task-list-item p {
+    line-height: 1.6rem;
+}
+
+/*insert table*/
+.btn {
+    border-radius: 2px;
+}
+
+.modal-content {
+    border-radius: 8px;
+}
+
+.btn-primary:hover, .btn-primary:active {
+    background-color: var(--btn-hover-bg-color);
+    color: var(--drake-highlight);
+}
+
+.btn-primary {
+    background-color: transparent;
+    color: var(--drake-highlight);
+}
+
+.btn-default {
+    background-color: transparent;
+}
+
+.btn:active {
+    box-shadow: none;
+    border-color: transparent;
+}
+
+.modal-footer {
+    border-top: none;
+}
+
+#table-insert-col, #table-insert-row {
+    background: var(--input-bg-color);
+    border-radius: 2px;
+}
+
+/*preference panel*/
+#megamenu-content {
+    background-image: none !important;
+    background-color: var(--bg-color);
+}
+#top-titlebar {
+    height: inherit;
+    background-color: var(--bg-color);
+}
+#megamenu-menu-sidebar {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+.long-btn {
+    width: inherit;
+    min-width: 300px;
+    border: 1px solid var(--text-color);
+    border-radius: 6px;
+}
+.megamenu-menu-panel h1 {
+    margin-bottom: 3rem;
+    text-align: left;
+}
+.megamenu-menu-panel h1, .megamenu-menu-panel h2 {
+    font-weight: normal;
+}
+#recent-file-panel-search-input {
+    height: 45px;
+    border: none;
+    border-bottom: 1px solid var(--text-color);
+    padding-left: 8px;
+}
+#recent-file-panel-search-input::placeholder {
+    color: var(--text-color);
+    opacity: .5;
+}
+.megamenu-menu-header {
+    border-bottom: none;
+}
+#recent-file-panel-action-btn {
+    background: none;
+    border: none;
+}
+#recent-file-panel-action-btn-container {
+    float: none;
+    display: inline-block;
+}
+#top-titlebar .toolbar-icon.btn.hover, #top-titlebar .toolbar-icon.btn:hover {
+    background-color: var(--btn-hover-bg-color);
+    color: var(--text-color);
+}
+.megamenu-menu-panel .btn:hover {
+    background-color: var(--btn-hover-bg-color) !important;
+    color: var(--text-color);
+}
+#recent-file-panel tbody tr:nth-child(2n-1),
+.megamenu-menu-panel table thead,
+.megamenu-menu-panel table tr {
+    background-color: transparent;
+}
+.megamenu-menu-panel table {
+    font-weight: normal;
+}
+#megamenu-back-btn {
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+}
+.megamenu-menu-header #megamenu-menu-header-title {
+    color: var(--text-color);
+}
+header, .context-menu, .megamenu-content, footer {
+    font-family: var(--text-font);
+}
+.ty-preferences select {
+    padding-left: 2px;
+}
+.preference-item-hint {
+    font-size: 14px;
+}
+a.ty-link {
+    color: var(--a-color);
+    margin: 0 .2rem;
+}
+
+/**
+    code render
+    Name: IntelliJ IDEA darcula theme
+    From IntelliJ IDEA by JetBrains
+ */
+.cm-s-inner.CodeMirror {
+    background: none;
+    color: var(--code-block-color);
+}
+.cm-s-inner span.cm-meta {
+    color: #BBB529;
+}
+.cm-s-inner span.cm-number {
+    color: #6897BB;
+}
+.cm-s-inner span.cm-keyword {
+    color: #CC7832;
+}
+.cm-s-inner span.cm-def {
+    color: #FFD760;
+}
+.cm-s-inner span.cm-variable {
+    color: var(--code-block-color);
+}
+.cm-s-inner span.cm-variable-2 {
+    color: var(--code-block-color);
+}
+.cm-s-inner span.cm-variable-3 {
+    color: #9876AA;
+}
+.cm-s-inner span.cm-type {
+    color: #AABBCC;
+}
+.cm-s-inner span.cm-property {
+    color: #FFC66D;
+}
+.cm-s-inner span.cm-operator {
+    color: var(--code-block-color);
+}
+.cm-s-inner span.cm-string {
+    color: #6A8759;
+}
+.cm-s-inner span.cm-string-2 {
+    color: #6A8759;
+}
+.cm-s-inner span.cm-comment {
+    color: #787878;
+}
+.cm-s-inner span.cm-link {
+    color: #CC7832;
+}
+.cm-s-inner span.cm-atom {
+    color: #CC7832;
+}
+.cm-s-inner span.cm-error {
+    color: #BC3F3C;
+}
+.cm-s-inner span.cm-tag {
+    color: #E8BF6A;
+}
+.cm-s-inner span.cm-quote {
+    color: #a6e22e;
+}
+.cm-s-inner span.cm-attribute {
+    color: #9876AA;
+}
+.cm-s-inner span.cm-qualifier {
+    color: #6A8759;
+}
+.cm-s-inner span.cm-bracket {
+    color: #E8BF6A;
+}
+.cm-s-inner span.cm-builtin {
+    color: #FF9E59;
+}
+.cm-s-inner span.cm-special {
+    color: #FF9E59;
+}
+.cm-s-inner span.cm-matchhighlight {
+    color: #FFFFFF;
+    background-color: rgba(50, 89, 48, .7);
+    font-weight: normal;
+}
+.cm-s-inner span.cm-searching {
+    color: #FFFFFF;
+    background-color: rgba(61, 115, 59, .7);
+    font-weight: normal;
+}
+.cm-s-inner .CodeMirror-gutters {
+    border-right: 1px solid rgba(120, 120, 120, 0.3);
+    /* background: var(--code-block-bg-color); */
+}
+.cm-s-inner .CodeMirror-linenumber {
+    color: #585b5d;
+}
+.cm-s-inner .CodeMirror-matchingbracket {
+    background-color: #3B514D;
+    color: #FFEF28 !important;
+}
+.cm-s-inner .CodeMirror-selected {
+    background: #214283 !important;
+}
+.cm-s-inner .CodeMirror-selectedtext {
+    background: #214283 !important;
+}
+.cm-s-typora-default .CodeMirror-selectedtext {
+    background: var(--select-text-bg-color) !important;
+}
+.cm-overlay.CodeMirror-selectedtext {
+    background: var(--select-text-bg-color) !important;
+}
+.cm-s-inner div.CodeMirror-cursor {
+    border-left: 1px solid var(--code-block-color);
+}
+.cm-s-inner .cm-header, .cm-s-inner.cm-header {
+    color: #FFD760;
+    font-weight: normal;
+}

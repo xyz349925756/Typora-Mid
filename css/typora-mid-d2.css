@@ -126,19 +126,20 @@ body {
     height: 100% !important;
     background: var(--third-color);
     /* font-size: 12px; */
-
-    span.ty-menu-btn-area-sub.ty-menu-btn-area-sub3 {
-        color: var(--yellow) !important;
-    }
-
-    span.ty-menu-btn-area-sub.ty-menu-btn-area-sub2 {
-        color: var(--green) !important;
-    }
-
-    span.ty-menu-btn-area-sub.ty-menu-btn-area-sub1 {
-        color: var(--red) !important;
-    }
 }
+
+#top-titlebar span.ty-menu-btn-area-sub.ty-menu-btn-area-sub3 {
+    color: var(--yellow) !important;
+}
+
+#top-titlebar span.ty-menu-btn-area-sub.ty-menu-btn-area-sub2 {
+    color: var(--green) !important;
+}
+
+#top-titlebar span.ty-menu-btn-area-sub.ty-menu-btn-area-sub1 {
+    color: var(--red) !important;
+}
+
 
 /* write */
 content {
@@ -163,13 +164,14 @@ footer.stopselect.ty-footer {
 #file-library-search-panel {
     border-bottom: 0.5px solid var(--deekgreen);
     padding: 5px;
-
-    input {
-        background: var(--box-shadow-d-2);
-        border-radius: 5px;
-        margin-bottom: 5px;
-    }
 }
+
+#file-library-search-panel input {
+    background: var(--box-shadow-d-2);
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
 
 /* 侧边栏标题 */
 .active-tab-files #info-panel-tab-file .info-panel-tab-border,
@@ -191,14 +193,14 @@ footer.stopselect.ty-footer {
     margin-bottom: 0;
     color: var(--yellow);
     font-family: "Segoe UI";
-    font-size: 12px;
+    font-size: 12px;}
 
-    &:hover {
+.file-node-content:hover {
         color: var(--text-color-1);
         background: var(--box-shadow-l-2);
         border-radius: 5px;
     }
-}
+
 
 /* 突出当前展开的文件夹 */
 .file-library-node.file-tree-node.file-node-expanded {
@@ -365,6 +367,7 @@ span.file-node-title-ext-part {
 #megamenu-content {
     /* background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%); */
     background: var(--third-color);
+
     input {
         background-color: var(--box-shadow-d-1);
         border-radius: 4px;
@@ -531,7 +534,7 @@ tbody.list-js-list a {
                 font-size: 12px;
                 color: var(--h3-1);
                 right: 50%;
-                border:  none;
+                border: none;
             }
         }
 
@@ -569,7 +572,7 @@ tbody.list-js-list a {
                 font-size: 12px;
                 color: var(--h4-3);
                 right: 50%;
-                border:  none;
+                border: none;
 
             }
         }
@@ -608,7 +611,7 @@ tbody.list-js-list a {
                 font-size: 12px;
                 color: var(--h5-2);
                 right: 50%;
-                border:  none;
+                border: none;
 
             }
         }
@@ -647,7 +650,7 @@ tbody.list-js-list a {
                 font-size: 12px;
                 color: var(--h6-3);
                 right: 50%;
-                border:  none;
+                border: none;
 
             }
         }

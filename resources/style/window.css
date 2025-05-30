@@ -19,7 +19,7 @@ body {
 /* 基础容器重置 */
 #w-traffic-lights {
     display: flex !important;
-    flex-direction: row-reverse !important;
+    /* flex-direction: row-reverse !important; */
     gap: 8px !important;
     padding: 6px 10px !important;
     position: fixed !important;
