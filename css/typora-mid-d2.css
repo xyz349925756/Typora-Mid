@@ -124,6 +124,7 @@ body {
 #top-titlebar {
     /* background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%); */
     height: 100% !important;
+    background: var(--third-color);
     /* font-size: 12px; */
 
     span.ty-menu-btn-area-sub.ty-menu-btn-area-sub3 {
@@ -362,10 +363,10 @@ span.file-node-title-ext-part {
 }
 
 #megamenu-content {
-    background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%);
-
+    /* background: linear-gradient(270deg, var(--first-color) 0%, var(--second-color) 10%, var(--third-color) 60%); */
+    background: var(--third-color);
     input {
-        background-color: var(--box-shadow-l-2);
+        background-color: var(--box-shadow-d-1);
         border-radius: 4px;
     }
 
@@ -378,7 +379,7 @@ span.file-node-title-ext-part {
     table {
 
         tbody tr:nth-child(2n-1) {
-            background-color: var(--text-color-1);
+            background-color: var(--box-shadow-d-1);
         }
     }
 }
