@@ -29,8 +29,8 @@
     --h4-1: #B284BE;
     --h4-2: #9370DB;
     --h4-3: #E9C6FF;
-    --h5-1: #8B4513;
-    --h5-2: #F1C40F;
+    --h5-1: #F1C40F;
+    --h5-2: #4983f0;
     --h5-3: #A3E4D7;
     --h6-1: #56ab2f;
     --h6-2: #a8e063;
@@ -447,7 +447,7 @@ tbody.list-js-list a {
     h1 {
         font-size: 2rem;
         text-align: center;
-        padding: 25px 0px;
+        padding-top: 5px;
         margin: 0px;
 
         span {
