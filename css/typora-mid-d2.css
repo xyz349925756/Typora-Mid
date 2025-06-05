@@ -118,6 +118,7 @@ body {
     font-family: var(--monospace);
     font-size: var(--text-font-size);
     height: var(--body-height);
+    font-display: swap;
 }
 
 /* 标题栏 */
@@ -436,6 +437,7 @@ tbody.list-js-list a {
     h6 {
         font-family: "sans-serif";
         position: relative;
+        /* font-display: swap; */
         /* border-radius: 0 5px 5px 0; */
 
         span {
@@ -457,7 +459,7 @@ tbody.list-js-list a {
             border-bottom: 0.5px solid;
             color: var(--text-color-4);
 
-            &:hover {
+            /* &:hover {
                 box-shadow: 6px 6px 2px 4px var(--box-shadow-d-2);
 
                 &::before {
@@ -467,7 +469,7 @@ tbody.list-js-list a {
                     color: var(--h1-2);
                     left: 0px;
                 }
-            }
+            } */
         }
     }
 
@@ -475,7 +477,7 @@ tbody.list-js-list a {
         border-bottom: solid 1px var(--h2-2);
         /* background: linear-gradient(135deg, transparent 85%, var(--h2-3) 15%); */
 
-        &:hover {
+        /* &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
             &::before {
@@ -485,7 +487,7 @@ tbody.list-js-list a {
                 color: var(--h2-3);
                 right: 50%;
             }
-        }
+        } */
 
         span {
             /* background: linear-gradient(135deg, transparent 90%, var(--h2-1) 90%, var(--h2-1) 95%, var(--h2-2) 95%) !important; */
@@ -508,7 +510,7 @@ tbody.list-js-list a {
         }
     }
 
-    h3.md-focus:before,
+    /* h3.md-focus:before,
     h4.md-focus:before,
     h5.md-focus:before,
     h6.md-focus:before {
@@ -519,13 +521,13 @@ tbody.list-js-list a {
         line-height: normal;
         left: 50%;
         border: none;
-    }
+    } */
 
     h3 {
         border-bottom: solid 1px var(--h3-2);
         /* background: linear-gradient(135deg, transparent 85%, var(--h3-1) 15%); */
 
-        &:hover {
+        /* &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
             &::before {
@@ -536,7 +538,7 @@ tbody.list-js-list a {
                 right: 50%;
                 border: none;
             }
-        }
+        } */
 
         span {
             /* background: linear-gradient(135deg, transparent 90%, var(--h3-3) 90%, var(--h3-3) 95%, var(--h3-2) 95%) !important; */
@@ -562,7 +564,7 @@ tbody.list-js-list a {
     h4 {
         border-bottom: solid 1px var(--h4-2);
         /* background: linear-gradient(135deg, transparent 85%, var(--h4-3) 15%); */
-
+/* 
         &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
@@ -575,7 +577,7 @@ tbody.list-js-list a {
                 border: none;
 
             }
-        }
+        } */
 
         span {
             /* background: linear-gradient(135deg, transparent 90%, var(--h4-1) 90%, var(--h4-1) 95%, var(--h4-2) 95%) !important; */
@@ -602,7 +604,7 @@ tbody.list-js-list a {
         border-bottom: solid 1px var(--h5-3);
         /* background: linear-gradient(135deg, transparent 85%, var(--h5-2) 15%); */
 
-        &:hover {
+        /* &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
             &::before {
@@ -614,7 +616,7 @@ tbody.list-js-list a {
                 border: none;
 
             }
-        }
+        } */
 
         span {
             /* background: linear-gradient(135deg, transparent 90%, var(--h5-1) 90%, var(--h5-1) 95%, var(--h5-3) 95%) !important; */
@@ -641,7 +643,7 @@ tbody.list-js-list a {
         border-bottom: solid 1px var(--h6-1);
         /* background: linear-gradient(135deg, transparent 85%, var(--h6-3) 15%); */
 
-        &:hover {
+        /* &:hover {
             box-shadow: 0 10px 5px -5px var(--box-shadow-l-2);
 
             &::before {
@@ -653,7 +655,7 @@ tbody.list-js-list a {
                 border: none;
 
             }
-        }
+        } */
 
         span {
             /* background: linear-gradient(135deg, transparent 90%, var(--h6-2) 90%, var(--h6-2) 95%, var(--h6-1) 95%) !important; */
@@ -963,7 +965,7 @@ tbody.list-js-list a {
     /*代码正文*/
     .cm-s-inner {
         background-color: var(--box-shadow-d-1);
-        color: var(--text-color);
+        /* color: var(--text-color); */
         border-radius: 0 0 5px 5px;
         font-family: "FiraCode Nerd Font Mono";
 
@@ -1078,7 +1080,7 @@ tbody.list-js-list a {
             color: var(--lightred);
         }
 
-        /* 光标 */
+        /* 光标  */
         .CodeMirror-cursor {
             border-left: 1px solid var(--text-color);
             margin-top: 4px !important;
@@ -1086,11 +1088,11 @@ tbody.list-js-list a {
         }
 
         /* 选择文字 */
-        .CodeMirror-selected,
+        /* .CodeMirror-selected,
         .CodeMirror-selectedtext {
             background: var(--box-shadow-l-2) !important;
             color: var(--text-color) !important;
-        }
+        } */
 
 
 
@@ -1120,11 +1122,11 @@ tbody.list-js-list a {
     }
 
     /* 光标所在行 */
-    .md-focus .cm-s-inner .CodeMirror-activeline-background {
+    /* .md-focus .cm-s-inner .CodeMirror-activeline-background {
         background: var(--box-shadow-l-1);
         border-radius: 5px;
         margin-right: 20px;
-    }
+    } */
 
     /* ================================================分割线======================================== */
     hr {
@@ -1143,7 +1145,7 @@ tbody.list-js-list a {
         border-collapse: collapse;
         border-spacing: 0;
         border: none;
-        margin: 1.5em 0;
+        /* margin: 1.5em 0; */
         /* border-top: 2px solid var(--second-color); */
         border-bottom: 0.5px solid var(--text-color-1);
 
