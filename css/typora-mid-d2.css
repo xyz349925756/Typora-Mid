@@ -264,8 +264,8 @@ span.file-node-title-ext-part {
 
 /* 其他文件夹图标 */
 .file-node-children .file-node-content>i.file-node-icon.fa.fa-folder:before {
-    content: "\f1c0";
-    color: var(--orange);
+    content: "\f216";
+    color: #ff3b30;
     margin-right: 3px;
 }
 
