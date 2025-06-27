@@ -1171,9 +1171,9 @@ tbody.list-js-list a {
             border: 0.5px solid var(--box-shadow-d-1);
         }
 
-        tr:hover {
-            background: var(--box-shadow-l-2);
-        }
+        /* tr:hover { */
+            /* background: var(--box-shadow-l-2); */
+        /* } */
 
         /* 表头文字样式 */
         th {
@@ -1185,11 +1185,11 @@ tbody.list-js-list a {
 
         /* 斑马纹 */
         tr:nth-child(2n) {
-            background: linear-gradient(135deg, var(--third-color) 70%, transparent 30%);
+            background: linear-gradient(135deg, var(--second-color) 70%, transparent 30%);
 
-            &:hover {
-                background: var(--box-shadow-l-2);
-            }
+            /* &:hover { */
+                /* background: var(--box-shadow-l-2); */
+            /* } */
         }
     }
 
