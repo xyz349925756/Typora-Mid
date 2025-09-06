@@ -1,70 +1,43 @@
 #plugin-markdownlint {
-    display: flex;
-    flex-direction: column;
     top: 10%;
-    right: 25px;
-    margin: 5px;
-    overflow: auto;
-    resize: vertical;
-    line-height: ${this.config.modal_line_height};
-    width: ${modal_width};
+    left: calc(100vw - 625px);
+    width: 600px;
     min-width: 380px;
-    max-height: ${this.config.modal_max_height};
-    min-height: 150px;
+    max-height: 500px;
     z-index: 9993;
 }
 
-.plugin-markdownlint-icon-group {
-    display: flex;
-    flex-direction: row-reverse;
-    font-size: 1.3em;
-    margin: 0.3em;
-    user-select: none;
+#plugin-markdownlint::part(content-area) {
+    padding: 0;
 }
 
-.plugin-markdownlint-icon-group .plugin-markdownlint-icon {
-    cursor: pointer;
-    margin-left: 0.6em;
-    opacity: 0.6;
-}
-
-.plugin-markdownlint-icon:hover {
-    opacity: 1;
-    transform: translateY(-2px) scale(1.2);
+.plugin-markdownlint-table-wrap {
+    overflow: auto;
+    flex-grow: 1;
 }
 
 .plugin-markdownlint-table {
-    overflow: auto;
-}
-
-#plugin-markdownlint table {
-    cursor: default;
-    margin-top: 0;
-    font-size: ${this.config.modal_font_size};
-}
-
-#plugin-markdownlint table th,
-#plugin-markdownlint table td[colspan],
-#plugin-markdownlint table td:nth-child(4) {
-    text-align: center;
-}
-
-#plugin-markdownlint i:hover {
-    color: var(--active-file-border-color, darkred);
-    cursor: pointer;
-}
-
-#plugin-markdownlint i + i {
-    margin-left: 0.7em;
+    --header-bg: transparent;
+    --row-border-color: transparent;
+    --even-row-bg: transparent;
+    --odd-row-bg: #fff;
+    --row-hover-bg: #eee;
+    --padding-vertical: 4px;
+    --header-padding-vertical: 4px;
 }
 
 #plugin-markdownlint-button {
     position: fixed;
-    right: 9px;
+    right: 10px;
     width: ${this.config.button_width};
     height: ${this.config.button_height};
+    border-radius: ${this.config.button_border_radius};
     background-color: ${this.config.pass_color};
     cursor: pointer;
     transition: background-color 0.1s ease 0s;
     z-index: 9992;
+}
+
+#plugin-markdownlint-button[lint-check-failed] {
+    background-color: ${this.config.error_color};
 }

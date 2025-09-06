@@ -1,232 +1,238 @@
-## custom：用户自定义插件，提供开放能力
+## 用户自定义插件：开放能力
 
-custom 插件的功能：支持用户 **在右键菜单中自定义插件**。
-
-
-
-### 简介
-
-custom 插件大量采用 **声明式代码**（声明代替代码开发），比如：
-
-- `style = () => "..."`：注册 css
-- `html = () => "..."`：注册 HTML 元素
-- `hint = () => "..."`：注册 hint
-- `selector = () => "..."`：注册允许运行命令的光标位置
-- `hotkey = () => ["ctrl+shift+y"]`：即可注册快捷键
-- init、process、callback 等等生命周期函数
-
-```js
-class MyPlugin extends BaseCustomPlugin {
-    style = () => "#copy-full-path-plugin { margin: 10px; }"
-
-    html = () => "<div id='copy-full-path-plugin'></div>"
-
-    hint = () => "当用户鼠标悬停于右键菜单选项时，会显示这里的内容"
-
-    hotkey = () => ["ctrl+shift+y"]
-
-    init = () => this._arg = "this is plugin custom arg"
-
-    process = () => {
-        const element = document.querySelector("#copy-full-path-plugin")
-        console.log(element, this._arg)
-        console.log("所有插件自动拥有utils对象，utils拥有大量辅助函数", this.utils)
-    }
-
-    callback = anchorNode => {
-        console.log("当用户键入快捷键ctrl+shift+y，或者点击右键菜单选项，就会调用callback函数")
-    }
-}
-
-module.exports = { plugin: MyPlugin }
-```
+通过 `custom` 插件，为您提供了开放能力，允许您在右键菜单中 **创建和集成自定义功能**。
 
 
 
-### 如何使用
+## 核心特性
 
-仅需两步：
+custom 插件通过 **声明式配置和代码** 实现自定义：
 
-1. 在 `./plugin/global/settings/custom_plugin.user.toml` 添加配置。
-2. 在 `./plugin/custom/plugins` 目录下，创建一个和插件同名的 js 文件，在此文件中创建一个 class 继承自 BaseCustomPlugin，并导出为 `plugin`。
+- **注册界面元素与行为：** 支持定义 CSS 样式 (`style`)、HTML 元素 (`html`)、右键菜单提示 (`hint`)、快捷键 (`hotkey`)。
+- **灵活的生命周期：** 提供 `beforeProcess`、`init`、`process`、`afterProcess`、`callback` 等生命周期函数，允许在插件不同阶段执行自定义逻辑。
+- **光标位置控制：** 使用 `selector` 定义插件可用的光标位置。
 
 
 
-### 示例一：快速开始
+## 使用方法
 
-> 您可以根据下面的步骤，先把插件跑起来。
+自定义插件仅需两步：
 
-步骤一：在 `./plugin/global/settings/custom_plugin.user.toml` 添加如下配置：
+1. **添加插件配置**：在 `./plugin/global/settings/custom_plugin.user.toml` 文件中添加插件配置。
+2. **编写插件代码**：在 `./plugin/custom/plugins` 目录下创建与插件同名的 `.js` 文件，编写继承 `BaseCustomPlugin` 的类并导出为 `plugin`。
+
+
+
+## 示例
+
+### 快速入门
+
+此示例展示了如何创建一个简单的插件，实现右键菜单点击或快捷键触发时显示提示框，并在控制台输出信息。
+
+步骤一：在 `./plugin/global/settings/custom_plugin.user.toml` 添加以下配置：
 
 ```toml
 [helloWorld]
-name = "你好世界"   # 插件名称
-enable = true     # 是否启用此二级插件
-hide = false      # 是否在右键菜单中隐藏
-order = 1         # 在右键菜单中的出现顺序（越大越排到后面，允许负数）
+name = "你好世界"   # 插件在右键菜单中显示的名称
+enable = true     # 控制插件是否启用
+hide = false      # 控制插件是否在右键菜单中隐藏
+order = 1         # 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 
-hotkey_string = "ctrl+alt+u"
-console_message = "I am in process"
-show_message = "this is hello world plugin"
+hotkey = "ctrl+alt+u" # 定义触发插件的快捷键
+console_message = "I am in process" # 定义将在控制台输出的信息
+show_message = "this is hello world plugin" # 定义将在提示框中显示的信息
 ```
 
 > name、enable、hide、order 是必须项，其余是插件个性化的配置。
 
-
-
-步骤二：创建文件 `./plugin/custom/plugins/helloWorld.js` 文件，将下面代码保存到该文件中：
+步骤二：创建文件 `./plugin/custom/plugins/helloWorld.js` 文件，并将以下代码保存到该文件中：
 
 ```javascript
 // ./plugin/custom/plugins/helloWorld.js
 
 class helloWorld extends BaseCustomPlugin {
-    // beforeProcess是最先运行的函数，一般在这里检查插件的运行条件
-    // 若当前不满足条件，请返回this.utils.stopLoadPluginError，插件将终止运行
+    // beforeProcess 方法最先执行，用于检查插件运行的前提条件
+    // 如果条件不满足，应返回 this.utils.stopLoadPluginError 以终止插件加载
     beforeProcess = async () => {
-        // 这里使用随机数，实际开发请改成有意义的检查
-        if (Math.random() < 0.5) {
+        // 在实际开发中，请替换这里的 false 为有意义的条件检查逻辑
+        if (false) {
             return this.utils.stopLoadPluginError
         }
     }
 
-    // 返回string，会自动作为<style>插入DOM中
+    // 注册 CSS 样式。返回一个字符串，该字符串会自动作为 <style> 标签插入到 DOM 中
     style = () => "#hello-world { margin: 10px; }"
 
-    // 返回Element类型或者element-string，会自动插入到DOM中
+    // 注册 DOM 元素。可以返回 Element 类型或表示元素的字符串，它们将自动插入到 DOM 中
     html = () => "<div id='hello-world'></div>"
 
-    // 注册 hint
+    // 注册右键菜单的提示信息
     hint = () => "this is hello world hint"
 
-    // 注册快捷键
-    hotkey = () => [this.config.hotkey_string]
+    // 注册触发 callback 的快捷键。返回一个字符串数组
+    hotkey = () => [this.config.hotkey]
 
-    // process方法会在插件初始化时自动运行
-    process = () => {
-        // toml文件里的所有配置项都可以通过this.config获取
-        console.log(this.config.console_message)
-        console.log("[helloWorldPlugin]: ", this)
-        console.log(document.querySelector("#hello-world"))  // 获取html()插入的DOM元素
+    // 用于插件的初始化，通常在这里获取或设置 DOM 元素、初始化变量等
+    init = () => {
+        // 获取 html() 方法插入的 DOM 元素
+        this.myDiv = document.querySelector("#hello-world")
     }
 
-    // 点击右键菜单选项时、键入快捷键时会自动调用callback方法（注意：如果插件没有callback函数，那么就不会出现在右键菜单中）
-    // anchorNode: 调用此插件时，光标所在的Element
+    // process 方法在插件初始化完成后（执行上述注册逻辑后）自动运行
+    process = () => {
+		// 可以通过 this.config 获取 TOML 文件中的所有配置项
+        console.log(this.config.console_message)
+        console.log("[helloWorldPlugin]: ", this)
+        console.log(this.myDiv)
+    }
+
+    // callback 方法在点击右键菜单选项或键入快捷键时自动调用
+    // 注意：如果未定义 callback 函数，该插件将无法通过右键菜单点击触发
+    // anchorNode 参数表示调用此插件时，光标所在的 Element
     callback = anchorNode => {
         alert(this.config.show_message)
     }
 }
 
+// 导出插件类
 module.exports = { plugin: helloWorld }
 ```
 
+验证：
 
-
-步骤三（验证）：重启 Typora
-
-1. 打开 Chrome devtools，发现控制台输出了 `I am in process` 、插件对象 和 Element。
-2. 右键鼠标弹出菜单，鼠标悬停在 `常用插件 -> 二级插件 -> 你好世界`。发现出现了 hint，显示 `this is hello world hint`。点击 `你好世界`，发现弹出了提示框，显示 `this is hello world plugin`。
-3. 键入快捷键 `ctrl+alt+u`，发现弹出了同样的提示框。
-
-
-
-### 示例二：简易功能
-
-> 此示例来自 [issue#523](https://github.com/obgnail/typora_plugin/issues/523)，简易实现了一个轻量化的需求，旨在让用户了解如何实现一个插件。
-
-需求：md 文档中有几百行的复选框（任务列表）内容，一个个点选中或取消，效率太低了。希望开发全选、反选复选框功能的插件。
+1. 重启 Typora。
+2. 打开 Chrome devtools，检查控制台是否输出了 `I am in process`、插件对象和对应的 Element。
+3. 右键点击编辑器区域，弹出右键菜单。将鼠标悬停在 `常用插件 -> 二级插件 -> 你好世界` 上，应显示提示信息 `this is hello world hint`。点击 `你好世界` 菜单项，应弹出一个提示框，显示 `this is hello world plugin`。
+4. 按下您定义的快捷键 `ctrl+alt+u`，应弹出同样的提示框。
 
 
 
-步骤一：打开文件 `plugin\global\settings\custom_plugin.user.toml`，添加下面内容：
+### 插入思维导图
 
-```toml
-[selectCheckboxes]
-name = "反选复选框"       # 插件名称
-enable = true           # 是否启用此二级插件
-hide = false            # 是否在右键菜单中隐藏
-order = 1               # 在右键菜单中的出现顺序（越大越排到后面，允许负数）
-
-select_all_hotkey = "ctrl+alt+h"      # 全选快捷键
-select_none_hotkey = "ctrl+alt+j"     # 取消全部选择快捷键
-select_reverse_hotkey = "ctrl+alt+k"  # 反选快捷键
-```
-
-步骤二：打开目录 `plugin\custom\plugins`，在此目录下创建文件 `selectCheckboxes.js`，写入如下内容：
-
-```javascript
-class selectCheckboxes extends BaseCustomPlugin {
-    rangeTaskListItem = fn => document.querySelectorAll('.md-task-list-item input[type="checkbox"]').forEach(fn)
-
-    selectAll = input => !input.checked && input.click()
-    selectNone = input => input.checked && input.click()
-    selectReverse = input => input.click()
-
-    process = () => {
-        const { select_all_hotkey, select_none_hotkey, select_reverse_hotkey } = this.config
-        this.utils.hotkeyHub.register([
-            { hotkey: select_all_hotkey, callback: () => this.rangeTaskListItem(this.selectAll) },
-            { hotkey: select_none_hotkey, callback: () => this.rangeTaskListItem(this.selectNone) },
-            { hotkey: select_reverse_hotkey, callback: () => this.rangeTaskListItem(this.selectReverse) },
-        ])
-    }
-
-    callback = () => this.rangeTaskListItem(this.selectReverse)
-}
-
-module.exports = { plugin: selectCheckboxes }
-```
-
-步骤三：重启 Typora，创建一个带有任务列表的 md 文件，尝试以下操作：
-
-- [x] ctrl+alt+h：全选
-- [x] ctrl+alt+j：取消全部选择
-- [x] ctrl+alt+k：反选
-
-
-
-### 示例三：实战
-
-需求如下：
-
-1. 在右键菜单中添加一个 `获取标题路径` （类似于 `messing.md\无 一级标题\开放平台 二级标题\window_tab 三级标题`），然后将其写入剪切板。
-2. 当光标位于【正文标题】中才可使用。
-3. 快捷键 `ctrl+shift+u`。
+此示例演示如何获取当前文档的大纲结构，并将其转换为 Mermaid 图的形式插入到文档中。
 
 实现：
 
-步骤一：修改 `./plugin/global/settings/custom_plugin.user.toml`，添加配置：
+1. 步骤一：在 `./plugin/global/settings/custom_plugin.user.toml` 添加配置。
+2. 步骤二：在 `./plugin/custom/plugins` 目录下，创建和插件同名的 js 文件（`insertMindmap.js`），在此文件中创建一个 class 继承自 BaseCustomPlugin，并导出为 `plugin`。
 
 ```toml
+# ./plugin/global/settings/custom_plugin.user.toml
+
+[insertMindmap]
+name = "插入思维导图"  # 插件名称
+enable = true        # 是否启用此二级插件
+hide = false         # 是否在右键菜单中隐藏
+order = 1            # 在右键菜单中的出现顺序
+```
+
+```javascript
+// ./plugin/custom/plugins/insertMindmap.js
+
+class insertMindmap extends BaseCustomPlugin {
+    // callback 方法获取文档大纲树，转换为 Mermaid 格式，并插入到文档中
+    callback = anchorNode => {
+        const tree = this.utils.getTocTree() // 获取文档大纲树结构
+        const mermaid = this._toGraph(tree)  // 将树结构转换为 Mermaid 图格式
+        this.utils.insertText(null, mermaid) // 将生成的 Mermaid 代码插入到文档中
+    }
+
+    _toGraph = tree => {
+        let num = 0
+        const getName = node => {
+            if (node._shortName) {
+                return node._shortName
+            }
+            node._shortName = "T" + ++num
+            const name = node.text.replace(/"/g, "")
+            return `${node._shortName}("${name}")`
+        }
+        const getTokens = (node, list) => {
+            node.children.forEach(child => list.push(getName(node), "-->", getName(child), "\n"))
+            node.children.forEach(child => getTokens(child, list))
+            return list
+        }
+        const tokens = getTokens(tree, ["graph LR", "\n"])
+        return ["``` mermaid ", "\n ", ...tokens, "```"].join("")
+    }
+}
+
+// 导出插件类
+module.exports = { plugin: insertMindmap }
+```
+
+验证：
+
+打开 Typora，右键点击编辑器区域，弹出右键菜单。选择 `常用插件 -> 二级插件 -> 插入思维导图` 并点击。根据当前文档的大纲结构，一个对应的 Mermaid 图将插入到文档中。
+
+例如，对于具有以下结构的文档 `README.md`：
+
+```markdown
+## 用户自定义插件：开放能力
+## 核心特性
+## 使用方法
+## 示例
+### 快速入门
+### 插入思维导图
+### 复制标题路径
+```
+
+生成的 Mermaid 图如下所示：
+
+```mermaid
+graph LR
+T1("README")-->T2("用户自定义插件：开放能力")
+T1-->T3("核心特性")
+T1-->T4("使用方法")
+T1-->T5("示例")
+T5-->T6("快速入门")
+T5-->T7("插入思维导图")
+T5-->T8("复制标题路径")
+```
+
+
+
+### 复制标题路径
+
+此示例展示了如何在右键菜单中添加选项，当光标位于标题时，将当前标题的完整路径复制到剪切板。
+
+需求如下：
+
+1. 插件仅在光标位于标题元素 (`[mdtype = "heading"]`) 时可用。
+2. 通过快捷键 `ctrl+shift+u` 触发。
+
+实现：
+
+1. 步骤一：在 `./plugin/global/settings/custom_plugin.user.toml` 添加配置。
+2. 步骤二：在 `./plugin/custom/plugins` 目录下，创建和插件同名的 js 文件（`myFullPathCopy.js`），在此文件中创建一个 class 继承自 BaseCustomPlugin，并导出为 `plugin`。
+3. 步骤三：验证。将光标置于标题处，右键点击插件选项或使用快捷键，然后尝试粘贴，验证标题路径是否已复制。
+
+``` toml
 # ./plugin/global/settings/custom_plugin.user.toml
 
 [myFullPathCopy]
 name = "复制标题路径"  # 插件名称
 enable = true        # 是否启用此二级插件
 hide = false         # 是否在右键菜单中隐藏
-order = 1            # 在右键菜单中的出现顺序（越大越排到后面，允许负数）
+order = 1            # 在右键菜单中的出现顺序
 
 # 快捷键
 hotkey = "ctrl+shift+u"
-# 如果在空白页调用此插件，使用的文件名（因为尚不存在该文件，需要用一个默认的文件名代替）
+# 如果在空白页调用此插件，使用的文件名（文件还不存在，需要一个默认文件名）
 untitled_file_name = "untitled"
-# 跳过空白的标题
+# 是否跳过空白的标题
 ignore_empty_header = false
-# 标题和提示之前添加空格
+# 是否在标题和提示之间添加空格
 add_space = true
-# 使用绝对路径
-full_file_path = false
 ```
 
-
-步骤二：在 `./plugin/custom/plugins` 目录下，创建和插件同名的 js 文件（`myFullPathCopy.js`），在此文件中创建一个 class 继承自 BaseCustomPlugin，并导出为 `plugin`。
-
-```javascript
+``` javascript
 // ./plugin/custom/plugins/myFullPathCopy.js
 
 // 1
 class myFullPathCopy extends BaseCustomPlugin {
     // 2
-    selector = () => '#write [mdtype="heading"]'
+    selector = () => '#write [mdtype = "heading"]'
     // 3
     hint = () => "将当前标题的路径复制到剪切板"
     // 4
@@ -250,41 +256,41 @@ class myFullPathCopy extends BaseCustomPlugin {
     }
 
     getFullPath = () => {
-        const paragraphList = ["H1", "H2", "H3", "H4", "H5", "H6"]
+        const headers = []
+        const paragraphs = ["H1", "H2", "H3", "H4", "H5", "H6"]
         const nameList = ["一级标题", "二级标题", "三级标题", "四级标题", "五级标题", "六级标题"]
-        const pList = []
-        let ele = anchorNode
 
+        let ele = anchorNode
         while (ele) {
-            const idx = paragraphList.indexOf(ele.tagName)
-            if (idx !== -1) {
-                if (pList.length === 0 || (pList[pList.length - 1].idx > idx)) {
-                    pList.push({ ele, idx })
-                    if (pList[pList.length - 1].idx === 0) break
+            const idx = paragraphs.indexOf(ele.tagName)
+            if (idx ! == -1 && (headers.length == = 0 || (headers [headers.length - 1].idx > idx))) {
+                headers.push({ ele, idx })
+                if (idx === 0) {
+                    break
                 }
             }
             ele = ele.previousElementSibling
         }
 
-        pList.reverse()
+        headers.reverse()
 
-        let filePath = this.config.full_file_path ? this.utils.getFilePath() : File.getFileName()
-        filePath = filePath || this.config.untitled_file_name
+        const filePath = this.utils.getFilePath() || this.config.untitled_file_name
         const result = [filePath]
-        let headerIdx = 0
-        for (const p of pList) {
-            while (headerIdx < 6 && p.ele.tagName !== paragraphList[headerIdx]) {
-                if (!this.config.ignore_empty_header) {
-                    const name = this.getHeaderName("无", nameList[headerIdx])
+        
+        let idx = 0
+        for (const h of headers) {
+            while (idx < 6 && h.ele.tagName !== paragraphs [idx]) {
+                if (! this.config.ignore_empty_header) {
+                    const name = this.getHeaderName("无", nameList [idx])
                     result.push(name)
                 }
-                headerIdx++
+                idx++
             }
 
-            if (p.ele.tagName === paragraphList[headerIdx]) {
-                const name = this.getHeaderName(p.ele.querySelector("span").textContent, nameList[headerIdx])
+            if (h.ele.tagName === paragraphs [idx]) {
+                const name = this.getHeaderName(h.ele.textContent, nameList [idx])
                 result.push(name)
-                headerIdx++
+                idx++
             }
         }
 
@@ -301,25 +307,21 @@ class myFullPathCopy extends BaseCustomPlugin {
 // 12
 module.exports = { plugin: myFullPathCopy }
 
-// 1. 创建 class，继承 BaseCustomPlugin 类。之后 myFullPathCopy 将自动拥有 utils、config 属性
-//    - config: 该插件在 custom_plugin.user.toml 里的所有字段
-//    - utils: 插件系统自带的静态工具类，其定义在 `./plugin/global/core/plugin.js/utils`
-// 2. selector: 允许运行命令的光标位置(当光标位于哪些位置时，此命令才可用)。若返回 null-like value，表示任何位置都可用。在这里的含义就是：只当光标位于【正文标题】时可用
-// 3. hint: 当鼠标移动到右键菜单时的提示
-// 4. init: 在这里初始化你要的变量
-// 5. style: 给 Typora 插入 style 标签。返回值为 string。若你想指定标签的 id，也可以返回 {textID: "", text: ""}。其中 textID 为此 style 标签的 id，text 为 style 内容
-// 6. styleTemplate: 引入 `./plugin/global/user_styles` 目录下和插件同名的 css 文件。详情请参考`./plugin/global/user_styles/README.md`
-// 7. html: 为 Typora 插入 HTML 标签，返回 Element 类型或者 Element-string
-// 8. hotkey: 为 callback 注册快捷键，返回 Array<string> 类型 或者 [{hotkey: "", callback: () => console.log(123)}]
-// 9. beforeProcess: 最先执行的函数，在这里初始化插件需要的数据。若返回 utils.stopLoadPluginError，则停止加载插件
+// 1. 创建 class，继承 BaseCustomPlugin 类。这将使 myFullPathCopy 自动拥有 utils 和 config 属性
+//    - config: 该插件在 custom_plugin.user.toml 文件中的所有配置字段
+//    - utils: 插件系统提供的静态工具类，其定义位于 `./plugin/global/core/utils`
+// 2. selector: 定义插件可用的光标位置。当光标位于哪些元素时，此插件才可用。返回 null-like value 表示任何位置都可用。在这里的含义就是：只当光标位于 Markdown 标题元素时可用
+// 3. hint: 当鼠标悬停在右键菜单选项上时显示的提示信息
+// 4. init: 在这里进行变量的初始化操作
+// 5. style: 用于插入 style 标签。返回值为字符串
+// 6. styleTemplate: 引入 `./plugin/global/user_styles` 目录下与插件同名的 css 文件。详情请参考 `./plugin/global/user_styles/README.md`
+// 7. html: 用于插入 HTML 标签。返回 Element 类型或表示元素的字符串。
+// 8. hotkey: 为 callback 函数注册快捷键。返回一个字符串数组，或者 [{ hotkey: "", callback: () => console.log(123) }] 格式的对象数组
+// 9. beforeProcess: 最先执行的函数，用于初始化插件所需的数据或进行前置检查。如果返回 utils.stopLoadPluginError，则停止加载插件
 // 10. process: 在这里添加添加插件业务逻辑
-// 11. callback: 右键菜单中点击/键入快捷键后的回调函数。anchorNode 参数: 鼠标光标所在的 Element
-// 12. export: 导出为 plugin
+// 11. callback: 当用户点击右键菜单选项或键入快捷键时调用的回调函数。anchorNode 参数表示鼠标光标所在的 Element
+// 12. export: 将插件类导出为 plugin
 ```
 
-
-
-验证：
-
-打开 Typora，将光标置于正文标题出，右键弹出菜单，`常用插件 -> 二级插件 -> 复制标题路径`，点击。当前的标题路径就写入剪切板了。在目标文档区域，粘贴，即可把标题路径复制到相应文档区域。
+​	
 

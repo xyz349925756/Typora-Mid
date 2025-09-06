@@ -21,7 +21,7 @@ class commanderPlugin extends BasePlugin {
         const envText = this.i18n.t("envInfo")
         const { CMD_BASH, POWER_SHELL, GIT_BASH, WSL } = this.SHELL
         const genShell = (shell, text) => `<option value="${shell}">${text}</option>`
-        const shells = [genShell(CMD_BASH, "cmd/bash")]
+        const shells = [genShell(CMD_BASH, "CMD/Bash")]
         if (File.isWin) {
             shells.push(
                 genShell(POWER_SHELL, "PowerShell"),
@@ -29,17 +29,19 @@ class commanderPlugin extends BasePlugin {
                 genShell(WSL, "WSL"),
             )
         }
-        const builtin = this.builtin.map(e => `<option data-shell="${e.shell}" value="${this.utils.escape(e.cmd)}">${e.name}</option>`).join("")
+        const builtin = this.builtin.map(e => `<option data-shell="${e.shell}" value="${this.utils.escape(e.cmd)}">${e.name}</option>`)
         return `
-            <div id="plugin-commander" class="plugin-common-modal plugin-common-hidden"> 
+            <fast-window id="plugin-commander" window-title="${this.pluginName}" window-buttons="close|fa-times" hidden>
                 <form id="plugin-commander-form">
-                    <div class="ion-ios7-play plugin-commander-commit plugin-common-hidden" ty-hint="${runText}"></div>
-                    <input type="text" class="plugin-commander-input" title="${envText}">
+                    <div class="plugin-commander-input-wrap">
+                        <div class="ion-ios7-play plugin-commander-commit plugin-common-hidden" ty-hint="${runText}"></div>
+                        <input type="text" class="plugin-commander-input" title="${envText}">
+                    </div>
                     <select class="plugin-commander-shell">${shells.join("")}</select>
-                    <select class="plugin-commander-builtin">${builtin}</select>
+                    <select class="plugin-commander-builtin">${builtin.join("")}</select>
                 </form>
                 <div class="plugin-commander-output plugin-common-hidden"><pre></pre></div>
-            </div>
+            </fast-window>
         `
     }
 
@@ -53,12 +55,12 @@ class commanderPlugin extends BasePlugin {
 
     init = () => {
         this.entities = {
-            modal: document.getElementById("plugin-commander"),
+            window: document.querySelector("#plugin-commander"),
             form: document.querySelector("#plugin-commander-form"),
-            input: document.querySelector("#plugin-commander-form .plugin-commander-input"),
-            shellSelect: document.querySelector("#plugin-commander-form .plugin-commander-shell"),
-            builtinSelect: document.querySelector("#plugin-commander-form .plugin-commander-builtin"),
-            commit: document.querySelector("#plugin-commander-form .plugin-commander-commit"),
+            input: document.querySelector(".plugin-commander-input"),
+            shellSelect: document.querySelector(".plugin-commander-shell"),
+            builtinSelect: document.querySelector(".plugin-commander-builtin"),
+            commit: document.querySelector(".plugin-commander-commit"),
             output: document.querySelector(".plugin-commander-output"),
             pre: document.querySelector(".plugin-commander-output pre"),
         }
@@ -66,8 +68,8 @@ class commanderPlugin extends BasePlugin {
         this.act_value_prefix = "call_builtin@"
         const defaultAct = { act_name: this.i18n.t("act.toggle_modal"), act_value: "toggle_modal", act_hotkey: this.config.HOTKEY }
         const customActs = this.builtin
-            .filter(builtin => builtin.name)
-            .map(builtin => ({ act_name: builtin.name, act_value: this.act_value_prefix + builtin.name, act_hotkey: builtin.hotkey }))
+            .filter(a => a.name && a.cmd)
+            .map(a => ({ act_name: a.name, act_value: this.act_value_prefix + a.name, act_hotkey: a.hotkey }))
         this.staticActions = [defaultAct, ...customActs]
     }
 
@@ -94,30 +96,34 @@ class commanderPlugin extends BasePlugin {
             this.commitExecute();
         })
         this.entities.form.addEventListener("keydown", ev => {
-            const wantHide = ev.key === "Escape" || (ev.key === "Backspace" && this.config.BACKSPACE_TO_HIDE && !this.entities.input.value);
-            wantHide && this.utils.hide(this.entities.modal);
-        });
-        if (this.config.ALLOW_DRAG) {
-            this.utils.dragFixedModal(this.entities.input, this.entities.modal);
-        }
+            const wantHide = ev.key === "Escape" || (ev.key === "Backspace" && this.config.BACKSPACE_TO_HIDE && !this.entities.input.value)
+            if (wantHide) {
+                this.entities.window.hide()
+            }
+        })
+        this.entities.window.addEventListener("btn-click", ev => {
+            const { action } = ev.detail
+            if (action === "close") {
+                this.entities.window.hide()
+            }
+        })
     }
 
     _convertPath = (path, shell) => {
-        if (!File.isWin) return path;
-
-        if (shell === this.SHELL.WSL) {
-            return '/mnt' + this.utils.windowsPathToUnix(path);
-        } else if (shell === this.SHELL.GIT_BASH) {
-            return this.utils.windowsPathToUnix(path);
+        if (File.isWin) {
+            if (shell === this.SHELL.WSL) {
+                return "/mnt" + this.utils.windowsPathToUnix(path)
+            } else if (shell === this.SHELL.GIT_BASH) {
+                return this.utils.windowsPathToUnix(path)
+            }
         }
-
-        return path;
+        return path
     }
     _getFile = shell => this._convertPath(this.utils.getFilePath(), shell);
     _getFolder = shell => this._convertPath(this.utils.getCurrentDirPath(), shell);
     _getMountFolder = shell => this._convertPath(this.utils.getMountFolder(), shell);
 
-    // TODO: This approach is too hacky. The correct way to do this is to use a reverse shell.
+    // TODO: Too hacky. Reversing shell is better.
     _getCommand = (cmd, shell) => {
         const replaceArgs = (cmd, shell) => {
             const replacements = { f: this._getFile(shell), d: this._getFolder(shell), m: this._getMountFolder(shell) }
@@ -150,7 +156,7 @@ class commanderPlugin extends BasePlugin {
 
     _showResult = (result, showModal = true, error = false) => {
         if (showModal) {
-            this.utils.show(this.entities.modal);
+            this.entities.window.show()
         }
         this.utils.show(this.entities.output);
         this.entities.pre.textContent = result;
@@ -165,16 +171,19 @@ class commanderPlugin extends BasePlugin {
         const command = this._getCommand(cmd, shell);
         const options_ = { encoding: "utf8", cwd: this._getFolder(), ...options }
         const callback_ = (err, stdout, stderr) => {
-            if (err || stderr.length) {
-                reject && reject(err || stderr.toString());
-            } else {
-                resolve && resolve(stdout);
+            const hasError = err || stderr.length > 0
+            const errorMessage = hasError ? (err || stderr.toString()) : null
+            if (reject && hasError) {
+                reject(errorMessage)
+            } else if (resolve && !hasError) {
+                resolve(stdout)
             }
-            callback && callback(err, stdout, stderr);
+            if (callback) {
+                callback(err, stdout, stderr)
+            }
         }
-
-        this._refreshModal(cmd, shell);
-        this.utils.Package.ChildProcess.exec(command, options_, callback_);
+        this._refreshModal(cmd, shell)
+        require("child_process").exec(command, options_, callback_)
     }
     _spawn = ({ cmd, shell, options = {}, callback = null }) => {
         const command = this._getCommand(cmd, shell);
@@ -187,7 +196,7 @@ class commanderPlugin extends BasePlugin {
         const callback_ = code => callback && callback(code);
 
         this._refreshModal(cmd, shell);
-        const child = this.utils.Package.ChildProcess.spawn(command, options_);
+        const child = require("child_process").spawn(command, options_)
         child.stdout.on("data", resolve);
         child.stderr.on("data", reject);
         child.on("close", callback_);
@@ -203,22 +212,24 @@ class commanderPlugin extends BasePlugin {
         const execFunction = execFunctions[type] || execFunctions.echo;
         return execFunction(cmd, shell, options, callback);
     };
-    quickExecute = (cmd, shell) => this.execute(this.config.QUICK_EXEC_SHOW, cmd, shell);
+    quickExecute = (cmd, shell) => this.execute(this.config.QUICK_RUN_DISPLAY, cmd, shell)
     commitExecute = () => {
         const cmd = this.entities.input.value;
         if (!cmd) {
             this._showStderr("command is empty");
         } else {
             const option = this.entities.shellSelect.selectedOptions[0];
-            option && this.execute(this.config.COMMIT_EXEC_SHOW, cmd, option.value);
+            if (option) {
+                this.execute(this.config.COMMIT_RUN_DISPLAY, cmd, option.value)
+            }
         }
     }
 
     toggleModal = () => {
-        const { modal, input } = this.entities;
-        this.utils.toggleVisible(modal);
-        if (this.utils.isShow(modal)) {
-            input.select();
+        const hidden = this.entities.window.hidden
+        this.entities.window.toggle()
+        if (hidden) {
+            this.entities.input.select()
         }
     }
 
@@ -228,7 +239,9 @@ class commanderPlugin extends BasePlugin {
         } else if (action.startsWith(this.act_value_prefix)) {
             const name = action.slice(this.act_value_prefix.length)
             const builtin = this.builtin.find(c => c.name === name)
-            builtin && this.quickExecute(builtin.cmd, builtin.shell)
+            if (builtin) {
+                this.quickExecute(builtin.cmd, builtin.shell)
+            }
         }
     }
 }

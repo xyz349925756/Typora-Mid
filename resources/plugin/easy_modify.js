@@ -10,16 +10,19 @@ class easyModifyPlugin extends BasePlugin {
         { hotkey: this.config.HOTKEY_EXTRACT_RANGE_TO_NEW_FILE, callback: () => this.dynamicCall("extract_rang_to_new_file") },
         { hotkey: this.config.HOTKEY_INSERT_MERMAID_MINDMAP, callback: () => this.dynamicCall("insert_mermaid_mindmap") },
         { hotkey: this.config.HOTKEY_INSERT_MERMAID_GRAPH, callback: () => this.dynamicCall("insert_mermaid_graph") },
+        { hotkey: this.config.HOTKEY_UNWRAP_OUTERMOST_BLOCK, callback: () => this.dynamicCall("unwrap_outermost_block") },
     ]
 
     init = () => {
-        this._showWarnDialog = true
         const notRecommended = this.i18n.t("actHint.notRecommended")
         const defaultDoc = this.i18n.t("actHint.defaultDoc")
+
+        this._showWarnDialog = true
         this.staticActions = this.i18n.fillActions([
             { act_value: "copy_full_path", act_hotkey: this.config.HOTKEY_COPY_FULL_PATH },
             { act_value: "increase_headers_level", act_hotkey: this.config.HOTKEY_INCREASE_HEADERS_LEVEL, act_hint: defaultDoc },
             { act_value: "decrease_headers_level", act_hotkey: this.config.HOTKEY_DECREASE_HEADERS_LEVEL, act_hint: defaultDoc },
+            { act_value: "unwrap_outermost_block", act_hotkey: this.config.HOTKEY_UNWRAP_OUTERMOST_BLOCK },
             { act_value: "convert_crlf_to_lf", act_hotkey: this.config.HOTKEY_CONVERT_CRLF_TO_LF, act_hint: notRecommended },
             { act_value: "convert_lf_to_crlf", act_hotkey: this.config.HOTKEY_CONVERT_LF_TO_CRLF, act_hint: notRecommended },
             { act_value: "filter_invisible_characters", act_hotkey: this.config.HOTKEY_FILTER_INVISIBLE_CHARACTERS, act_hint: notRecommended },
@@ -28,7 +31,7 @@ class easyModifyPlugin extends BasePlugin {
     }
 
     getDynamicActions = (anchorNode, meta) => {
-        const i18n = {
+        const I18N = {
             noSelection: this.i18n.t("act.extract_rang_to_new_file.noSelection"),
             positionEmptyLine: this.i18n.t("act.extract_rang_to_new_file.positionEmptyLine")
         }
@@ -40,13 +43,14 @@ class easyModifyPlugin extends BasePlugin {
             act_hotkey: this.config.HOTKEY_EXTRACT_RANGE_TO_NEW_FILE
         }
         if (extract.act_disabled) {
-            extract.act_hint = i18n.noSelection
+            extract.act_hint = I18N.noSelection
         }
 
-        meta.copyAnchor = anchorNode.closest("#write > [cid]")
-        meta.insertAnchor = anchorNode.closest(`#write > p[mdtype="paragraph"]`)
+        meta.innermostAnchor = anchorNode.closest("#write [cid]")
+        meta.outermostAnchor = anchorNode.closest("#write > [cid]")
+        meta.insertAnchor = anchorNode.closest('#write > p[mdtype="paragraph"]')
         const act_disabled = !meta.insertAnchor || meta.insertAnchor.querySelector("p > span")
-        const act_hint = act_disabled ? i18n.positionEmptyLine : ""
+        const act_hint = act_disabled ? I18N.positionEmptyLine : ""
         const insert = [
             { act_value: "insert_mermaid_mindmap", act_hotkey: this.config.HOTKEY_INSERT_MERMAID_MINDMAP, act_disabled, act_hint },
             { act_value: "insert_mermaid_graph", act_hotkey: this.config.HOTKEY_INSERT_MERMAID_GRAPH, act_disabled, act_hint },
@@ -61,7 +65,8 @@ class easyModifyPlugin extends BasePlugin {
         const funcMap = {
             increase_headers_level: () => this.changeHeadersLevel(true),
             decrease_headers_level: () => this.changeHeadersLevel(false),
-            copy_full_path: () => this.copyFullPath(meta.copyAnchor),
+            unwrap_outermost_block: () => this.unwrapOutermostBlock(meta.outermostAnchor, meta.innermostAnchor),
+            copy_full_path: () => this.copyFullPath(meta.outermostAnchor),
             insert_mermaid_mindmap: () => this.insertMindmap("mindmap", meta.insertAnchor),
             insert_mermaid_graph: () => this.insertMindmap("graph", meta.insertAnchor),
             extract_rang_to_new_file: async () => this.extractRangeToNewFile(meta.range),
@@ -73,80 +78,85 @@ class easyModifyPlugin extends BasePlugin {
         const func = funcMap[action]
         if (!func) return
 
-        const dontShow = await func()
-        if (dontShow !== true) {
-            const msg = this.i18n.t("success")
+        const success = await func()
+        if (success !== false) {
+            const msg = this.i18n._t("global", "success")
             this.utils.notification.show(msg)
         }
     }
 
     changeHeadersLevel = incr => {
         const _getTargetHeaders = () => {
-            const headers = File.editor.nodeMap.toc.headers;
-            const range = window.getSelection().getRangeAt(0);
-            if (range.collapsed) return headers;
-
-            const fragment = range.cloneContents();
-            const cidSet = new Set(Array.from(fragment.querySelectorAll(`[mdtype='heading']`), e => e.getAttribute('cid')));
-            return headers.filter(h => cidSet.has(h.cid))
+            const allHeaders = File.editor.nodeMap.toc.headers
+            const range = window.getSelection().getRangeAt(0)
+            if (range.collapsed) {
+                return allHeaders
+            }
+            const headersInRange = range.cloneContents().querySelectorAll('[mdtype="heading"]')
+            const cidSet = new Set([...headersInRange].map(e => e.getAttribute("cid")))
+            return allHeaders.filter(header => cidSet.has(header.cid))
         }
 
-        const _changeHeaderLevel = (node, incr) => {
-            const nodeType = node.get('type');
-            if (incr && nodeType === 'paragraph') {
-                File.editor.stylize.changeBlock('header6', node);
-                return;
+        const _changeHeaderLevel = (node) => {
+            const nodeType = node.get("type")
+            if (incr && nodeType === "paragraph") {
+                File.editor.stylize.changeBlock("header6", node)
+                return
             }
-            if (nodeType === 'heading') {
-                const newLevel = +node.get('depth') + (incr ? -1 : 1);
+            if (nodeType === "heading") {
+                const newLevel = +node.get("depth") + (incr ? -1 : 1)
                 if (newLevel === 7) {
-                    File.editor.stylize.changeBlock('paragraph', node);
+                    File.editor.stylize.changeBlock("paragraph", node)
                 } else if (0 < newLevel && newLevel <= 6) {
-                    File.editor.stylize.changeBlock(`header${newLevel}`, node);
+                    File.editor.stylize.changeBlock(`header${newLevel}`, node)
                 }
             }
         }
 
-        _getTargetHeaders().forEach(node => _changeHeaderLevel(node, incr));
+        _getTargetHeaders().forEach(_changeHeaderLevel)
     }
 
-    copyFullPath = anchorNode => {
-        const getHeaderName = (title, name) => `${title} ${name}`;
-        const paragraphList = ["H1", "H2", "H3", "H4", "H5", "H6"];
-        const nameList = this.i18n.array(paragraphList, "act.copy_full_path.")
-        const noHeader = this.i18n.t("act.copy_full_path.NoHeader")
-        const pList = [];
+    copyFullPath = async anchorNode => {
         let ele = anchorNode || this.utils.getAnchorNode().closest("#write > [cid]")[0]
+        if (!ele) return
 
+        const paragraphs = ["H1", "H2", "H3", "H4", "H5", "H6"]
+        const headers = []
         while (ele) {
-            const idx = paragraphList.indexOf(ele.tagName);
-            if (idx !== -1) {
-                if (pList.length === 0 || (pList[pList.length - 1].idx > idx)) {
-                    pList.push({ ele, idx })
-                    if (pList[pList.length - 1].idx === 0) break;
+            const idx = paragraphs.indexOf(ele.tagName)
+            if (idx !== -1 && (headers.length === 0 || (headers[headers.length - 1].idx > idx))) {
+                headers.push({ idx, tagName: ele.tagName, textContent: ele.textContent })
+                if (idx === 0) {
+                    break
                 }
             }
-            ele = ele.previousElementSibling;
+            ele = ele.previousElementSibling
         }
 
-        pList.reverse();
+        headers.reverse()
 
-        const filePath = this.utils.getFilePath();
-        const result = [filePath || "untitled"];
-        let headerIdx = 0;
-        for (const p of pList) {
-            while (headerIdx < 6 && p.ele.tagName !== paragraphList[headerIdx]) {
-                result.push(getHeaderName(noHeader, nameList[headerIdx]));
-                headerIdx++;
+        const names = this.i18n.array(paragraphs, "act.copy_full_path.")
+        const noHeader = this.i18n.t("act.copy_full_path.NoHeader")
+
+        const getHeaderName = (title, idx) => `${title} ${names[idx]}`
+
+        const filePath = this.utils.getFilePath() || "Untitled"
+        const result = [filePath]
+
+        let idx = 0
+        for (const { tagName, textContent } of headers) {
+            while (idx < 6 && tagName !== paragraphs[idx]) {
+                result.push(getHeaderName(noHeader, idx))
+                idx++
             }
-            if (p.ele.tagName === paragraphList[headerIdx]) {
-                result.push(getHeaderName(p.ele.textContent, nameList[headerIdx]));
-                headerIdx++;
+            if (tagName === paragraphs[idx]) {
+                result.push(getHeaderName(textContent, idx))
+                idx++
             }
         }
 
-        const text = this.utils.Package.Path.join(...result);
-        navigator.clipboard.writeText(text);
+        const fullPath = this.utils.Package.Path.join(...result)
+        await navigator.clipboard.writeText(fullPath)
     }
 
     convertCRLF2LF = async () => this.utils.editCurrentFile(content => content.replace(/\r\n/g, "\n"))
@@ -156,35 +166,49 @@ class easyModifyPlugin extends BasePlugin {
     filterInvisibleCharacters = async () => this.utils.editCurrentFile(content => content.replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, ""))
 
     extractRangeToNewFile = async range => {
-        if (!range || range.collapsed) return;
+        if (!range || range.collapsed) {
+            return false
+        }
 
-        // copy content
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        ClientCommand.copyAsMarkdown();
-        const text = await window.parent.navigator.clipboard.readText();
+        const fields = [
+            { key: "filename", type: "text", label: this.i18n.t("act.extract_rang_to_new_file.filename"), placeholder: this.i18n.t("act.extract_rang_to_new_file.filenameHint") },
+            { key: "autoOpen", type: "switch", label: this.i18n.t("act.extract_rang_to_new_file.autoOpenFile") },
+        ]
+        const op = {
+            title: this.i18n.t("act.extract_rang_to_new_file"),
+            schema: [{ title: undefined, fields }],
+            data: { filename: "", autoOpen: true },
+        }
+        const { response, data } = await this.utils.formDialog.modal(op)
+        if (response === 0) {
+            return false
+        }
+
+        let { filename, autoOpen } = data
+
+        // get filename
+        if (filename && !filename.toLowerCase().endsWith(".md")) {
+            filename += ".md"
+        }
+        filename = await this.utils.newFilePath(filename)
+
+        // get content
+        const selection = window.getSelection()
+        selection.removeAllRanges()
+        selection.addRange(range)
+        const content = File.editor.UserOp.getSpeechText()
+
+        const ok = await this.utils.writeFile(filename, content)
+        if (!ok) {
+            return false
+        }
 
         // delete content
-        File.editor.UserOp.backspaceHandler(File.editor, null, "Delete");
+        File.editor.UserOp.backspaceHandler(File.editor, null, "Delete")
 
-        // modal
-        const title = this.i18n.t("act.extract_rang_to_new_file")
-        const label = this.i18n.t("act.extract_rang_to_new_file.filename")
-        const placeholder = this.i18n.t("act.extract_rang_to_new_file.filenameHint")
-        const components = [{ label, type: "input", value: "", placeholder }]
-        const op = { title, components }
-        let { response, submit: [filepath] } = await this.utils.dialog.modalAsync(op)
-        if (response !== 1) return;
-
-        // extract
-        if (filepath && !filepath.endsWith(".md")) {
-            filepath += ".md";
+        if (autoOpen) {
+            this.utils.openFile(filename)
         }
-        filepath = await this.utils.newFilePath(filepath);
-        const ok = await this.utils.writeFile(filepath, text);
-        if (!ok) return;
-        this.utils.openFile(filepath);
     }
 
     trailingWhiteSpace = async () => {
@@ -193,68 +217,105 @@ class easyModifyPlugin extends BasePlugin {
             const checkboxLabel = this.i18n._t("global", "disableReminder")
             const op = { type: "warning", message, checkboxLabel }
             const { response, checkboxChecked } = await this.utils.showMessageBox(op)
-            if (response === 1) return true
+            if (response === 1) {
+                return false
+            }
             if (checkboxChecked) {
                 this._showWarnDialog = false
             }
         }
 
-        const replaceFlag = 2;
-        const tailSpace = "  ";
+        const replaceFlag = 2
+        const tailSpace = "  "
         this.utils.entities.querySelectorAllInWrite("p[cid]").forEach(ele => {
-            const textContent = ele.textContent;
+            const textContent = ele.textContent
             if (!textContent.trim() || textContent.endsWith(tailSpace)) return
-            const span = ele.querySelector(":scope > span:last-child");
+            const span = ele.querySelector(":scope > span:last-child")
             if (!span) return
             if (span) {
-                const textContent = span.textContent;
+                const textContent = span.textContent
                 if (!textContent.trim() || textContent.endsWith(tailSpace)) return
-                span.textContent += tailSpace;
-                const cid = ele.getAttribute("cid");
-                File.editor.undo.addSnap(cid, replaceFlag);
-                File.editor.brush.brushNode(cid);
+                span.textContent += tailSpace
+                const cid = ele.getAttribute("cid")
+                File.editor.undo.addSnap(cid, replaceFlag)
+                File.editor.brush.brushNode(cid)
             }
         })
     }
 
     insertMindmap = (type, target) => {
-        if (!target) return;
+        if (!target) return
 
         const errorMsg = this.i18n.t("act.insert_mermaid_mindmap.incompatible")
         const clean = title => `("${title.replace(/"/g, "")}")`
-        const getComment = type => (type === "mindmap" && !window.mermaidAPI.defaultConfig.mindmap)
-            ? `%%${errorMsg}\n`
-            : ""
+        const getComment = type => (type === "mindmap" && !window.mermaidAPI.defaultConfig.mindmap) ? `%%${errorMsg}\n` : ""
         const mermaidFunc = {
             mindmap: tree => {
-                const preOrder = (node, list, indent) => {
-                    list.push("\t".repeat(indent), clean(node.text), "\n");
-                    node.children.forEach(child => preOrder(child, list, indent + 1));
-                    return list;
+                const getTokens = (node, ret, indent) => {
+                    ret.push("\t".repeat(indent), clean(node.text), "\n")
+                    node.children.forEach(child => getTokens(child, ret, indent + 1))
+                    return ret
                 }
-                return preOrder(tree, ["mindmap", "\n"], 1);
+                return getTokens(tree, ["mindmap", "\n"], 1)
             },
             graph: tree => {
-                let num = 0;
+                let num = 0
                 const getName = node => {
-                    if (node._shortName) return node._shortName;
-                    node._shortName = "T" + ++num;
-                    return node._shortName + clean(node.text);
+                    if (node._shortName) {
+                        return node._shortName
+                    }
+                    node._shortName = "T" + ++num
+                    return node._shortName + clean(node.text)
                 }
-                const levelOrder = (node, list) => {
-                    node.children.forEach(child => list.push(getName(node), "-->", getName(child), "\n"));
-                    node.children.forEach(child => levelOrder(child, list));
-                    return list
+                const getTokens = (node, ret) => {
+                    node.children.forEach(child => ret.push(getName(node), "-->", getName(child), "\n"))
+                    node.children.forEach(child => getTokens(child, ret))
+                    return ret
                 }
-                return levelOrder(tree, ["graph LR", "\n"])
+                return getTokens(tree, ["graph LR", "\n"])
             }
         }
-        const func = mermaidFunc[type];
-        if (!func) return;
-        const tree = this.utils.getTocTree();
-        const lines = func(tree).join("");
-        const content = ["```", "mermaid", "\n", getComment(type), lines, "```"].join("");
-        this.utils.insertText(target, content)
+        const func = mermaidFunc[type]
+        if (!func) return
+
+        const tree = this.utils.getTocTree()
+        const tokens = func(tree)
+        const mermaid = ["```mermaid", "\n", getComment(type), ...tokens, "```"].join("")
+        this.utils.insertText(target, mermaid)
+    }
+
+    unwrapOutermostBlock = (outermostAnchor, innermostAnchor) => {
+        if (!outermostAnchor || !innermostAnchor) return
+
+        // exit if the anchor is inside a code or math block
+        if (innermostAnchor.matches(".md-fences, .md-math-block")) return
+
+        const createUnwrapFn = (type) => {
+            return () => {
+                const closestCid = innermostAnchor.getAttribute("cid")
+                const closestNode = File.editor.nodeMap.allNodes.get(closestCid)
+                if (!closestNode) return
+
+                // Monkey-patch: Temporarily replace the method to ensure `toggleIndent` targets the top-level block
+                const originFn = closestNode.getClosetBlock
+                closestNode.getClosetBlock = () => closestNode.getTopBlock().getFirstChild()
+                try {
+                    File.editor.stylize.toggleIndent(type)
+                } finally {
+                    closestNode.getClosetBlock = originFn
+                }
+            }
+        }
+
+        const handlers = {
+            '[mdtype="heading"]': () => File.editor.stylize.changeBlock(`header${outermostAnchor.tagName[1]}`, undefined, true),
+            '[mdtype="blockquote"]': createUnwrapFn("blockquote"),
+            '.task-list-item': createUnwrapFn("tasklist"),
+            'ol[mdtype="list"]': createUnwrapFn("ol"),
+            'ul[mdtype="list"]': createUnwrapFn("ul"),
+        }
+        const type = Object.keys(handlers).find(selector => outermostAnchor.matches(selector))
+        if (type) handlers[type]()
     }
 }
 

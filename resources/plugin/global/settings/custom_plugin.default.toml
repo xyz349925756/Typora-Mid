@@ -1,10 +1,3 @@
-#-------------------------------------------------------------------------
-#  请勿修改【custom_plugin.default.toml】文件，请阅读本目录下的【README.md】
-#  请勿修改【custom_plugin.default.toml】文件，请阅读本目录下的【README.md】
-#  请勿修改【custom_plugin.default.toml】文件，请阅读本目录下的【README.md】
-#-------------------------------------------------------------------------
-
-
 ################### kanban ###################
 [kanban]
 # ------------------- 基础 -------------------
@@ -13,19 +6,19 @@
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 代码块 -------------------
-# 代码块语言：用于识别看板代码块的语言标识符
+# 代码块语言：用于识别代码块的语言标识符
 #   强烈建议不要修改。如果要修改，请同步修改 TEMPLATE 配置项中的语言标识符
 LANGUAGE = "kanban"
 
@@ -33,7 +26,7 @@ LANGUAGE = "kanban"
 # 严格模式：是否启用严格模式，严格模式下，插件不会忽略存在语法错误的代码行，而是在页面上直接报错
 #   true:  启用严格模式，所有看板都将强制进入严格模式，发生语法错误时会报错
 #   false: 关闭严格模式，所有看板都会忽略语法错误
-# 注意：也可以在代码块首行添加 `use strict`，使得此代码块进入严格模式
+# 也可以在代码块首行添加 `use strict`，使得此代码块进入严格模式
 STRICT_MODE = false
 
 # 交互模式：是否开启交互模式
@@ -66,7 +59,7 @@ WRAP = false
 # 当鼠标位于看板时，是否允许使用 ctrl + 鼠标滚轮 滚动看板
 #   true:  允许使用 ctrl + 鼠标滚轮 滚动看板
 #   false: 禁止使用 ctrl + 鼠标滚轮 滚动看板
-CTRL_WHEEL_TO_SCROLL = true
+CTRL_WHEEL_TO_SWITCH = true
 
 # ------------------- 内容样式 -------------------
 # 允许在任务描述框中使用 markdown 内联样式（code, strong, em, del, link, img）
@@ -81,7 +74,7 @@ KANBAN_COLOR = ["#FFE0B2", "#DAE9F4", "#FEDCCC", "#C6E5D9", "#FFF1B9"]
 TASK_COLOR = ["#FFFDE7", "#F8FAFF", "#FFFFF2", "#FFFCF0", "#FFFFF5"]
 
 # ------------------- 模板 -------------------
-# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时，会使用此模板
+# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时会使用此模板
 TEMPLATE = """```kanban
 use strict
 # How to use kanban
@@ -112,10 +105,10 @@ use strict
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  在右键菜单中隐藏此插件
 #   false: 在右键菜单中显示此插件
 hide = false
@@ -146,7 +139,7 @@ INTERACTIVE_MODE = true
 DEFAULT_OPTIONS = { useStrict = true, showNickname = true, showAvatar = true, notAllowShowTime = false, allowMarkdown = true, senderNickname = "me", timeNickname = "time" }
 
 # ------------------- 模板 -------------------
-# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时，会使用此模板
+# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时会使用此模板
 TEMPLATE = """```chat
 ---
 useStrict: false        # Enable strict mode (disables error tolerance).
@@ -172,6 +165,7 @@ me: Supports basic Markdown syntax: **bold**, *italic*, `code`, ~~strikethrough~
 nickname1: Configuration can be modified using YAML front matter (similar to Markdown). \\n\\nThe `avatars` option sets user avatars. If an avatar is not configured, the user's initial is used as the avatar. \\n\\nTry adding `./assets/1.jpg` to the directory containing this file to see the corresponding user's avatar change.
 
 Note: Supports exporting to HTML, PDF, etc. This syntax is plugin-specific and not universal.
+```
 """
 
 
@@ -183,19 +177,19 @@ Note: Supports exporting to HTML, PDF, etc. This syntax is plugin-specific and n
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 代码块 -------------------
-# 代码块语言：用于识别时间线代码块的语言标识符
+# 代码块语言：用于识别代码块的语言标识符
 #   强烈建议不要修改。如果要修改，请同步修改 TEMPLATE 配置项中的语言标识符
 LANGUAGE = "timeline"
 
@@ -237,7 +231,7 @@ CIRCLE_TOP = "0.6em"
 TIME_COLOR = "#555555"
 
 # ------------------- 模板 -------------------
-# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时，会使用此模板
+# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时会使用此模板
 TEMPLATE = """```timeline
 # Timeline Title (H1)
 
@@ -252,6 +246,7 @@ Code blocks are not supported (nested code blocks are discouraged).
 
 ## 2023-10-01
 Custom syntax; use with caution.
+```
 """
 
 
@@ -263,19 +258,19 @@ Custom syntax; use with caution.
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 代码块 -------------------
-# 代码块语言：用于识别 echarts 代码块的语言标识符
+# 代码块语言：用于识别代码块的语言标识符
 #   强烈建议不要修改。如果要修改，请同步修改 TEMPLATE 配置项中的语言标识符
 LANGUAGE = "echarts"
 
@@ -289,7 +284,7 @@ INTERACTIVE_MODE = true
 #   canvas: 使用 Canvas 渲染
 #   svg:    使用 SVG 渲染
 # 参考：https://echarts.apache.org/handbook/zh/best-practices/canvas-vs-svg/
-# svg 和 Typora 更加亲和，故建议使用 svg
+# svg 和 Typora 更加亲和，建议使用 svg
 RENDERER = "svg"
 
 # 导出时 echarts 转成什么格式
@@ -306,7 +301,7 @@ DEFAULT_FENCE_HEIGHT = "300px"
 DEFAULT_FENCE_BACKGROUND_COLOR = "#F8F8F8"
 
 # ------------------- 模板 -------------------
-# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时，会使用此模板
+# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时会使用此模板
 TEMPLATE = """```echarts
 // Built-in variables:
 //   1. myChart: ECharts instance
@@ -350,19 +345,19 @@ option = {
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 代码块 -------------------
-# 代码块语言：用于识别图表代码块的语言标识符
+# 代码块语言：用于识别代码块的语言标识符
 #   强烈建议不要修改。如果要修改，请同步修改 TEMPLATE 配置项中的语言标识符
 LANGUAGE = "chart"
 
@@ -380,7 +375,7 @@ DEFAULT_FENCE_HEIGHT = "300px"
 DEFAULT_FENCE_BACKGROUND_COLOR = "#F8F8F8"
 
 # ------------------- 模板 -------------------
-# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时，会使用此模板
+# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时会使用此模板
 TEMPLATE = """```chart
 // Built-in variables:
 //   1. Chart:   chart Class
@@ -422,19 +417,19 @@ config = {
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 代码块 -------------------
-# 代码块语言：用于识别 wavedrom 代码块的语言标识符
+# 代码块语言：用于识别代码块的语言标识符
 #   强烈建议不要修改。如果要修改，请同步修改 TEMPLATE 配置项中的语言标识符
 LANGUAGE = "wavedrom"
 
@@ -458,7 +453,7 @@ DEFAULT_FENCE_HEIGHT = "auto"
 DEFAULT_FENCE_BACKGROUND_COLOR = "#FFFFFF"
 
 # ------------------- 模板 -------------------
-# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时，会使用此模板
+# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时会使用此模板
 TEMPLATE = """```wavedrom
 // tutorial: https://wavedrom.com/tutorial.html
 // All code within this block will be evaluated (eval). Exercise caution.
@@ -489,19 +484,19 @@ TEMPLATE = """```wavedrom
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 代码块 -------------------
-# 代码块语言：用于识别日历代码块的语言标识符
+# 代码块语言：用于识别代码块的语言标识符
 #   强烈建议不要修改。如果要修改，请同步修改 TEMPLATE 配置项中的语言标识符
 LANGUAGE = "calendar"
 
@@ -519,7 +514,7 @@ DEFAULT_FENCE_HEIGHT = "800px"
 DEFAULT_FENCE_BACKGROUND_COLOR = "#F8F8F8"
 
 # ------------------- 模板 -------------------
-# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时，会使用此模板
+# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时会使用此模板
 TEMPLATE = """```calendar
 // Built-in variables:
 //   1. calendar: calendar instance
@@ -553,19 +548,19 @@ calendar.createEvents([
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 代码块 -------------------
-# 代码块语言：用于识别 ABC 代码块的语言标识符
+# 代码块语言：用于识别代码块的语言标识符
 #   强烈建议不要修改。如果要修改，请同步修改 TEMPLATE 配置项中的语言标识符
 LANGUAGE = "abc"
 
@@ -592,7 +587,7 @@ DEFAULT_FENCE_HEIGHT = "auto"
 DEFAULT_FENCE_BACKGROUND_COLOR = "#F8F8F8"
 
 # ------------------- 模板 -------------------
-# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时，会使用此模板
+# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时会使用此模板
 TEMPLATE = """```abc
 X:1
 T:Twinkle, Twinkle, Little Star
@@ -611,15 +606,15 @@ G2 G2|A2 A2|B2 B2|c3 z|G2 G2|A2 A2|B2 G2|c3 z||
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 资源 -------------------
@@ -631,7 +626,7 @@ order = 1
 RESOURCE_URI = "https://viewer.diagrams.net/js/viewer-static.min.js"
 
 # ------------------- 代码块 -------------------
-# 代码块语言：用于识别 draw.io 代码块的语言标识符
+# 代码块语言：用于识别代码块的语言标识符
 #   强烈建议不要修改。如果要修改，请同步修改 TEMPLATE 配置项中的语言标识符
 LANGUAGE = "drawio"
 
@@ -651,7 +646,7 @@ DEFAULT_FENCE_HEIGHT = "auto"
 DEFAULT_FENCE_BACKGROUND_COLOR = "transparent"
 
 # ------------------- 模板 -------------------
-# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时，会使用此模板
+# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时会使用此模板
 TEMPLATE = """```drawio
 /**
  * Due to frequent changes in the .drawio file format, the draw.io website strongly recommends fetching dependencies via CDN. This plugin defaults to pulling dependencies from the network. If you prefer to store dependencies locally, modify the configuration file.
@@ -681,19 +676,19 @@ graphConfig = {
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 代码块 -------------------
-# 代码块语言：用于识别 marp 代码块的语言标识符
+# 代码块语言：用于识别代码块的语言标识符
 #   强烈建议不要修改。如果要修改，请同步修改 TEMPLATE 配置项中的语言标识符
 LANGUAGE = "marp"
 
@@ -704,7 +699,7 @@ LANGUAGE = "marp"
 INTERACTIVE_MODE = true
 
 # ------------------- 模板 -------------------
-# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时，会使用此模板
+# 自动插入的模板，当使用快捷键或者右键菜单插入代码块时会使用此模板
 TEMPLATE = """```marp
 ---
 theme: gaia
@@ -727,7 +722,7 @@ https://marp.app/
 # How to write slides
 
 Split pages by horizontal ruler (`---`). It's very simple! :satisfied:
-
+```
 """
 
 
@@ -743,15 +738,15 @@ Split pages by horizontal ruler (`---`). It's very simple! :satisfied:
 #     3. 此插件兼容原生功能
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- callout 样式 -------------------
@@ -764,12 +759,19 @@ set_title_color = true
 # 鼠标悬停在 fold callout 时展示其内容
 hover_to_show_fold_callout = true
 
-# icon 对应的字体。一旦修改此选项，就需要修改下面所有的 icon
+# icon 对应的图标字体。一旦修改此选项，就需要修改下面所有的 icon
 #   具体的 icon 值请参考
 #   - 旧版本 Typora: {your_typora_path}/resources/app/style/font-awesome-4.1.0/css/font-awesome.css
 #   - 新版本 Typora: {your_typora_path}/resources/style/font-awesome-4.1.0/css/font-awesome.css
 #   - 网络下载: https://www.adfwebmagazine.jp/wp-content/uploads/test_v4.1.pdf
 font_family = "FontAwesome"
+
+# Callouts 功能导出为 PDF 后不显示图标，因为导出过程中缺少必要的图标字体资源
+# 是否使用网络图标字体
+use_network_icon_when_exporting = true
+
+# 网络图标字体的 CDN 地址（强制 woff 格式）
+network_icon_url = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/fonts/fontawesome-webfont.woff"
 
 # callout 的类型
 #  - type            : 自定义的类型
@@ -815,15 +817,15 @@ template = "> [!NOTE]\n> Support Type: TIP、BUG、INFO、NOTE、QUOTE、EXAMPLE
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，将显示在 Typora 的插件列表中
+# 插件名称，将显示在 Typora 的插件列表中
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序 (数值越大越靠后，允许负数)
+# 插件在右键菜单中的显示顺序 (数值数值越大越靠后，支持负数)
 order = 1
 
 # 快捷键，用于快速触发此插件的功能
@@ -837,8 +839,8 @@ hotkey = ""
 auto_open = true
 
 # ------------------- 自定义模板变量 -------------------
-#  除了内置的模板变量，还可以自定义模板变量（高级配置，需要一定的 JavaScript 基础）
-#  每个模板变量配置包含以下属性
+# 除了内置的模板变量，还可以自定义模板变量（高级配置，需要一定的 JavaScript 基础）
+# 每个模板变量配置包含以下属性
 #   - enable:   是否启用此模板变量
 #   - name:     模板变量名（必须唯一）
 #   - callback: 回调函数的字符串，此函数将返回此模板变量的值
@@ -848,6 +850,13 @@ template_variables = [
     { enable = false, name = "sumList", callback = "args => args.reduce((x, y) => x + y, 0)" },
     { enable = false, name = "contact", callback = "(...args) => args.join('-')" },
 ]
+
+# ------------------- 模板目录 -------------------
+# 除了下面写在 template 选项的模板，还可以指定模板目录，插件将递归寻找目录中的 md 文件，加入到模板中
+# 这些模板文件将以文件名为模板名称，以文件内容为模板内容。注意转义反斜杠。
+#   注意：出于性能考虑，只会递归寻找 3 层子目录，如果超出将被忽略。例如，如果设置目录为 D:\tmp\，那么 D:\tmp\1\2\3\4\template.md 将被忽略
+#   示例：["D:\\tmp\\templates"]
+template_folders = []
 
 # ------------------- 如何在模板里使用变量 -------------------
 # 在模板中使用变量的方式与 JavaScript 中调用函数基本一致，有两点不同
@@ -863,28 +872,25 @@ template_variables = [
 
 # ------------------- 内置的模板变量 -------------------
 #   {{ formatDate(format, locale) }}    当前格式化的日期时间
-#       参数 1: format: 时间格式化字符串
-#       参数 2: locale: 语言环境
+#       format: 时间格式化字符串
+#       locale: 语言环境
 #   {{ datetime }}             当前日期时间。等同于 {{ formatDate('yyyy-MM-dd HH:mm:ss') }}
 #   {{ date }}                 当前日期。等同于 {{ formatDate('yyyy-MM-dd') }}
 #   {{ time }}                 当前时间。等同于 {{ formatDate('HH:mm:ss') }}
 #   {{ weekday }}              当前周几。等同于 {{ formatDate('ddd') }}
 #   {{ timestamp }}            当前时间戳 (毫秒)
 #   {{ dateOffset(offset, format, locale) }}  指定偏移量后的日期
-#       参数 1: offset: 整数，表示天数的偏移量 (正数表示未来，负数表示过去)
-#       参数 2: format: 时间格式化字符串
-#       参数 3: locale: 语言环境，支持 cn、en (默认 en)
+#       offset: 整数，表示天数的偏移量 (正数表示未来，负数表示过去)
+#       format: 时间格式化字符串
+#       locale: 语言环境
 #   {{ yesterday }}            昨天日期。等同于 {{ dateOffset(-1) }}
 #   {{ tomorrow }}             明天日期。等同于 {{ dateOffset(1) }}
-#   {{ random }}               范围为 0-1 的随机浮点数
 #   {{ randomInt(min, max) }}  范围为 min-max 的随机整数
 #   {{ randomStr(length) }}    由字母和数字组成的指定长度的随机字符串
 #   {{ title }}                新建文件的标题
 #   {{ filepath }}             新建文件的路径
 #   {{ folder }}               当前文件的目录
 #   {{ mountFolder }}          当前文件的挂载目录
-#   {{ username }}             当前电脑的用户名
-#   {{ range }}                当前选取的文字
 #   {{ uuid }}                 uuid
 
 # ------------------- 模板 -------------------
@@ -937,41 +943,41 @@ tags:
 # 注意：若 Typora 的配置项【匹配括号和引号】为 false，则此插件自动禁用
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = true
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 功能 -------------------
-# 当光标在中间，左右两边都是成对符号，如：【|】；且用户键入】时，将光标跳到】的右边
+# 自动跳过配对符号：当光标在中间，左右两边都是成对符号，如：【|】；且用户键入】时，将光标跳到】的右边
 #   true:  启用此行为
-#   false: 关闭此行为，将直接补全为【】
+#   false: 禁用此行为
 auto_skip = true
 
-# 当光标在中间，左右两边都是成对符号，如：【|】；且用户键入 Backspace 时，同时删除左右两边的符号
+# 成对删除符号：当光标在中间，左右两边都是成对符号，如：【|】；且用户键入 Backspace 时，同时删除左右两边的符号
 #   true:  启用此行为
-#   false: 关闭此行为
+#   false: 禁用此行为
 auto_delete_pair = true
 
-# 当框选文字时，键入中文符号，自动包裹框选文字
+# 自动包裹选区：当框选文字时，键入中文符号，自动包裹框选文字
 #   true:  启用此行为
-#   false: 关闭此行为
+#   false: 禁用此行为
 auto_surround_pair = true
 
-# 自动包裹框选文字后，自动框选文字
+# 自动选中包裹内容：自动包裹框选文字后，自动框选文字
 #   true:  启用此行为
-#   false: 关闭此行为
+#   false: 禁用此行为
 auto_select_after_surround = true
 
-# 连续输入两个相同的中文标点符号，转为对应的英文标点符号（双全角标点合成一个半角标点）
+# 连续全角转为半角：连续输入两个相同的中文标点符号，转为对应的英文标点符号（双全角标点合成一个半角标点）
 #   true:  启用此行为
-#   false: 关闭此行为
+#   false: 禁用此行为
 auto_swap = false
 
 # ------------------- 符号 -------------------
@@ -1013,15 +1019,15 @@ auto_swap_symbols = [
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # 快捷键，用于快速触发此插件的功能
@@ -1029,12 +1035,17 @@ order = 1
 hotkey = ""
 
 # ------------------- 大纲内容 -------------------
-# 是否转义标题内容中的样式内容
-#   true:  转义样式内容
-#   false: 不转义样式内容，直接显示
-escape_header = true
+# 是否移除标题样式
+#   true:  移除。如 **text** 将转成 text
+#   false: 不移除，转义样式
+remove_header_styles = true
 
 # ------------------- 交互行为 -------------------
+# 是否允许通过拖动大纲里的标题调整文章的结构
+#   true:  允许拖动
+#   false: 不允许拖动
+sortable = true
+
 # 是否通过右键点击侧边栏的【大纲】按钮来切换大纲目录的显示与隐藏
 #   true:  右键点击侧边栏【大纲】按钮可切换显示与隐藏
 #   false: 右键点击侧边栏【大纲】按钮不触发切换
@@ -1045,74 +1056,20 @@ right_click_outline_button_to_toggle = true
 #   例如： 20 表示占据页面 20% 的宽度
 width_percent_when_pin_right = 20
 
-# 每次打开 Typora 时，是否默认显示右侧大纲目录
-#   true:  默认显示右侧大纲目录
-#   false: 默认不显示右侧大纲目录
+# 每次打开 Typora 时，是否默认显示大纲目录
+#   true:  默认显示
+#   false: 默认不显示
 default_show_toc = false
 
 # 大纲目录的字体大小
 toc_font_size = "1em"
 
-# ------------------- 展示名称 -------------------
+# ------------------- 展示 -------------------
 # 用于配置在大纲中显示的特殊元素对应的名称
-show_name = { fence = "Fence", image = "Figure", table = "Table", link = "Link", math = "Math" }
+show_name = { fence = "Fence", image = "Image", table = "Table", link = "Link", math = "Math" }
 
-
-################### resourceOperation ###################
-[resourceOperation]
-# ------------------- 基础 -------------------
-# 启用或禁用插件
-#   true:  启用插件
-#   false: 禁用插件
-enable = true
-
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
-name = ""
-
-# 是否在右键菜单中隐藏此插件的入口
-#   true:  隐藏右键菜单入口
-#   false: 显示右键菜单入口
-hide = false
-
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
-order = 1
-
-# ------------------- 快捷键 -------------------
-# 快捷键，用于快速触发此插件的功能
-#   留空表示不设置快捷键
-hotkey = ""
-
-# ------------------- 弹窗 -------------------
-# 弹窗在页面中距离左侧的百分比位置，例如：5 代表距离页面左侧 5% 的位置
-modal_left_percent = 5
-
-# 弹窗在页面中所占的宽度百分比，例如：90 代表弹窗宽度为页面宽度的 90%
-modal_width_percent = 90
-
-# 弹窗在页面中所占的高度百分比，例如：70 代表弹窗高度为页面高度的 70%
-modal_height_percent = 70
-
-# ------------------- 资源识别 -------------------
-# 用于判断文件是否为资源的后缀名列表
-#   本插件通过文件后缀名来判断是否为资源
-resource_suffix = [".jpg", ".jpeg", ".png", ".gif", ".svg", ".tiff", ".ico", ".webp", ".webm", ".bmp", ".mp3", ".mp4", ".ogg", ".image", ".jfif", ".gif!large", ".gif!small"]
-
-# 用于判断文件是否为 Markdown 文件的后缀名列表
-markdown_suffix = [".md", ".markdown", ".mdown", ".mmd", ".rmarkdown", ".mkd", ".mdwn", ".mdtxt", ".rmd", ".mdtext"]
-
-# 是否将没有后缀名的文件视为资源
-#   true:  将没有后缀名的文件视为资源
-#   false: 将没有后缀名的文件视为非资源
-collect_file_without_suffix = true
-
-# ------------------- 文件扫描 -------------------
-# 需要忽略扫描的文件夹名称列表，这些文件夹及其子文件夹中的文件将不会被扫描
-ignore_folders = [".git", ".idea", "node_modules"]
-
-# 是否忽略 HTML 标签 <img src="example.jpg"> 中的资源引用
-#   true:  忽略 HTML <img> 标签中的资源
-#   false: 不忽略 HTML <img> 标签中的资源
-ignore_img_html_element = false
+# 生成特殊元素的大纲，是否同时显示标题的内容
+include_headings = { fence = true, image = true, table = true, link = true, math = true }
 
 
 ################### scrollBookmarker ###################
@@ -1123,15 +1080,15 @@ ignore_img_html_element = false
 #   false: 禁用插件
 enable = false
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 快捷键 -------------------
@@ -1139,13 +1096,12 @@ order = 1
 #   留空表示不设置快捷键
 hotkey = ""
 
-# ------------------- 数据持久化 -------------------
-# 数据持久化（作为文件保存起来）
-#   true:  数据持久化
-#   false: 数据不持久化
-persistence = true
-
 # ------------------- 书签管理 -------------------
+# 修饰键：与鼠标左键结合使用
+#   支持 ctrl / alt / shift 的任意组合 (如 "shift+alt", "ctrl+shift")
+#   例如：若设置为 "alt"，则使用 Alt + 鼠标左键 标注书签
+modifier_key = "alt"
+
 # 当 alt + click 时，是否自动弹出书签管理器窗口
 #   true:  自动弹出书签管理器窗口
 #   false: 不自动弹出书签管理器窗口
@@ -1160,15 +1116,15 @@ auto_popup_modal = true
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # 快捷键，用于快速触发此插件的功能
@@ -1394,15 +1350,15 @@ hotkey_function = [
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 快捷键 -------------------
@@ -1416,39 +1372,45 @@ hotkey_fix_lint_error = ""
 
 # ------------------- 检测规则 -------------------
 # 自定义检测规则
-#   参考：https://github.com/DavidAnson/markdownlint/blob/main/doc/CustomRules.md
 #   填入文件路径，必须在 plugin 目录下
-#   检测规则 MD101 是开发者自己写的
-#      功能: Math Blocks should be surrounded by blank lines
-#      源码: https://github.com/obgnail/markdownlint-rule-math
-#      issue: https://github.com/obgnail/typora_plugin/issues/957
-custom_rules = [
-    "plugin/custom/plugins/markdownLint/MD101.js",
+#   参考：https://github.com/DavidAnson/markdownlint/blob/main/doc/CustomRules.md
+#   custom-rules.js 是我写的，包含检测规则 MD101 和 MD102
+#      MD101: 公式块前后需用空行隔开
+#      MD102: 标题不可整行强调
+custom_rules_files = [
+    "plugin/custom/plugins/markdownLint/custom-rules.js",
 ]
 
 # 检测规则配置
 #   参考：https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
 rule_config = { default = true, MD010 = { code_blocks = false }, MD012 = { maximum = 3 }, MD013 = false, MD024 = { siblings_only = true }, MD033 = false, MD041 = false, MD044 = { code_blocks = false, names = ["CSS", "C++", "HTML", "Java", "JavaScript", "Python", "Rust", "SQL", "TypeScript"] } }
 
-# 是否将检测规则的案文翻译为中文
-#   true:  翻译为中文
+# ------------------- 展示规则 -------------------
+# 是否翻译检测规则案文
+#   true:  翻译
 #   false: 不翻译，显示英文原文
 translate = true
 
-# ------------------- 弹窗样式 -------------------
-# 弹窗的宽度
-#   - auto:  根据文字自适应
-#   - 500px: 500 像素（可以是任何正整数）
-modal_width = "auto"
+# 展示列
+#   idx:  序号
+#   line: 行
+#   rule: 规则
+#   desc: 说明
+#   ops:  操作
+columns = ["line", "rule", "desc", "ops"]
 
-# 弹窗的最大高度
-modal_max_height = "500px"
+# 展示的工具
+#   info:   具体的检测信息
+#   locate: 定位
+#   fix:    修复
+tools = ["info", "locate", "fix"]
 
-# 弹窗的字体大小
-modal_font_size = "14px"
-
-# 弹窗的文字行高
-modal_line_height = 1.2
+# 检测结果的排序规则
+#   idx:    按序号排列
+#   lineNumber: 按行排序
+#   ruleName:   按规则名排序
+#   ruleDesc:   按规则描述排序
+result_order_by = "lineNumber"
 
 # ------------------- 状态指示器 -------------------
 # 是否在右上角添加一个方块，用以提示格式检测状态
@@ -1461,44 +1423,25 @@ button_width = "15px"
 # 方块的高度
 button_height = "15px"
 
+# 方块的边框圆角
+button_border_radius = "4px"
+
 # 格式检测通过时方块的颜色
 pass_color = "#499C54"
 
 # 格式检测未通过时方块的颜色
 error_color = "#BE9117"
 
+# ------------------- 操作 -------------------
+# 右击表格以切换源码模式
+#   true:  支持右击表格
+#   false: 不支持右击表格
+right_click_table_to_toggle_source_mode = true
 
-################### reopenClosedFiles ###################
-[reopenClosedFiles]
-# ------------------- 基础 -------------------
-# 是否启用此二级插件（此插件仅在 window_tab 插件启用时生效）
-#   true:  启用插件
-#   false: 禁用插件
-enable = false
-
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
-name = ""
-
-# 是否在右键菜单中隐藏此插件的入口
-#   true:  隐藏右键菜单入口
-#   false: 显示右键菜单入口
-hide = false
-
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
-order = 1
-
-# ------------------- 快捷键 -------------------
-# 插件的快捷键，用于手动触发插件功能
-#   留空则表示不设置快捷键
-hotkey = ""
-
-# ------------------- 自动恢复 -------------------
-# 打开 Typora （打开可丢弃的无标题的标签时）自动恢复上次退出时尚未关闭的标签页
-#   true:  在满足条件的情况下，自动恢复上次未关闭的标签页
-#   false: 不自动恢复
-# 注意1：此功能仅当 Typora 自身的配置【启动选项】选择【打开指定目录】或【重新打开上次使用的目录】时生效
-# 注意2：此功能仅当双击 typora.exe 打开 Typora 时生效（打开特定文件时自动恢复上次退出时尚未关闭的标签页，明显不符合用户预期）
-auto_reopen_when_init = true
+# 右击方块以修复错误
+#   true:  支持右击方块
+#   false: 不支持右击方块
+right_click_button_to_fix = true
 
 
 ################### quickButton ###################
@@ -1509,15 +1452,15 @@ auto_reopen_when_init = true
 #   false: 禁用插件
 enable = true
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = false
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 快捷键 -------------------
@@ -1555,7 +1498,7 @@ position_bottom = "50px"
 #   false: 显示按钮的 hint
 hide_button_hint = false
 
-# ------------------- 按钮功能 -------------------
+# ------------------- 按钮列表 -------------------
 # 添加的按钮列表
 #   disable: 是否禁用此按钮
 #   coordinate: 按钮坐标
@@ -1572,9 +1515,9 @@ hide_button_hint = false
 #   hint(可选): 按钮的提示信息，鼠标悬停在按钮上时显示
 #   callback: 按钮的回调函数
 #       格式: "pluginName.MethodName"
-#       pluginName: 插件名称
-#       MethodName: 请通过阅读插件源码查找
-#       如果想添加按钮但不懂代码，可尝试：在【右键菜单 -> 常用插件 -> 二级插件】中的插件，其 MethodName 基本都是 "callback"；其余插件的 MethodName 基本都是 "call"
+#       pluginName: 插件名
+#       MethodName: 方法名，请通过阅读插件源码查找
+#       如果不懂代码，可尝试：在【右键菜单 -> 常用插件 -> 二级插件】中的插件，其 MethodName 基本都是 "callback"；其余插件的 MethodName 基本都是 "call"
 #   evil(危险): 自定义回调函数，功能同 hotkeys 插件的 evil 参数
 #       这里的文本内容会被 eval() 执行，具有潜在的安全风险
 #       如果设置了此参数，callback 参数将会失效
@@ -1582,10 +1525,11 @@ buttons = [
     { disable = false, coordinate = [0, 0], size = "24px", icon = "fa fa-caret-down", callback = "go_top.goBottom" },
     { disable = false, coordinate = [1, 0], size = "24px", icon = "fa fa-caret-up", callback = "go_top.goTop" },
     { disable = false, coordinate = [2, 0], size = "17px", icon = "fa fa-font", callback = "text_stylize.call" },
-    { disable = false, coordinate = [3, 0], size = "17px", icon = "fa fa-align-justify", callback = "md_padding.call" },
+    { disable = false, coordinate = [3, 0], size = "17px", icon = "fa fa-indent", callback = "md_padding.call" },
+    { disable = false, coordinate = [4, 0], size = "17px", icon = "fa fa-gear", callback = "preferences.call" },
     { disable = false, coordinate = [0, 1], size = "18px", icon = "fa fa-sitemap", callback = "markmap.onButtonClick" },
     { disable = false, coordinate = [1, 1], size = "17px", icon = "fa fa-image", callback = "imageReviewer.callback" },
-    { disable = false, coordinate = [2, 1], size = "17px", icon = "fa fa-list", callback = "toc.callback" },
+    { disable = false, coordinate = [2, 1], size = "17px", icon = "fa fa-th-list", callback = "toc.callback" },
     { disable = false, coordinate = [3, 1], size = "17px", icon = "fa fa-search", callback = "search_multi.call" },
     # evil 使用示例
     #   弹窗提示
@@ -1593,7 +1537,7 @@ buttons = [
     #   在光标处插入 javascript 代码块
     { disable = true, coordinate = [4, 1], size = "17px", icon = "ion-alert-circled", evil = '() => this.utils.insertFence("javascript")' },
     #   打开 Windows 计算器
-    { disable = true, coordinate = [5, 0], size = "17px", icon = "ion-bug", evil = "() => this.utils.Package.ChildProcess.exec('cmd /C calc')" },
+    { disable = true, coordinate = [5, 0], size = "17px", icon = "ion-bug", evil = "() => require('child_process').exec('cmd /C calc')" },
     #   打开网址
     { disable = true, coordinate = [5, 1], size = "17px", icon = "ion-alert", evil = "() => this.utils.openUrl('https://github.com/obgnail/typora_plugin')" },
 ]
@@ -1607,21 +1551,47 @@ buttons = [
 #   false: 禁用插件
 enable = false
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = true
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 快捷键 -------------------
 # 切换并列显示/默认显示的快捷键
 #   留空表示不设置快捷键
 hotkey = ""
+
+
+################### sortableOutline ###################
+[sortableOutline]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+enable = false
+
+# 插件名称（为空则使用默认名）
+name = ""
+
+# 插件是否在右键菜单中隐藏
+#   true:  隐藏右键菜单入口
+#   false: 显示右键菜单入口
+hide = true
+
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
+order = 1
+
+# 调整后自动保存文件
+#   true:  自动保存文件
+#   false: 不自动保存文件
+# 若勾选 Typora 的配置选项【自动保存文件】，则此配置自动被置为 true
+auto_save_file = false
 
 
 ################### redirectLocalRootUrl ###################
@@ -1638,15 +1608,15 @@ hotkey = ""
 #   注意： 【文件的 front matter 中的 typora-root-url 参数】的优先级大于【此插件】。也就是说：若文件的 front matter 显式设置了 typora-root-url，那么此插件在该文件失效
 enable = false
 
-# 插件的名称，用于在插件列表中标识此插件（为空则使用默认名）
+# 插件名称（为空则使用默认名）
 name = ""
 
-# 是否在右键菜单中隐藏此插件的入口
+# 插件是否在右键菜单中隐藏
 #   true:  隐藏右键菜单入口
 #   false: 显示右键菜单入口
 hide = true
 
-# 在右键菜单中的出现顺序（越大越靠后，允许负数）
+# 插件在右键菜单中的显示顺序（数值越大越靠后，支持负数）
 order = 1
 
 # ------------------- 路径 -------------------

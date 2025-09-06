@@ -1,48 +1,39 @@
 class autoNumberPlugin extends BasePlugin {
     beforeProcess = () => {
+        this.separator = "@"
         this.css_id = this.utils.styleTemplater.getID(this.fixedName)
         this.initCSS()
     }
 
-    style = () => ({ textID: this.css_id, text: this.getResultStyle() })
+    style = () => ({ textID: this.css_id, text: this.getCSS() })
 
     process = () => {
-        this.utils.runtime.autoSaveConfig(this);
+        this.utils.settings.autoSaveSettings(this)
         if (this.config.ENABLE_WHEN_EXPORT) {
-            new exportHelper(this).process();
+            new exportHelper(this).process()
         }
         if (this.config.ENABLE_IMAGE && this.config.SHOW_IMAGE_NAME) {
             this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.fileEdited, () => {
-                const images = this.utils.entities.querySelectorAllInWrite(".md-image:not([data-alt]) > img");
+                const images = this.utils.entities.querySelectorAllInWrite(".md-image:not([data-alt]) > img")
                 for (const image of images) {
-                    image.parentElement.dataset.alt = image.getAttribute("alt");
+                    image.parentElement.dataset.alt = image.getAttribute("alt")
                 }
             })
         }
     }
 
-    initCSS = layout => {
-        if (!layout) {
-            const selected = this.config.LAYOUTS.find(e => e.selected) || this.config.LAYOUTS[0]
-            layout = selected.layout
-        }
+    initCSS = () => {
+        const layout = (this.config.LAYOUTS.find(e => e.selected) || this.config.LAYOUTS[0]).layout
 
         this.base_css = `
         :root { ${this._buildCSSVar(layout)} }
-
         #write { counter-reset: content-h1 content-h2 image table fence; }
-        #write > h1 { counter-reset: content-h2; }
-        #write > h2 { counter-reset: content-h3; }
-        #write > h3 { counter-reset: content-h4; }
-        #write > h4 { counter-reset: content-h5; }
-        #write > h5 { counter-reset: content-h6; }
-        
-        @media print {
-            pb { display: block; page-break-after: always; }
-            h1 { page-break-before: always; }
-            h1:first-of-type { page-break-before: avoid; }
-            p:has(img:first-child) { page-break-inside: avoid; }
-        }`
+        #write > h1 { counter-set: content-h2; }
+        #write > h2 { counter-set: content-h3; }
+        #write > h3 { counter-set: content-h4; }
+        #write > h4 { counter-set: content-h5; }
+        #write > h5 { counter-set: content-h6; }
+        `
 
         this.content_css = `
         #write > h1:before,
@@ -107,11 +98,11 @@ class autoNumberPlugin extends BasePlugin {
 
         this.outline_css = `
         .outline-content { counter-reset: outline-h1 outline-h2; }
-        .outline-h1 { counter-reset: outline-h2; }
-        .outline-h2 { counter-reset: outline-h3; }
-        .outline-h3 { counter-reset: outline-h4; }
-        .outline-h4 { counter-reset: outline-h5; }
-        .outline-h5 { counter-reset: outline-h6; }
+        .outline-h1 { counter-set: outline-h2; }
+        .outline-h2 { counter-set: outline-h3; }
+        .outline-h3 { counter-set: outline-h4; }
+        .outline-h4 { counter-set: outline-h5; }
+        .outline-h5 { counter-set: outline-h6; }
         
         .outline-content .outline-h1 .outline-label:before {
             counter-increment: outline-h1;
@@ -145,11 +136,11 @@ class autoNumberPlugin extends BasePlugin {
 
         this.toc_css = `
         .md-toc-content { counter-reset: toc-h1 toc-h2; }
-        .md-toc-h1 { counter-reset: toc-h2; }
-        .md-toc-h2 { counter-reset: toc-h3; }
-        .md-toc-h3 { counter-reset: toc-h4; }
-        .md-toc-h4 { counter-reset: toc-h5; }
-        .md-toc-h5 { counter-reset: toc-h6; }
+        .md-toc-h1 { counter-set: toc-h2; }
+        .md-toc-h2 { counter-set: toc-h3; }
+        .md-toc-h3 { counter-set: toc-h4; }
+        .md-toc-h4 { counter-set: toc-h5; }
+        .md-toc-h5 { counter-set: toc-h6; }
         
         .md-toc-content .md-toc-h1 a:before {
             counter-increment: toc-h1;
@@ -181,17 +172,6 @@ class autoNumberPlugin extends BasePlugin {
             content: var(--count-toc-h6);
         }`
 
-        const image_content = `
-            counter-increment: image;
-            content: var(--count-image);
-            font-family: ${this.config.FONT_FAMILY};
-            display: block;
-            text-align: ${this.config.ALIGN};
-            margin: 4px 0;
-        `
-        this.image_css = `#write .md-image::after {${image_content}}`
-        this.image_export_css = `#write p:has(img:first-child)::after {${image_content}}`
-
         this.table_css = `
         #write .table-figure::${this.config.POSITION_TABLE} {
             counter-increment: table;
@@ -219,53 +199,41 @@ class autoNumberPlugin extends BasePlugin {
         }
         #write .md-fences.md-fences-advanced.md-focus::after {
             content: ""
-        }
+        }`
+
+        const image_content = `
+            counter-increment: image;
+            content: var(--count-image);
+            font-family: ${this.config.FONT_FAMILY};
+            display: block;
+            text-align: ${this.config.ALIGN};
+            margin: 4px 0;
         `
+        this.image_css = `#write .md-image::after {${image_content}}`
+        this.image_export_css = `#write p:has(img:first-child)::after {${image_content}}`
     }
 
-    removeStyle = () => this.utils.removeStyle(this.css_id);
-
-    getStyleString = (inExport = false) => {
-        const image_css = (inExport && this.utils.supportHasSelector) ? this.image_export_css : this.image_css
+    getCSS = (inExport = false) => {
         const { ENABLE_CONTENT, ENABLE_OUTLINE, ENABLE_TOC, ENABLE_IMAGE, ENABLE_TABLE, ENABLE_FENCE } = this.config
+        const image_css = (inExport && this.utils.supportHasSelector) ? this.image_export_css : this.image_css
         const css = [
             this.base_css,
-            ENABLE_CONTENT ? this.content_css : "",
-            ENABLE_OUTLINE ? this.outline_css : "",
-            ENABLE_TOC ? this.toc_css : "",
-            ENABLE_IMAGE ? image_css : "",
-            ENABLE_TABLE ? this.table_css : "",
-            ENABLE_FENCE ? this.fence_css : "",
+            ENABLE_CONTENT ? this.content_css : null,
+            ENABLE_OUTLINE ? this.outline_css : null,
+            ENABLE_TOC ? this.toc_css : null,
+            ENABLE_TABLE ? this.table_css : null,
+            ENABLE_FENCE ? this.fence_css : null,
+            ENABLE_IMAGE ? image_css : null,
         ]
-        return css.join("\n")
-    }
-
-    getResultStyle = toggle => {
-        if (toggle) {
-            this.config[toggle] = !this.config[toggle];
-            this.removeStyle();
-        }
-        return this.getStyleString()
-    }
-
-    toggleSetting = toggle => {
-        const css = this.getResultStyle(toggle);
-        this.utils.insertStyle(this.css_id, css);
-    }
-
-    setLayout = layoutName => {
-        this.config.LAYOUTS = this.config.LAYOUTS.map(lo => {
-            lo.selected = lo.name === layoutName
-            return lo
-        })
-        this.initCSS()
-        const css = this.getStyleString()
-        this.utils.insertStyle(this.css_id, css)
+        return css.filter(Boolean).join("\n")
     }
 
     getDynamicActions = () => {
-        const actSetLayoutPrefix = "set_layout@"
-        const layouts = this.config.LAYOUTS.map(lo => ({ act_name: lo.name, act_value: actSetLayoutPrefix + lo.name, act_state: lo.selected }))
+        const layouts = this.config.LAYOUTS.map(lo => ({
+            act_name: lo.name,
+            act_value: "set_layout" + this.separator + lo.name,
+            act_state: lo.selected,
+        }))
         return this.i18n.fillActions([
             { act_value: "toggle_outline", act_state: this.config.ENABLE_OUTLINE },
             { act_value: "toggle_content", act_state: this.config.ENABLE_CONTENT },
@@ -278,16 +246,28 @@ class autoNumberPlugin extends BasePlugin {
     }
 
     call = action => {
-        const callMap = {
-            toggle_outline: () => this.toggleSetting("ENABLE_OUTLINE"),
-            toggle_content: () => this.toggleSetting("ENABLE_CONTENT"),
-            toggle_toc: () => this.toggleSetting("ENABLE_TOC"),
-            toggle_table: () => this.toggleSetting("ENABLE_TABLE"),
-            toggle_image: () => this.toggleSetting("ENABLE_IMAGE"),
-            toggle_fence: () => this.toggleSetting("ENABLE_FENCE"),
-            set_layout: layoutName => this.setLayout(layoutName),
+        const toggleSetting = toggle => {
+            this.config[toggle] = !this.config[toggle]
+            this.utils.removeStyle(this.css_id)
+            this.utils.insertStyle(this.css_id, this.getCSS())
         }
-        const [act, meta] = action.split("@")
+        const callMap = {
+            toggle_outline: () => toggleSetting("ENABLE_OUTLINE"),
+            toggle_content: () => toggleSetting("ENABLE_CONTENT"),
+            toggle_toc: () => toggleSetting("ENABLE_TOC"),
+            toggle_table: () => toggleSetting("ENABLE_TABLE"),
+            toggle_image: () => toggleSetting("ENABLE_IMAGE"),
+            toggle_fence: () => toggleSetting("ENABLE_FENCE"),
+            set_layout: layoutName => {
+                this.config.LAYOUTS = this.config.LAYOUTS.map(lo => {
+                    lo.selected = lo.name === layoutName
+                    return lo
+                })
+                this.initCSS()
+                this.utils.insertStyle(this.css_id, this.getCSS())
+            },
+        }
+        const [act, meta] = action.split(this.separator, 2)
         const func = callMap[act]
         if (func) {
             func(meta)
@@ -341,9 +321,9 @@ class autoNumberPlugin extends BasePlugin {
         }
         const DEFAULT_STYLE = "d"
 
-        const byLength = (a, b) => b.length - a.length
-        const names = [...Object.keys(NAMES)].sort(byLength).join("|")
-        const styles = [...Object.keys(STYLES)].sort(byLength).join("|")
+        const joinKeys = (obj) => [...Object.keys(obj)].sort((a, b) => b.length - a.length).join("|")
+        const names = joinKeys(NAMES)
+        const styles = joinKeys(STYLES)
         const regex = new RegExp(`\\{\\s*(${names})(?::(${styles}))?\\s*\\}`, "gi")
 
         const buildCounter = (type, lo) => {
@@ -384,59 +364,61 @@ class exportHelper {
     }
 
     beforeExport = () => {
-        this.inExport = true;
-        return `body {font-variant-ligatures: no-common-ligatures;} ` + this.plugin.getStyleString(true);
+        this.inExport = true
+        return `body {font-variant-ligatures: no-common-ligatures;} ` + this.plugin.getCSS(true)
     }
 
     afterGetHeaderMatrix = headers => {
-        if (!this.inExport) return;
-        this.inExport = false;
+        if (!this.inExport) return
+        this.inExport = false
 
-        const numbering = { H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 };
+        const N = { H2: 0, H3: 0, H4: 0, H5: 0, H6: 0 }
         headers.forEach(header => {
-            const tagName = "H" + header[0];
-            if (!numbering.hasOwnProperty(tagName)) return;
+            const tagName = "H" + header[0]
+            if (!N.hasOwnProperty(tagName)) return
 
-            let val = "";
+            let val = ""
             switch (tagName) {
                 case "H1":
-                    numbering.H2 = 0;
+                    N.H2 = 0
                     break
                 case "H2":
-                    numbering.H3 = 0;
-                    numbering.H2++;
-                    val = `${numbering.H2}. `;
+                    N.H3 = 0
+                    N.H2++
+                    val = `${N.H2}. `
                     break
                 case "H3":
-                    numbering.H4 = 0;
-                    numbering.H3++;
-                    val = `${numbering.H2}.${numbering.H3} `;
+                    N.H4 = 0
+                    N.H3++
+                    val = `${N.H2}.${N.H3} `
                     break
                 case "H4":
-                    numbering.H5 = 0;
-                    numbering.H4++;
-                    val = `${numbering.H2}.${numbering.H3}.${numbering.H4} `;
+                    N.H5 = 0
+                    N.H4++
+                    val = `${N.H2}.${N.H3}.${N.H4} `
                     break
                 case "H5":
-                    numbering.H6 = 0;
-                    numbering.H5++;
-                    val = `${numbering.H2}.${numbering.H3}.${numbering.H4}.${numbering.H5} `;
+                    N.H6 = 0
+                    N.H5++
+                    val = `${N.H2}.${N.H3}.${N.H4}.${N.H5} `
                     break
                 case "H6":
-                    numbering.H6++;
-                    val = `${numbering.H2}.${numbering.H3}.${numbering.H4}.${numbering.H5}.${numbering.H6} `;
+                    N.H6++
+                    val = `${N.H2}.${N.H3}.${N.H4}.${N.H5}.${N.H6} `
                     break
             }
-            header[1] = val + header[1];
+            header[1] = val + header[1]
         })
     }
 
     process = () => {
-        this.plugin.utils.exportHelper.register("auto_number", this.beforeExport);
+        this.plugin.utils.exportHelper.register(this.plugin.fixedName, this.beforeExport)
         this.plugin.utils.decorate(
             () => File && File.editor && File.editor.library && File.editor.library.outline,
-            "getHeaderMatrix", null, this.afterGetHeaderMatrix
-        );
+            "getHeaderMatrix",
+            null,
+            this.afterGetHeaderMatrix,
+        )
     }
 }
 

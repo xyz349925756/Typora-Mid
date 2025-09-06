@@ -9,7 +9,7 @@ class CustomPlugin extends BasePlugin {
         const isString = s => typeof s === "string"
         const hotkeys = [];
         for (const [fixedName, plugin] of Object.entries(this.plugins)) {
-            if (!plugin || !plugin.hasOwnProperty("hotkey")) continue;
+            if (!plugin || !this.utils.hasOverrideCustomPluginFn(plugin, "hotkey")) continue
             try {
                 const hotkey = plugin.hotkey();
                 if (isString(hotkey) || (Array.isArray(hotkey) && hotkey.every(isString))) {
@@ -92,27 +92,14 @@ class customPluginLoader {
     }
 
     loadCustomPlugins = async settings => {
-        const { enable, disable, stop, error, nosetting } = await global.LoadPlugins(settings, true)
+        const { enable, disable, stop, error, nosetting } = await global.LoadPlugins(settings)
         this.controller.plugins = enable
     }
 
-    checkErrorSetting = customSettings => {
-        const allSettings = this.utils.getAllPluginSettings()
-        const errorPluginSetting = Object.keys(customSettings).filter(fixedName => allSettings.hasOwnProperty(fixedName))
-        if (errorPluginSetting && errorPluginSetting.length) {
-            const title = this.i18n.t("modal.checkError.title")
-            const label = this.i18n.t("modal.checkError.incorrectFile")
-            const rows = Math.max(errorPluginSetting.length, 3)
-            const content = errorPluginSetting.join("\n")
-            const components = [{ type: "textarea", label, rows, content }]
-            const op = { title, components }
-            this.utils.dialog.modal(op, () => this.utils.runtime.openSettingFolder())
-        }
-    }
-
     fixCallback = async () => {
+        const { hasOverrideCustomPluginFn: hasOverride } = this.utils
         for (const plugin of Object.values(this.controller.plugins)) {
-            if (!plugin || !plugin.hasOwnProperty("callback") || !plugin.hasOwnProperty("selector")) continue
+            if (!plugin || !hasOverride(plugin, "callback") || !hasOverride(plugin, "selector")) continue
             const originCallback = plugin.callback
             plugin.callback = anchorNode => {
                 if (!anchorNode) {
@@ -127,8 +114,7 @@ class customPluginLoader {
     }
 
     process = async () => {
-        const settings = await this.utils.runtime.readCustomPluginSetting()
-        this.checkErrorSetting(settings)
+        const settings = await this.utils.settings.readCustomPluginSettings()
         this.controller.pluginsSettings = settings
         await this.loadCustomPlugins(settings)
         await this.fixCallback()

@@ -1,0 +1,24 @@
+#plugin-resource-manager {
+    top: 40px;
+}
+
+.plugin-resource-manager-wrap {
+    overflow: scroll;
+}
+
+.non-exist-in-file-caption,
+.non-exist-in-folder-caption,
+.resource-manager-config-caption {
+    text-align: center;
+    margin: 10px 0;
+}
+
+.non-exist-in-file,
+.non-exist-in-folder {
+    --image-max-width: 400px;
+    --image-max-hight: 400px;
+}
+
+#plugin-resource-manager textarea {
+    width: 100%;
+}

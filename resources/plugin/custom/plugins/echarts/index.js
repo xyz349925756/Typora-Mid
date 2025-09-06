@@ -1,8 +1,5 @@
 class echartsPlugin extends BaseCustomPlugin {
-    init = () => {
-        this.echartsPkg = null
-        this.exportType = this.config.EXPORT_TYPE.toLowerCase()
-    }
+    init = () => this.echartsPkg = null
 
     callback = anchorNode => this.utils.insertText(anchorNode, this.config.TEMPLATE)
 
@@ -15,18 +12,19 @@ class echartsPlugin extends BaseCustomPlugin {
             interactiveMode: this.config.INTERACTIVE_MODE,
             checkSelector: ".plugin-echarts-content",
             wrapElement: '<div class="plugin-echarts-content"></div>',
+            lazyLoadFunc: this.lazyLoad,
+            beforeRenderFunc: null,
             setStyleFunc: parser.STYLE_SETTER({
                 height: this.config.DEFAULT_FENCE_HEIGHT,
                 "background-color": this.config.DEFAULT_FENCE_BACKGROUND_COLOR
             }),
-            lazyLoadFunc: this.lazyLoad,
             createFunc: this.create,
             updateFunc: null,
             destroyFunc: this.destroy,
             beforeExportToNative: null,
             beforeExportToHTML: this.beforeExportToHTML,
             extraStyleGetter: null,
-            versionGetter: this.versionGetter,
+            versionGetter: this.getVersion,
         })
     }
 
@@ -56,17 +54,19 @@ class echartsPlugin extends BaseCustomPlugin {
 
     beforeExportToHTML = (preview, instance) => {
         instance.setOption({ animation: false })
-        if (this.exportType === "png" || this.exportType === "jpg") {
+        if (this.config.RENDERER.toLowerCase() === "canvas") {
+            const t = this.config.EXPORT_TYPE.toLowerCase()
+            const type = ["png", "jpg"].includes(t) ? t : "jpg"
             const img = new Image()
-            img.src = instance.getDataURL({ type: this.exportType })
+            img.src = instance.getDataURL({ type })
             $(preview).html(img)
-        } else if (this.exportType === "svg") {
+        } else {
             const svg = instance.renderToSVGString()
             $(preview).html(svg)
         }
     }
 
-    versionGetter = () => this.echartsPkg && this.echartsPkg.version
+    getVersion = () => this.echartsPkg && this.echartsPkg.version
 
     lazyLoad = () => this.echartsPkg = require("./echarts.min.js")
 }

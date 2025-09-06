@@ -17,16 +17,21 @@ class updaterPlugin extends BasePlugin {
             await this.manualUpdate()
             return
         }
-
-        const defaultProxy = await this.getProxy()
-
-        const label = this.i18n.t("proxyUrl")
-        const info = this.i18n.t("proxyUrlHint")
-        const components = [{ type: "input", value: defaultProxy, label, info, placeholder: "http://127.0.0.1:7890" }]
-        const op = { title: this.pluginName, components }
-        const { response, submit: [proxy] } = await this.utils.dialog.modalAsync(op)
+        const proxy = await this.getDefaultProxy()
+        const label = this.i18n.t("$label.PROXY")
+        const hintHeader = this.i18n.t("hintHeader.PROXY")
+        const hintDetail = this.i18n.t("hintDetail.PROXY")
+        const op = {
+            title: this.pluginName,
+            schema: [
+                { fields: [{ type: "hint", hintHeader, hintDetail }] },
+                { fields: [{ type: "text", key: "proxy", label, placeholder: "http://127.0.0.1:7890" }] },
+            ],
+            data: { proxy },
+        }
+        const { response, data } = await this.utils.formDialog.modal(op)
         if (response === 1) {
-            await this.manualUpdate(proxy)
+            await this.manualUpdate(data.proxy)
         }
     }
 
@@ -37,66 +42,68 @@ class updaterPlugin extends BasePlugin {
     }
 
     manualUpdate = async proxy => {
-        const timeout = 3 * 60 * 1000
-        const i18n = {
+        const timeout = Math.max(this.config.NETWORK_REQUEST_TIMEOUT, 30 * 1000)
+        const I18N = {
             pleaseWait: this.i18n.t("update.pleaseWait"),
             success: this.i18n.t("update.success"),
             noNeed: this.i18n.t("update.noNeed"),
             failed: this.i18n.t("update.failed"),
-            currentVersion: this.i18n.t("update.currentVersionInfo"),
-            tryAgain: this.i18n.t("update.tryAgain"),
             unknownError: this.i18n._t("global", "error.unknown"),
         }
 
-        this.utils.notification.show(i18n.pleaseWait)
+        const close = this.utils.notification.show(I18N.pleaseWait)
         const updater = await this.getUpdater(proxy, timeout)
-        const getState = updater.runWithState()
-        const isDone = () => getState()["done"]
-        const notTimeout = await this.utils.progressBar.fake({ timeout, isDone })
+        const { state, info } = await updater.runWithProgressBar(timeout)
+        close()
 
-        let { done, state, info } = getState()
-        if (!notTimeout || !done || !state) {
-            state = new Error("timeout")
-        }
-
-        let title, components, needRedirect
+        let msg, msgType, detail
         if (state === "UPDATED") {
-            title = i18n.success
-            components = [{ type: "textarea", label: i18n.currentVersion, rows: 15, content: JSON.stringify(info, null, "\t") }]
+            msg = I18N.success
+            msgType = "success"
+            detail = JSON.stringify(info, null, "\t")
         } else if (state === "NO_NEED") {
-            title = i18n.noNeed
-            components = [{ type: "textarea", label: i18n.currentVersion, rows: 15, content: JSON.stringify(info, null, "\t") }]
+            msg = I18N.noNeed
+            msgType = "success"
+            detail = JSON.stringify(info, null, "\t")
         } else if (state instanceof Error) {
-            title = i18n.failed
-            components = [{ type: "span", label: i18n.tryAgain }, { type: "span", label: this.utils.escape(state.stack) }]
-            needRedirect = true
+            msg = I18N.failed
+            msgType = "error"
+            detail = state.stack
         } else {
-            title = i18n.failed
-            components = [{ type: "span", label: i18n.unknownError }]
-            needRedirect = true
+            msg = I18N.failed
+            msgType = "error"
+            detail = I18N.unknownError
         }
-        const { response } = await this.utils.dialog.modalAsync({ title, components, width: "600px" })
-        if (response === 1 && needRedirect) {
-            this.utils.openUrl("https://github.com/obgnail/typora_plugin/releases/latest")
+        this.utils.notification.show(msg, msgType, 10000)
+
+        const op = {
+            title: this.pluginName,
+            schema: [{ fields: [{ type: "textarea", key: "detail", rows: 14 }] }],
+            data: { detail },
         }
+        await this.utils.formDialog.modal(op)
     }
 
-    getProxy = async () => (this.config.PROXY || (await new ProxyGetter(this).getProxy()) || "").trim()
+    getDefaultProxy = async () => {
+        const p = this.config.PROXY || await new ProxyGetter(this).getProxy() || ""
+        return p.trim()
+    }
 
     getUpdater = async (proxy, timeout) => {
-        if (proxy === undefined) {
-            proxy = await this.getProxy();
+        if (proxy == null) {
+            proxy = await this.getDefaultProxy()
         }
+        proxy = proxy.trim()
         if (proxy && !/^https?:\/\//.test(proxy)) {
-            proxy = "http://" + proxy;
+            proxy = "http://" + proxy
         }
-        const url = "https://api.github.com/repos/obgnail/typora_plugin/releases/latest";
-        return new updater(this, url, proxy, timeout);
+        const url = "https://api.github.com/repos/obgnail/typora_plugin/releases/latest"
+        return new updater(this, url, proxy, timeout)
     }
 }
 
 class updater {
-    constructor(plugin, latestReleaseUrl, proxy, timeout = 3 * 60 * 1000) {
+    constructor(plugin, latestReleaseUrl, proxy, timeout) {
         this.utils = plugin.utils;
         this.latestReleaseUrl = latestReleaseUrl;
         this.requestOption = { proxy, timeout };
@@ -110,12 +117,10 @@ class updater {
         this.versionFile = this.utils.joinPath("./plugin/bin/version.json");
         this.workDir = this.pkgPath.join(this.utils.tempFolder, "typora-plugin-updater");
         this.exclude = [
+            "./plugin/global/user_space",
             "./plugin/global/user_styles",
             "./plugin/global/settings/settings.user.toml",
             "./plugin/global/settings/custom_plugin.user.toml",
-            "./plugin/window_tab/save_tabs.json",
-            "./plugin/custom/plugins/reopenClosedFiles/remain.json",
-            "./plugin/custom/plugins/scrollBookmarker/bookmark.json",
         ]
 
         this.latestVersionInfo = null;
@@ -147,13 +152,10 @@ class updater {
         return "UPDATED";
     }
 
-    runWithState = () => {
-        const v = { done: false, state: null, info: null }; // state: NO_NEED/UPDATED/Error
-        this.run()
-            .then(state => v.state = state)
-            .catch(err => console.error(v.state = err))
-            .finally(() => Object.assign(v, { done: true, info: this.latestVersionInfo }));
-        return () => v
+    runWithProgressBar = async (timeout) => {
+        const op = { task: this.run, timeout }
+        const result = await this.utils.progressBar.fake(op)
+        return { state: result, info: this.latestVersionInfo }
     }
 
     prepare = async () => {
@@ -272,7 +274,7 @@ class ProxyGetter {
     }
 
     _getProxy = (cmd, func) => new Promise(resolve => {
-        this.utils.Package.ChildProcess.exec(cmd, (err, stdout, stderr) => {
+        require("child_process").exec(cmd, (err, stdout, stderr) => {
             const result = (err || stderr) ? null : func(stdout);
             resolve(result);
         })

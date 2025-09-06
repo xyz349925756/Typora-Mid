@@ -1,113 +1,84 @@
 class templaterPlugin extends BaseCustomPlugin {
     selector = () => this.utils.getMountFolder() ? undefined : this.utils.nonExistSelector
 
-    hint = isDisable => isDisable ? this.i18n.t("error.onBlankPage") : undefined
+    hint = isDisable => isDisable ? this.i18n._t("global", "error.onBlankPage") : undefined
 
     hotkey = () => [this.config.hotkey]
 
+    process = () => {
+        this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.allPluginsHadInjected, () => {
+            const { template_folders, template } = this.config
+            const { Path: { extname }, Fs: { promises: { readFile } } } = this.utils.Package
+
+            if (!template_folders || template_folders.length === 0) return
+
+            const maxDepth = 3  // Only recursively search for 3 sub depths
+            const signal = AbortSignal.timeout(30 * 1000)
+            const fileFilter = (name) => extname(name).toLowerCase() === ".md"
+            const fileParamsGetter = async (path, file) => ({ file, content: (await readFile(path)).toString() })
+            const onFile = ({ file, content }) => template.push({ name: file.replace(/\.md$/i, ""), text: content })
+            template_folders.forEach(dir => this.utils.walkDir({ dir, fileFilter, fileParamsGetter, onFile, maxDepth, signal }))
+        })
+    }
+
     callback = async anchorNode => {
-        const i18n = {
-            Filename: this.i18n.t("filename"),
-            Template: this.i18n.t("template"),
-            Preview: this.i18n.t("preview"),
-            createCopyIfEmpty: this.i18n.t("createCopyIfEmpty"),
-        }
-
-        if (!File.editor.selection.getRangy().collapsed) {
-            ClientCommand.copyAsMarkdown();
-            window.parent.navigator.clipboard.readText().then(text => this.rangeText = text);
-        }
-
-        const onchange = ev => {
-            const value = ev.target.value;
-            const tpl = this.config.template.find(tpl => tpl.name === value);
-            if (tpl) {
-                ev.target.closest(".plugin-custom-modal-body").querySelector("textarea").value = tpl.text;
-            }
-        }
-        const components = [
-            { label: i18n.Filename, type: "input", value: "", placeholder: i18n.createCopyIfEmpty },
-            { label: i18n.Template, type: "select", list: this.config.template.map(tpl => tpl.name), onchange },
-            { label: i18n.Preview, type: "textarea", rows: 10, readonly: "readonly", content: this.config.template[0].text },
+        const defaultTpl = this.config.template[0]
+        const templates = Object.fromEntries(this.config.template.map(tpl => [tpl.name, tpl.name]))
+        const settingFields = [
+            { key: "template", type: "select", label: this.i18n.t("$label.template.text"), options: templates },
+            { key: "filename", type: "text", label: this.i18n.t("filename"), placeholder: this.i18n.t("createCopyIfEmpty") },
+            { key: "autoOpen", type: "switch", label: this.i18n.t("$label.auto_open") },
         ]
-        const op = { title: this.pluginName, components }
-        const { response, submit: [filepath, template] } = await this.utils.dialog.modalAsync(op)
+        const op = {
+            title: this.pluginName,
+            schema: [
+                { title: undefined, fields: settingFields },
+                { title: this.i18n.t("preview"), fields: [{ key: "preview", type: "textarea", rows: 8 }] },
+            ],
+            data: {
+                filename: "",
+                autoOpen: this.config.auto_open,
+                template: defaultTpl.name,
+                preview: defaultTpl.text,
+            },
+            hooks: {
+                onSubmit: (form, { key, value }) => {
+                    if (key !== "template") return
+                    const tpl = this.config.template.find(tpl => tpl.name === value)
+                    if (tpl) {
+                        this.utils.formDialog.updateModal(op => op.data = { ...op.data, template: tpl.name, preview: tpl.text })
+                    }
+                }
+            },
+        }
+        const { response, data } = await this.utils.formDialog.modal(op)
         if (response === 1) {
-            await this.writeTemplateFile(filepath, template);
+            const { filename, preview, autoOpen } = data
+            await this.writeTemplateFile(filename, preview, autoOpen)
         }
     }
 
-    writeTemplateFile = async (filepath, template) => {
-        const tpl = this.config.template.find(tpl => tpl.name === template);
-        if (!tpl) return;
-        if (filepath && !filepath.endsWith(".md")) {
-            filepath += ".md";
+    writeTemplateFile = async (filename, template, autoOpen) => {
+        if (filename && !filename.endsWith(".md")) {
+            filename += ".md"
         }
-        filepath = await this.utils.newFilePath(filepath);
-        const filename = this.utils.Package.Path.basename(filepath);
-        const content = (new templateHelper(filename, this))._convert(tpl.text);
-        const ok = await this.utils.writeFile(filepath, content);
-        if (!ok) return;
-        this.rangeText = "";
-        this.config.auto_open && this.utils.openFile(filepath);
-    }
-}
-
-class DateTimeFormatter {
-    constructor(date) {
-        this.date = date
-    }
-
-    getTime(format = "yyyy-MM-dd HH:mm:ss", locale = "en") {
-        const replacements = {
-            yyyy: this.date.getFullYear().toString(),
-            yyy: (this.date.getFullYear() % 1000).toString().padStart(3, '0'),
-            yy: (this.date.getFullYear() % 100).toString().padStart(2, '0'),
-            MMMM: new Intl.DateTimeFormat(locale, { month: 'long' }).format(this.date),
-            MMM: new Intl.DateTimeFormat(locale, { month: 'short' }).format(this.date),
-            MM: this._padStart((this.date.getMonth() + 1).toString()),
-            M: (this.date.getMonth() + 1).toString(),
-            dddd: new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(this.date),
-            ddd: new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(this.date),
-            dd: this._padStart(this.date.getDate().toString()),
-            d: this.date.getDate().toString(),
-            HH: this._padStart(this.date.getHours().toString()),
-            H: this.date.getHours().toString(),
-            hh: this._padStart((this.date.getHours() % 12 || 12).toString()),
-            h: (this.date.getHours() % 12 || 12).toString(),
-            mm: this._padStart(this.date.getMinutes().toString()),
-            m: this.date.getMinutes().toString(),
-            ss: this._padStart(this.date.getSeconds().toString()),
-            s: this.date.getSeconds().toString(),
-            SSS: this._padStart(this.date.getMilliseconds().toString(), 3),
-            S: this.date.getMilliseconds().toString(),
-            a: (() => {
-                const time = new Intl.DateTimeFormat(locale, { hour: 'numeric', hour12: true })
-                    .formatToParts(this.date)
-                    .find(part => part.type === 'dayPeriod')
-                return time ? time.value : ''
-            })()
+        filename = await this.utils.newFilePath(filename)
+        const title = this.utils.Package.Path.basename(filename)
+        const content = (new templateHelper(title, this))._convert(template)
+        const ok = await this.utils.writeFile(filename, content)
+        if (!ok) return
+        if (autoOpen) {
+            this.utils.openFile(filename)
         }
-        const regex = /(yyyy|yyy|yy|MMMM|MMM|MM|M|dddd|ddd|dd|d|HH|H|hh|h|mm|m|ss|s|SSS|S|a)/g
-        return format.replace(regex, (match) => replacements[match] || match)
-    }
-
-    _padStart(str, len = 2, symbol = "0") {
-        return str.padStart(len, symbol)
-    }
-
-    getTimestamp() {
-        return this.date.getTime()
     }
 }
 
 class templateHelper {
     constructor(title, plugin) {
         this._title = title.substring(0, title.lastIndexOf("."))
-        this.rangeText = plugin.rangeText || ""
         this.utils = plugin.utils
         this.config = plugin.config
-        this.formatter = new DateTimeFormatter(new Date())
+        this._date = new Date()
     }
 
     _getTemplateVars = () => {
@@ -143,25 +114,21 @@ class templateHelper {
     }
 
     uuid = () => this.utils.getUUID();
-    username = () => process.env.username || this.utils.Package.OS.userInfo().username
-    random = () => Math.random();
     randomInt = (floor, ceil) => this.utils.randomInt(floor, ceil);
     randomStr = len => this.utils.randomString(len);
-    range = () => this.rangeText;
     title = () => this._title;
     folder = () => this.utils.getCurrentDirPath();
     mountFolder = () => this.utils.getMountFolder();
     filepath = () => this.utils.Package.Path.join(this.folder(), this.title());
-    formatDate = (format, locale) => this.formatter.getTime(format, locale);
-    timestamp = () => this.formatter.getTimestamp();
+    formatDate = (format, locale) => this.utils.dateTimeFormat(this._date, format, locale)
+    timestamp = () => this._date.getTime()
     datetime = locale => this.formatDate("yyyy-MM-dd HH:mm:ss", locale);
     date = locale => this.formatDate("yyyy-MM-dd", locale);
     time = locale => this.formatDate("HH:mm:ss", locale);
     weekday = locale => this.formatDate("ddd", locale);
     dateOffset = (offset = 0, format = "yyyy-MM-dd", locale) => {
         const timestamp = this.timestamp() + parseInt(offset) * (24 * 60 * 60 * 1000)
-        const formatter = new DateTimeFormatter(new Date(timestamp))
-        return formatter.getTime(format, locale)
+        return this.utils.dateTimeFormat(new Date(timestamp), format, locale)
     }
     yesterday = (format, locale) => this.dateOffset(-1, format, locale);
     tomorrow = (format, locale) => this.dateOffset(1, format, locale);

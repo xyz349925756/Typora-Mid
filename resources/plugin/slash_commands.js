@@ -33,37 +33,6 @@ class slashCommandsPlugin extends BasePlugin {
         }
     }
 
-    call = () => this._showAllCommands()
-
-    _showAllCommands = () => {
-        const i18n = {
-            unknown: this.i18n.t("unknown"),
-            types: {
-                [this.TYPE.COMMAND]: this.i18n.t("type.command"),
-                [this.TYPE.SNIPPET]: this.i18n.t("type.snippet"),
-                [this.TYPE.GENERATE_SNIPPET]: this.i18n.t("type.generateSnippet"),
-            },
-            scopes: {
-                [this.SCOPE.PLAIN]: this.i18n.t("scope.plain"),
-                [this.SCOPE.INLINE_MATH]: this.i18n.t("scope.inlineMath"),
-            },
-            editConfigFile: this.i18n.t("editConfigFile")
-        }
-        const getType = type => i18n.types[type] || i18n.unknown
-        const getScope = scope => i18n.scopes[scope] || i18n.unknown
-        const getHint = hint => hint || ""
-
-        const th = this.i18n.array(["keyword", "type", "scope", "hint"], "modal.")
-        const trs = [...this.commands.values()].map(c => [c.keyword, getType(c.type), getScope(c.scope), getHint(c.hint)])
-        const table = this.utils.buildTable([th, ...trs])
-
-        const onclick = ev => ev.target.closest("a") && this.utils.runtime.openSettingFolder()
-        const editConfigLabel = i18n.editConfigFile + " " + '<a class="fa fa-external-link"></a>'
-        const components = [{ label: editConfigLabel, type: "p", onclick }, { label: table, type: "p" }]
-        const op = { title: this.pluginName, components, width: "550px" }
-        this.utils.dialog.modal(op)
-    }
-
     _getTextAround = () => {
         const range = File.editor.selection.getRangy()
         if (range && range.collapsed) {
@@ -206,11 +175,13 @@ class slashCommandsPlugin extends BasePlugin {
 
     _clearAnchor = (anchor) => {
         const range = File.editor.selection.getRangy()
-        const textNode = anchor.containerNode.firstChild
-        range.setStart(textNode, anchor.start)
-        range.setEnd(textNode, anchor.end)
-        File.editor.selection.setRange(range, true)
-        File.editor.UserOp.pasteHandler(File.editor, "", true)
+        if (range) {
+            const textNode = anchor.containerNode.firstChild
+            range.setStart(textNode, anchor.start)
+            range.setEnd(textNode, anchor.end)
+            File.editor.selection.setRange(range, true)
+            File.editor.UserOp.pasteHandler(File.editor, "", true)
+        }
     }
 
     _normalizeAnchor = (anchor) => anchor.containerNode.normalize()
@@ -244,10 +215,14 @@ class slashCommandsPlugin extends BasePlugin {
         range.select()
     }
 
-    _runCommand = suggest => {
+    _beforeApply = suggest => {
         let result = ""
-        const cmd = this.matched.get(suggest)
-        if (cmd) {
+
+        try {
+            const cmd = this.matched.get(suggest)
+            if (!cmd) {
+                return result
+            }
             const { anchor } = File.editor.autoComplete.state
             if (cmd.type === this.TYPE.SNIPPET) {
                 result = cmd.callback
@@ -262,14 +237,11 @@ class slashCommandsPlugin extends BasePlugin {
                 this._refresh()
                 this._selectRange(cmd.cursorOffset)
             }, 100)
+        } finally {
+            this.matched.clear()
         }
-        return result
-    }
 
-    _beforeApply = suggest => {
-        const ret = this._runCommand(suggest)
-        this.matched.clear()
-        return ret
+        return result
     }
 }
 

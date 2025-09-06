@@ -2,39 +2,23 @@ class scrollBookmarkerPlugin extends BaseCustomPlugin {
     styleTemplate = () => true
 
     html = () => `
-        <div id="plugin-scroll-bookmarker" class="plugin-common-modal plugin-common-hidden">
-            <div class="plugin-scroll-bookmarker-icon-group">
-                <div class="plugin-scroll-bookmarker-icon ion-close" action="close" ty-hint="${this.i18n.t('func.close')}"></div>
-                <div class="plugin-scroll-bookmarker-icon ion-arrow-move" action="move" ty-hint="${this.i18n.t('func.move')}"></div>
-            </div>
+        <fast-window id="plugin-scroll-bookmarker" window-title="${this.pluginName}" window-buttons="close|fa-times" hidden>
             <div class="plugin-scroll-bookmarker-list"></div>
-        </div>
+        </fast-window>
     `
 
     hotkey = () => [this.config.hotkey]
 
     init = () => {
-        this.recordName = "recordScrollBookmark";
+        this.recordName = this.fixedName
         this.recordSelector = "#write [cid]";
         this.className = "plu-bookmark";
         this.locateUtils = { file: "", idx: -1, time: new Date().getTime() };
         this.entities = {
-            modal: document.querySelector("#plugin-scroll-bookmarker"),
-            iconGroup: document.querySelector("#plugin-scroll-bookmarker .plugin-scroll-bookmarker-icon-group"),
-            moveIcon: document.querySelector('#plugin-scroll-bookmarker .plugin-scroll-bookmarker-icon[action="move"]'),
-            list: document.querySelector("#plugin-scroll-bookmarker .plugin-scroll-bookmarker-list"),
+            write: this.utils.entities.eWrite,
+            window: document.querySelector("#plugin-scroll-bookmarker"),
+            list: document.querySelector(".plugin-scroll-bookmarker-list"),
         }
-    }
-
-    beforeProcess = async () => {
-        if (this.config.persistence) {
-            this.saveFile = this.utils.joinPath("./plugin/custom/plugins/scrollBookmarker/bookmark.json");
-            this.bookmarks = await this.loadBookmarks() || {};
-        }
-    }
-
-    afterProcess = () => {
-        this.bookmarks = null;
     }
 
     process = () => {
@@ -50,21 +34,14 @@ class scrollBookmarkerPlugin extends BaseCustomPlugin {
         }
         this.utils.stateRecorder.register(this.recordName, this.recordSelector, stateGetter, stateRestorer, finalFunc);
 
-        if (this.config.persistence) {
-            this.initState();
-            this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.beforeUnload, () => this.saveBookmarks());
-        }
-
-        this.utils.dragFixedModal(this.entities.moveIcon, this.entities.modal, false);
-
-        const altKeyPressed = this.utils.modifierKey("alt");
-        this.utils.entities.eWrite.addEventListener("click", ev => {
-            if (!altKeyPressed(ev)) return;
+        const modifierKeyPressed = this.utils.modifierKey(this.config.modifier_key)
+        this.entities.write.addEventListener("click", ev => {
+            if (!modifierKeyPressed(ev)) return;
             const paragraph = ev.target.closest(this.recordSelector);
             if (!paragraph) return;
             paragraph.classList.add(this.className);
             if (this.config.auto_popup_modal) {
-                this.utils.show(this.entities.modal);
+                this.entities.window.show();
             }
             this.refresh();
         })
@@ -75,8 +52,8 @@ class scrollBookmarkerPlugin extends BaseCustomPlugin {
             ev.stopPropagation();
             ev.preventDefault();
             const content = item.querySelector(".bookmark-item-content");
-            const file = content.getAttribute("file");
-            const idx = content.getAttribute("idx");
+            const file = content.dataset.file
+            const idx = content.dataset.idx
             const btn = ev.target.closest(".bookmark-btn");
             if (btn) {
                 this.removeMarker(idx, file);
@@ -85,12 +62,10 @@ class scrollBookmarkerPlugin extends BaseCustomPlugin {
             }
         })
 
-        this.entities.iconGroup.addEventListener("click", ev => {
-            const target = ev.target.closest("[action]");
-            if (!target) return;
-            const action = target.getAttribute("action");
+        this.entities.window.addEventListener("btn-click", ev => {
+            const { action } = ev.detail
             if (action === "close") {
-                this.utils.toggleVisible(this.entities.modal);
+                this.entities.window.hide()
             }
         })
 
@@ -102,13 +77,13 @@ class scrollBookmarkerPlugin extends BaseCustomPlugin {
     }
 
     callback = anchorNode => {
-        this.utils.toggleVisible(this.entities.modal);
+        this.entities.window.toggle()
         this.refresh();
     }
 
     refresh = () => {
         this.utils.stateRecorder.collect(this.recordName);
-        if (this.utils.isShow(this.entities.modal)) {
+        if (!this.entities.window.hidden) {
             this.updateModal();
         }
     }
@@ -145,34 +120,36 @@ class scrollBookmarkerPlugin extends BaseCustomPlugin {
         }
 
         if (this.entities.list.childElementCount === 0) {
-            this.entities.list.textContent = this.i18n.t("tryAltClick")
+            const click = `${this.config.modifier_key}+click`.split("+").filter(Boolean).map(e => e[0].toUpperCase() + e.slice(1).toLowerCase()).join("+")
+            this.entities.list.textContent = this.i18n.t("tryClick", { click })
         }
     }
 
     updateMarker = (ele, filepath, idx) => {
         const _filepath = this.utils.getFileName(filepath);
         const content = ele.querySelector(".bookmark-item-content");
-        if (!content) return;
-        content.textContent = `${_filepath} - ${idx}`;
-        content.setAttribute("file", filepath);
-        content.setAttribute("idx", idx);
+        if (content) {
+            content.textContent = `${_filepath} - ${idx}`
+            content.dataset.file = filepath
+            content.dataset.idx = idx
+        }
     }
 
     appendMarker = (filepath, idx) => {
-        const _filepath = this.utils.getFileName(filepath);
-        const children = [
-            { class_: "bookmark-item-content", text: `${_filepath} - ${idx}`, file: filepath, idx },
-            { class_: "bookmark-btn fa fa-trash-o" }
-        ]
-        const marker = [{ class_: "bookmark-item", children }];
-        this.utils.htmlTemplater.appendElements(this.entities.list, marker);
+        const fileName = this.utils.getFileName(filepath)
+        const el = `
+            <div class="bookmark-item">
+                <div class="bookmark-item-content" data-file="${filepath}" data-idx="${idx}">${fileName} - ${idx}</div>
+                <div class="bookmark-btn fa fa-trash-o"></div>
+            </div>`
+        this.entities.list.insertAdjacentHTML("beforeend", el)
     }
 
     removeMarker = (idx, filepath) => {
         const filepath_ = this.utils.getFilePath();
         if (filepath_ === filepath) {
-            const ele = Array.from(document.querySelectorAll(this.recordSelector))[idx];
-            ele && ele.classList.remove(this.className);
+            const ele = [...document.querySelectorAll(this.recordSelector)][idx]
+            if (ele) ele.classList.remove(this.className)
         } else {
             this.utils.stateRecorder.deleteState(this.recordName, filepath, parseInt(idx));
         }
@@ -192,36 +169,8 @@ class scrollBookmarkerPlugin extends BaseCustomPlugin {
     }
 
     _locate = idx => {
-        const ele = Array.from(document.querySelectorAll(this.recordSelector))[idx];
-        ele && this.utils.scroll(ele, 20, true);
-    }
-
-    loadBookmarks = async filepath => {
-        filepath = filepath || this.saveFile;
-        await this.utils.Package.FsExtra.ensureFile(filepath);
-        try {
-            return await this.utils.Package.FsExtra.readJson(filepath);
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
-    saveBookmarks = filepath => {
-        filepath = filepath || this.saveFile;
-        const obj = {};
-        const map = this.utils.stateRecorder.getState(this.recordName);
-        for (const [filepath, indexList] of map.entries()) {
-            obj[filepath] = Array.from(indexList.keys());
-        }
-        this.utils.Package.FsExtra.writeJsonSync(filepath, obj);
-    }
-
-    initState = () => {
-        const map = new Map();
-        for (const [filepath, idxList] of Object.entries(this.bookmarks)) {
-            map.set(filepath, new Map(idxList.map(ele => [ele, true])));
-        }
-        map.size && this.utils.stateRecorder.setState(this.recordName, map);
+        const ele = [...document.querySelectorAll(this.recordSelector)][idx]
+        if (ele) this.utils.scroll(ele, 20, true)
     }
 }
 

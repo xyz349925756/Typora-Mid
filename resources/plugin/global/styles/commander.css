@@ -14,17 +14,19 @@
 #plugin-commander-form select,
 #plugin-commander-form input {
     border: 1px solid #ddd;
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-    border-radius: 2px;
-    height: 28px;
+    border-radius: 6px;
+    height: 30px;
     margin: 1px 0;
 }
 
-#plugin-commander-form input {
+#plugin-commander-form .plugin-commander-input-wrap {
+    position: relative;
     flex-basis: 60%;
-    margin-right: 2px;
-    padding-left: 5px;
-    padding-right: 24px;
+}
+
+#plugin-commander-form input {
+    width: 100%;
+    padding-right: 25px;
 }
 
 #plugin-commander-form select {
@@ -35,17 +37,17 @@
 
 #plugin-commander-form .plugin-commander-commit {
     position: absolute;
-    padding: 1px;
-    left: 336px;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    line-height: 80%;
     opacity: 0.7;
     cursor: pointer;
 }
 
 .plugin-commander-output {
-    margin-top: 0;
-    cursor: default;
-    max-height: 340px;
     overflow: auto;
+    height: 100%;
 }
 
 .plugin-commander-output pre {
@@ -53,7 +55,7 @@
     font-size: 13px;
     line-height: 1.2;
     margin: 0;
-    padding: 5px;
+    padding: 8px;
 }
 
 .plugin-commander-output pre.error {

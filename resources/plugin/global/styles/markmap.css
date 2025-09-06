@@ -9,40 +9,35 @@
 }
 
 #plugin-markmap {
+    display: flex;
+    flex-direction: row;
     transition: all 0.8s ease 0s;
     user-select: none;
-    pointer-events: auto;
     min-width: 120px;
     min-height: 120px;
+    border-radius: 8px;
 }
 
-#plugin-markmap.noBoxShadow {
+#plugin-markmap.pinned-window {
     box-shadow: none;
 }
 
-#plugin-markmap.penetrateMouse {
-    pointer-events: none;
-    background: none;
-    backdrop-filter: blur(15px);
+#plugin-markmap:not(.pinned-window) .plugin-markmap-header {
+    cursor: move;
 }
 
-.plugin-markmap-wrap {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    height: 100%;
-}
-
-.plugin-markmap-grip.grip-up {
+.plugin-markmap-grip-top {
     position: absolute;
+    left: 0;
     bottom: -5px;
     width: 100%;
     height: 10px;
     cursor: ns-resize;
 }
 
-.plugin-markmap-grip.grip-right {
+.plugin-markmap-grip-right {
     position: absolute;
+    top: 0;
     left: -5px;
     width: 10px;
     height: 100%;
@@ -50,7 +45,7 @@
 }
 
 #plugin-markmap-svg .markmap-node .markmap-foreign:hover {
-    outline: ${this.config.BORDER_STYLE_WHEN_NODE_HOVER};
+    outline: ${this.config.NODE_BORDER_WHEN_HOVER};
 }
 
 #plugin-markmap-svg .markmap-node:hover {
@@ -61,7 +56,6 @@
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
-    justify-content: flex-start;
     align-items: center;
     max-width: 2em;
 }
@@ -77,11 +71,6 @@
 .plugin-markmap-icon:not([action="resize"]):hover {
     opacity: 1;
     transform: translateY(-2px) scale(1.2);
-}
-
-#plugin-markmap.penetrateMouse .plugin-markmap-icon[action="penetrateMouse"] {
-    opacity: 1;
-    color: rgb(194, 24, 91);
 }
 
 .plugin-markmap-icon[action="resize"] {
@@ -108,16 +97,4 @@
 
 #plugin-markmap-svg .markmap-foreign {
     line-height: 20px;
-}
-
-.plugin-markmap-color-scheme {
-    display: inline-flex;
-    position: absolute;
-    height: 20px;
-    max-width: calc(var(--markmap-color-width) * 14);
-    --markmap-color-width: 32px;
-}
-
-.plugin-markmap-color {
-    width: var(--markmap-color-width);
 }
