@@ -1063,11 +1063,6 @@ ENABLE_IMAGE = false
 ENABLE_FENCE = false
 
 # ------------------- 样式与显示控制 -------------------
-# 导出时运用样式：是否在导出为 HTML 或 PDF 等格式时保留自动编号的样式
-#   true:  导出时应用编号样式
-#   false: 导出时不应用编号样式
-ENABLE_WHEN_EXPORT = true
-
 # 展示图片的名称：是否在图片编号旁边显示图片的原始文件名
 #   注意：不建议开启此选项，会消耗较多资源，并且可能导致排版混乱
 #   仅当 ENABLE_IMAGE 为 true 时此选项有效
@@ -1089,6 +1084,29 @@ ALIGN = "center"
 #   before: 先于表格出现
 #   after:  后于表格出现
 POSITION_TABLE = "after"
+
+# ------------------- 导出 -------------------
+# 导出时运用样式：是否在导出为 HTML 或 PDF 等格式时保留自动编号的样式
+#   true:  导出时应用编号样式
+#   false: 导出时不应用编号样式
+ENABLE_WHEN_EXPORT = true
+
+# 导出时对标题应用编号的处理函数
+# 此配置是高级配置，仅对有 javascript 基础的用户开放
+# 若 ENABLE_WHEN_EXPORT 为 false，则此选项失效
+APPLY_EXPORT_HEADER_NUMBERING = """
+(headers) => {
+    const counters = Array(7).fill(0)
+    headers.forEach(header => {
+        const [level, text, ...rest] = header
+        counters[level]++
+        counters.fill(0, level + 1)
+        const numbering = counters.slice(2, level + 1).join('.')
+        const prefix = numbering ? `${numbering}. ` : ""
+        header[1] = prefix + text
+    })
+}
+"""
 
 # ------------------- 编号格式 -------------------
 # 编号格式定义：
@@ -2019,6 +2037,7 @@ LIST = [
     "truncate_text",
     "export_enhance",
     "cipher",
+    "static_markers",
     "right_click_menu",
     "---",
     "pie_menu",
@@ -2125,6 +2144,7 @@ NAME = ""
 #   留空则不设置快捷键
 HOTKEY = ""
 
+# ------------------- 配置页面 -------------------
 # 打开设置页面时，默认定位到哪个插件的菜单
 #   填入插件 fixedName
 #   支持填入__LAST__，表示最近使用的菜单
@@ -2139,13 +2159,7 @@ HIDE_MENUS = []
 #   false: 校验配置
 VALIDATE_CONFIG_OPTIONS = true
 
-# 忽略配置间的依赖
-#   true:  忽略配置依赖，不强制执行配置项之间的依赖关系
-#   false: 强制执行配置项之间的依赖关系
-IGNORE_CONFIG_DEPENDENCIES = false
-
 # 依赖失效行为
-# 若 IGNORE_CONFIG_DEPENDENCIES 为 true，则此选项失效
 #   readonly: 只读
 #   hide:     隐藏
 DEPENDENCIES_FAILURE_BEHAVIOR = "readonly"
@@ -2161,6 +2175,10 @@ SEARCH_PLUGIN_FIXEDNAME = false
 #   TOML
 #   YAML
 OBJECT_SETTINGS_FORMAT = "JSON"
+
+# 表单渲染钩子
+#   此选项面向开发者，普通用户请勿修改
+FORM_RENDERING_HOOK = "(options, fixedName) => options"
 
 
 ################### file_counter ###################
@@ -2468,6 +2486,23 @@ WIDTH_PERCENT = 80
 # 搜索窗口出现时距离页面顶部的距离，以页面百分比表示
 #  例如，20 表示窗口顶部距离页面顶部 20% 的位置
 TOP_PERCENT = 20
+
+
+################### static_markers ###################
+[static_markers]
+# ------------------- 基础 -------------------
+# 启用或禁用插件
+#   true:  启用插件
+#   false: 禁用插件
+ENABLE = false
+
+# 插件名称（为空则使用默认名）
+NAME = ""
+
+# ------------------- 快捷键 -------------------
+#  触发插件的快捷键
+#   留空则不设置快捷键
+HOTKEY = ""
 
 
 ################### cursor_history ###################

@@ -391,9 +391,9 @@ class tocMarkmap {
                     field("DOWNLOAD_OPTIONS.IMAGE_SCALE", "number", { min: 0.1, step: 0.1 }),
                     field("DOWNLOAD_OPTIONS.PADDING_HORIZONTAL", "number", { min: 1, step: 1, unit: this.i18n._t("settings", "$unit.pixel") }),
                     field("DOWNLOAD_OPTIONS.PADDING_VERTICAL", "number", { min: 1, step: 1, unit: this.i18n._t("settings", "$unit.pixel") }),
-                    field("DOWNLOAD_OPTIONS.TEXT_COLOR", "text"),
-                    field("DOWNLOAD_OPTIONS.OPEN_CIRCLE_COLOR", "text"),
-                    field("DOWNLOAD_OPTIONS.BACKGROUND_COLOR", "text", { tooltip: "jpgFormatOnly" }),
+                    field("DOWNLOAD_OPTIONS.TEXT_COLOR", "color"),
+                    field("DOWNLOAD_OPTIONS.OPEN_CIRCLE_COLOR", "color"),
+                    field("DOWNLOAD_OPTIONS.BACKGROUND_COLOR", "color", { tooltip: "jpgFormatOnly" }),
                     field("DOWNLOAD_OPTIONS.IMAGE_QUALITY", "range", { tooltip: "pixelImagesOnly", min: 0.01, max: 1, step: 0.01 }),
                 ),
                 untitledBox(
@@ -445,8 +445,11 @@ class tocMarkmap {
                     }
                 }),
             },
+            rules: {
+                "DOWNLOAD_OPTIONS.FOLDER": "path",
+            },
             hooks: {
-                onSubmit: () => _edited = true,
+                onCommit: () => _edited = true,
             },
         }
         const { response, data } = await this.utils.formDialog.modal(op)
@@ -672,8 +675,8 @@ class tocMarkmap {
             : [this.pinUtils.isPinRight, this.entities.gripRight, "pinRight", "func.pinRight", "ion-chevron-right"]
 
         this.entities.modal.classList.toggle("pinned-window", pinned)
-        this.utils.toggleVisible(gripEl, !pinned)
-        this.utils.toggleVisible(this.entities.resize, pinned)
+        this.utils.toggleInvisible(gripEl, !pinned)
+        this.utils.toggleInvisible(this.entities.resize, pinned)
         this._setFullScreenStyles(false)
 
         const btn = this.entities.header.querySelector(`[action="${act}"]`)
@@ -702,11 +705,11 @@ class tocMarkmap {
         this._setModalRect(expand ? this.pinUtils.originContentRect : this.pinUtils.originModalRect)
         this._setFullScreenStyles(expand)
         this.entities.modal.classList.toggle("pinned-window", expand)
-        this.utils.toggleVisible(this.entities.resize, expand)
+        this.utils.toggleInvisible(this.entities.resize, expand)
     }
 
     _toggleToolbar = show => {
-        this.utils.toggleVisible(this.entities.header, !show)
+        this.utils.toggleInvisible(this.entities.header, !show)
         this.fit()
     }
 

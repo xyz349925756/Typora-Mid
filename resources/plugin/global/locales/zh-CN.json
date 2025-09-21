@@ -593,7 +593,7 @@
     "$title.fence": "代码块",
     "$title.fenceDiagramDefaultOptions": "代码块默认图形",
     "$tooltip.zero": "0 表示无限制",
-    "$tooltip.tempDir": "为空或不存在则使用 TEMP 目录",
+    "$tooltip.tempDir": "为空则使用 TEMP 目录",
     "$tooltip.experimental": "实验性特性，仅当「章节折叠」插件开启时可用",
     "$tooltip.removeForeignObj": "牺牲样式提高兼容性，导出图片异常时勾选",
     "$tooltip.positioningViewPort": "定位目标章节滚动到当前视口高度",
@@ -649,6 +649,7 @@
     "$label.ENABLE_WHEN_EXPORT": "导出为 HTML、PDF 时保留编号",
     "$title.LAYOUTS": "编号格式",
     "$title.autoNumbering": "自动编号",
+    "$title.APPLY_EXPORT_HEADER_NUMBERING": "应用导出标题编号",
     "$hintHeader.layoutSyntax": "编号规则",
     "$hintDetail.layoutSyntax": "使用结构 “前缀{计数器名称:计数样式}后缀” 来自定义编号格式。其中，前缀和后缀是任意文本，{} 内是计数器占位符。计数器名称指定编号对象，计数样式指定编号的显示方式。您可以自由组合文本和多个计数器。例如，“图{i:cjk}” 将生成 “图一”, “图二”。",
     "$hintHeader.counterNames": "计数器名称",
@@ -971,8 +972,8 @@
     "$label.DEFAULT_MENU": "默认的配置页",
     "$label.HIDE_MENUS": "隐藏的配置页",
     "$label.VALIDATE_CONFIG_OPTIONS": "校验配置选项",
-    "$label.IGNORE_CONFIG_DEPENDENCIES": "忽略配置选项依赖",
     "$label.DEPENDENCIES_FAILURE_BEHAVIOR": "依赖失效行为",
+    "$title.FORM_RENDERING_HOOK": "表单渲染钩子",
     "$option.OBJECT_SETTINGS_FORMAT.JSON": "JSON",
     "$option.OBJECT_SETTINGS_FORMAT.TOML": "TOML",
     "$option.OBJECT_SETTINGS_FORMAT.YAML": "YAML",
@@ -1049,6 +1050,10 @@
     "$label.BACKSPACE_TO_HIDE": "输入框为空且键入退格键时，隐藏窗口",
     "$title.windowPosition": "窗口位置",
     "$title.interaction": "交互"
+  },
+  "static_markers": {
+    "pluginName": "标记常显",
+    "act.toggle_state": "启用标记常显"
   },
   "cursor_history": {
     "pluginName": "光标跳转",
@@ -1461,8 +1466,8 @@
     "label.MD009.list_item_empty_lines": "允许列表项中的空行包含空格",
     "label.MD009.strict": "包含不必要的换行",
     "label.MD010.code_blocks": "包含代码块",
-    "label.MD010.ignore_code_languages": "要忽略的代码块语言",
-    "label.MD010.spaces_per_tab": "每个制表符的空格数",
+    "label.MD010.ignore_code_languages": "忽略的代码块语言",
+    "label.MD010.spaces_per_tab": "制表符对应空格数",
     "label.MD012.maximum": "允许连续空行数",
     "label.MD013.line_length": "最大字符数",
     "label.MD013.heading_line_length": "标题最大字符数",
