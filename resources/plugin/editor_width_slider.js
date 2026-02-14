@@ -1,4 +1,4 @@
-class editorWidthSliderPlugin extends BasePlugin {
+class EditorWidthSliderPlugin extends BasePlugin {
     process = async () => {
         await this._setWidth(this.config.WIDTH_RATIO)
     }
@@ -16,39 +16,34 @@ class editorWidthSliderPlugin extends BasePlugin {
         }
         this.config.WIDTH_RATIO = width
         if (!tmp) {
-            await this.utils.settings.saveSettings(this.fixedName, this.config)
+            await this.utils.settings.save(this.fixedName, this.config)
         }
     }
 
     setWidth = async () => {
         const op = {
             title: this.pluginName,
-            schema: [
-                {
-                    fields: [
-                        { key: "width", type: "range", min: 30, max: 100, label: this.i18n.t("$label.WIDTH_RATIO") },
-                        { key: "tmpAdjust", type: "switch", label: this.i18n.t("tmpAdjust") },
-                    ]
-                },
-                {
-                    fields: [
-                        { key: "restore", type: "action", label: this.i18n.t("restore") },
-                    ]
-                },
+            schema: ({ Group, Controls }) => [
+                Group(
+                    Controls.Range("width").Label(this.i18n.t("$label.WIDTH_RATIO")).Min(30).Max(100),
+                    Controls.Switch("tmpAdjust").Label(this.i18n.t("tmpAdjust")),
+                ),
+                Group(Controls.Action("restore").Label(this.i18n.t("restore"))),
             ],
-            data: { width: this._getWidth(), tmpAdjust: true },
+            data: {
+                width: this._getWidth(),
+                tmpAdjust: true,
+            },
             actions: {
                 restore: async () => {
                     await this._setWidth(-1, false)
                     this.utils.formDialog.exit()
-                    this.utils.notification.show(this.i18n._t("global", "success.restore"))
+                    this.utils.notification.show(this.i18n.t("success.restore"))
                 }
             },
             hooks: {
                 onCommit: ({ key, value }) => {
-                    if (key === "width") {
-                        this._setWidth(value, true)
-                    }
+                    if (key === "width") this._setWidth(value, true)
                 }
             },
         }
@@ -62,5 +57,5 @@ class editorWidthSliderPlugin extends BasePlugin {
 }
 
 module.exports = {
-    plugin: editorWidthSliderPlugin,
+    plugin: EditorWidthSliderPlugin
 }

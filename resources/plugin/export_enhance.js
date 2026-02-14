@@ -1,12 +1,12 @@
-class exportEnhancePlugin extends BasePlugin {
+class ExportEnhancePlugin extends BasePlugin {
     beforeProcess = () => new Promise(resolve => {
         const until = () => this.utils.exportHelper.isAsync !== undefined
         const after = () => resolve(this.utils.exportHelper.isAsync ? undefined : this.utils.stopLoadPluginError)
-        this.utils.loopDetector(until, after)
+        this.utils.pollUntil(until, after)
     })
 
     process = () => {
-        this.utils.settings.autoSaveSettings(this)
+        this.utils.settings.autoSave(this)
         this.enable = this.config.ENABLE
         this.regexp = new RegExp(`<img.*?src="(.*?)".*?>`, "gs")
         this.utils.exportHelper.register(this.fixedName, null, this.afterExportToHTML)
@@ -19,7 +19,7 @@ class exportEnhancePlugin extends BasePlugin {
 
         const dirname = this.utils.getCurrentDirPath()
         const imageMap = this.config.DOWNLOAD_NETWORK_IMAGE ? (await this.downloadAllImage(html)) : {}
-        const replaceFunc = async (origin, src) => {
+        return this.utils.asyncReplaceAll(html, this.regexp, async (origin, src) => {
             try {
                 if (this.utils.isSpecialImage(src)) {
                     return origin
@@ -33,14 +33,14 @@ class exportEnhancePlugin extends BasePlugin {
                 } else {
                     imagePath = this.utils.Package.Path.resolve(dirname, decodeURIComponent(src))
                 }
-                const base64Data = await this.toBase64(imagePath)
-                return origin.replace(src, base64Data)
+                const bin = await this.utils.Package.FsExtra.readFile(imagePath)
+                const base64 = this.utils.convertImageToBase64(bin)
+                return origin.replace(src, base64)
             } catch (e) {
                 console.error(`[${this.fixedName}] toBase64 error:`, e)
             }
             return origin
-        }
-        return this.utils.asyncReplaceAll(html, this.regexp, replaceFunc)
+        })
     }
 
     downloadAllImage = async html => {
@@ -58,24 +58,13 @@ class exportEnhancePlugin extends BasePlugin {
                         imageMap[src] = filepath
                     }
                 } catch (e) {
-                    console.error("download image error:", e)
+                    console.error("Download image error:", e)
                 }
             })
             await Promise.all(promises)
             await this.utils.sleep(100)
         }
         return imageMap
-    }
-
-    toBase64 = async imagePath => {
-        const data = await this.utils.Package.Fs.promises.readFile(imagePath)
-        // MIME type detection should use magic number checks or a dedicated library.
-        // Manually checking magic numbers is impractical and a library adds too much overhead.
-        // This uses a simplified approach. Modern browsers can often infer the subtype reliably.
-        const prefix = data.slice(0, 5).toString()
-        const mime = ["<svg", "<?xml"].some(e => prefix.startsWith(e)) ? "image/svg+xml" : "image"
-        const base64 = data.toString("base64")
-        return `data:${mime};base64,${base64}`
     }
 
     getDynamicActions = () => this.i18n.fillActions([
@@ -93,5 +82,5 @@ class exportEnhancePlugin extends BasePlugin {
 }
 
 module.exports = {
-    plugin: exportEnhancePlugin
+    plugin: ExportEnhancePlugin
 }

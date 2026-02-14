@@ -1,17 +1,16 @@
 /**
  * Dynamically register and unregister third-party code block diagram (derived from DiagramParser).
  */
-class thirdPartyDiagramParser {
+class ThirdPartyDiagramParser {
     constructor(utils) {
-        this.utils = utils;
-        this.parsers = new Map();
-        this.defaultHeight = "230px";
-        this.defaultBackgroundColor = "#F8F8F8";
-        this.regexp = /^\/\/{height:"(?<height>.*?)",width:"(?<width>.*?)"}/;
+        this.utils = utils
+        this.parsers = new Map()
+        this.defaultHeight = "230px"
+        this.defaultBackgroundColor = "#F8F8F8"
+        this.regexp = /^\/\/{height:"(?<height>.*?)",width:"(?<width>.*?)"}/
     }
 
     /**
-     *  Since JS doesn't support interfaces, interface functions are passed as parameters.
      * @param {string} lang: Language.
      * @param {string} mappingLang: Language to map to.
      * @param {boolean} destroyWhenUpdate: Whether to clear the HTML in the preview before updating.
@@ -35,9 +34,9 @@ class thirdPartyDiagramParser {
                     updateFunc, destroyFunc, beforeExportToNative, beforeExportToHTML, extraStyleGetter,
                     versionGetter,
                 }) => {
-        lang = lang.toLowerCase();
-        lazyLoadFunc = this.utils.once(lazyLoadFunc);
-        const settingMsg = null;
+        lang = lang.toLowerCase()
+        lazyLoadFunc = this.utils.once(lazyLoadFunc)
+        const settingMsg = null
         this.parsers.set(lang, {
             lang, mappingLang, destroyWhenUpdate, interactiveMode, settingMsg,
             checkSelector, wrapElement, lazyLoadFunc, beforeRenderFunc, setStyleFunc,
@@ -51,8 +50,8 @@ class thirdPartyDiagramParser {
     }
 
     unregister = lang => {
-        this.parsers.delete(lang);
-        this.utils.diagramParser.unregister(lang);
+        this.parsers.delete(lang)
+        this.utils.diagramParser.unregister(lang)
     }
 
     render = async (cid, content, $pre, lang) => {
@@ -62,10 +61,10 @@ class thirdPartyDiagramParser {
         await parser.lazyLoadFunc()
         const $wrap = this.getWrap(parser, $pre)
         try {
-            const meta = parser.beforeRenderFunc
+            const meta = typeof parser.beforeRenderFunc === "function"
                 ? parser.beforeRenderFunc(cid, content, $pre)
                 : undefined
-            if (parser.setStyleFunc) {
+            if (typeof parser.setStyleFunc === "function") {
                 parser.setStyleFunc($pre, $wrap, content, meta)
             }
             let instance = this.createOrUpdate(parser, cid, content, $wrap, lang, meta)
@@ -78,21 +77,21 @@ class thirdPartyDiagramParser {
                 parser.instanceMap.set(cid, instance)
             }
         } catch (e) {
-            e.stack += this.getSettingMsg(parser)
-            this.utils.diagramParser.throwParseError(null, e)
+            const reason = `${e.stack}\n\nDiagram Parser Settings:\n${this.getSettingMsg(parser)}`
+            this.utils.diagramParser.throwParseError(null, reason)
         }
     }
 
     createOrUpdate = (parser, cid, content, $wrap, lang, meta) => {
-        const oldInstance = parser.instanceMap.get(cid);
+        const oldInstance = parser.instanceMap.get(cid)
         if (oldInstance && parser.updateFunc) {
-            const newInstance = parser.updateFunc($wrap, content, oldInstance, meta);
+            const newInstance = parser.updateFunc($wrap, content, oldInstance, meta)
             return newInstance || oldInstance
         } else {
             if (oldInstance) {
                 this.cancel(cid, lang)
             }
-            return parser.createFunc($wrap, content, meta);
+            return parser.createFunc($wrap, content, meta)
         }
     }
 
@@ -101,13 +100,12 @@ class thirdPartyDiagramParser {
             const settings = {
                 language: parser.lang,
                 mappingLanguage: parser.mappingLang,
-                diagramVersion: (parser.versionGetter && parser.versionGetter()) || "Unknown",
+                diagramVersion: parser.versionGetter?.() || "Unknown",
                 interactiveMode: parser.interactiveMode,
                 destroyWhenUpdate: parser.destroyWhenUpdate,
                 containerElement: parser.wrapElement,
             }
-            const msg = Object.entries(settings).map(([k, v]) => `    ${k}: ${v}`).join("\n")
-            parser.settingMsg = `\n\nDiagram Parser Settings:\n${msg}`
+            parser.settingMsg = Object.entries(settings).map(([k, v]) => `    ${k}: ${v}`).join("\n")
         }
         return parser.settingMsg
     }
@@ -115,7 +113,7 @@ class thirdPartyDiagramParser {
     getWrap = (parser, $pre) => {
         let $wrap = $pre.find(parser.checkSelector)
         if ($wrap.length === 0) {
-            const wrap = (parser.wrapElement instanceof Function)
+            const wrap = typeof parser.wrapElement === "function"
                 ? parser.wrapElement($pre)
                 : parser.wrapElement
             $wrap = $(wrap)
@@ -125,24 +123,20 @@ class thirdPartyDiagramParser {
     }
 
     cancel = (cid, lang) => {
-        const parser = this.parsers.get(lang);
-        if (!parser) return;
-        const instance = parser.instanceMap.get(cid);
-        if (!instance) return;
-        if (parser.destroyFunc) {
-            parser.destroyFunc(instance)
-        }
-        parser.instanceMap.delete(cid);
+        const parser = this.parsers.get(lang)
+        if (!parser) return
+        const instance = parser.instanceMap.get(cid)
+        if (!instance) return
+        parser.destroyFunc?.(instance)
+        parser.instanceMap.delete(cid)
     }
 
     destroyAll = () => {
         for (const parser of this.parsers.values()) {
             for (const instance of parser.instanceMap.values()) {
-                if (parser.destroyFunc) {
-                    parser.destroyFunc(instance)
-                }
+                parser.destroyFunc?.(instance)
             }
-            parser.instanceMap.clear();
+            parser.instanceMap.clear()
         }
     }
 
@@ -158,31 +152,40 @@ class thirdPartyDiagramParser {
         return { height: "", width: "" }
     }
 
-    STYLE_SETTER = css => {
-        return ($pre, $wrap, content) => {
-            const { height, width } = this.getFenceUserSize(content)
-            const customCss = css instanceof Function ? css($pre, $wrap, content) : css
-            const { height: h, width: w, "background-color": bgc, ...args } = customCss || {}
-            $wrap.css({
-                width: width || w || parseFloat($pre.find(".md-diagram-panel").css("width")) - 10 + "px",
-                height: height || h || this.defaultHeight,
-                "background-color": bgc || this.defaultBackgroundColor,
-                ...args,
-            })
-        }
+    applyFenceStyles = ($pre, $wrap, userSize = {}, defaultCss = {}) => {
+        const { height: customH, width: customW, "background-color": customBackgroundColor, ...rest } = defaultCss
+        $wrap.css({
+            width: userSize.width || customW || parseFloat($pre.find(".md-diagram-panel").css("width")) - 10 + "px",
+            height: userSize.height || customH || this.defaultHeight,
+            "background-color": customBackgroundColor || this.defaultBackgroundColor,
+            ...rest,
+        })
     }
 
-    STYLE_SETTER_SIMPLE = css => {
+    STYLE_SETTER = css => {
         return ($pre, $wrap, content) => {
-            const { height, width, "background-color": bgc, ...args } = css || {}
-            $wrap.css({
-                width: width || parseFloat($pre.find(".md-diagram-panel").css("width")) - 10 + "px",
-                height: height || this.defaultHeight,
-                "background-color": bgc || this.defaultBackgroundColor,
-                ...args,
-            })
+            const userSize = this.getFenceUserSize(content)
+            const defaultCss = (typeof css === "function") ? css($pre, $wrap, content) : css
+            this.applyFenceStyles($pre, $wrap, userSize, defaultCss)
         }
     }
+    STYLE_SETTER_SIMPLE = css => {
+        return ($pre, $wrap, content) => this.applyFenceStyles($pre, $wrap, {}, css)
+    }
+
+    SVG_PRINT_STYLE_FIXER = (lang, selector) => () => `
+        @media print {
+            .md-diagram-panel[lang="${lang}"] ${selector} {
+                max-width: 100% !important;
+                width: 100% !important;
+                overflow: visible !important; 
+            }
+            .md-diagram-panel[lang="${lang}"] svg {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+            }
+        }`
 
     process = () => {
         const getLifeCycleFn = (fnName) => () => {
@@ -201,6 +204,4 @@ class thirdPartyDiagramParser {
     }
 }
 
-module.exports = {
-    thirdPartyDiagramParser
-}
+module.exports = ThirdPartyDiagramParser

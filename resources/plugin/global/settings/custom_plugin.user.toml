@@ -1,14 +1,8 @@
-[scrollBookmarker]
-auto_popup_modal = false
+[toc]
+enable = false
 
 [markdownLint]
 enable = false
-custom_rules_files = [ "plugin/custom/plugins/markdownLint/custom-rules.js" ]
-translate = false
-columns = [ "line", "rule", "desc", "ops" ]
-tools = [ "info", "locate", "fix" ]
-use_button = false
-right_click_table_to_toggle_source_mode = false
 
 [markdownLint.rule_config]
 default = true
@@ -29,199 +23,117 @@ siblings_only = true
 code_blocks = false
 names = [ "CSS", "C++", "HTML", "Java", "JavaScript", "Python", "Rust", "SQL", "TypeScript" ]
 
-[toc]
-enable = false
-remove_header_styles = false
-sortable = false
-right_click_outline_button_to_toggle = false
-
-[toc.show_name]
-fence = "Fence"
-image = "Image"
-table = "Table"
-link = "Link"
-math = "Math"
-
-[toc.include_headings]
-fence = false
-image = false
-table = false
-link = false
-math = false
-
-[[toc.include_headings.buttons]]
+[[quickButton.buttons]]
 disable = true
 coordinate = [ 0, 0 ]
-size = "24px"
 icon = "fa fa-caret-down"
+size = "24px"
+color = ""
+bgColor = ""
+hint = ""
 callback = "go_top.goBottom"
+evil = ""
 
-[[toc.include_headings.buttons]]
+[[quickButton.buttons]]
 disable = false
 coordinate = [ 0, 0 ]
-size = "24px"
 icon = "fa fa-caret-up"
+size = "24px"
+color = ""
+bgColor = ""
+hint = ""
 callback = "go_top.goTop"
+evil = ""
 
-[[toc.include_headings.buttons]]
+[[quickButton.buttons]]
 disable = false
 coordinate = [ 1, 0 ]
-size = "17px"
 icon = "fa fa-font"
+size = "17px"
+color = ""
+bgColor = ""
+hint = ""
 callback = "text_stylize.call"
+evil = ""
 
-[[toc.include_headings.buttons]]
-disable = true
+[[quickButton.buttons]]
+disable = false
 coordinate = [ 3, 0 ]
 size = "17px"
 icon = "fa fa-indent"
 callback = "md_padding.call"
 
-[[toc.include_headings.buttons]]
+[[quickButton.buttons]]
 disable = true
 coordinate = [ 4, 0 ]
-size = "17px"
 icon = "fa fa-gear"
+size = "17px"
+color = ""
+bgColor = ""
+hint = ""
 callback = "preferences.call"
+evil = ""
 
-[[toc.include_headings.buttons]]
+[[quickButton.buttons]]
 disable = false
 coordinate = [ 0, 1 ]
 size = "18px"
 icon = "fa fa-sitemap"
 callback = "markmap.onButtonClick"
 
-[[toc.include_headings.buttons]]
+[[quickButton.buttons]]
 disable = false
 coordinate = [ 1, 1 ]
 size = "17px"
 icon = "fa fa-image"
 callback = "imageReviewer.callback"
 
-[[toc.include_headings.buttons]]
+[[quickButton.buttons]]
 disable = false
 coordinate = [ 2, 1 ]
 size = "17px"
 icon = "fa fa-th-list"
 callback = "toc.callback"
 
-[[toc.include_headings.buttons]]
-disable = true
+[[quickButton.buttons]]
+disable = false
 coordinate = [ 3, 1 ]
 size = "17px"
 icon = "fa fa-search"
 callback = "search_multi.call"
 
-[[toc.include_headings.buttons]]
+[[quickButton.buttons]]
 disable = true
 coordinate = [ 4, 0 ]
-size = "17px"
 icon = "ion-asterisk"
+size = "17px"
 color = "#F0F8FF"
 bgColor = "#FF4500"
+hint = ""
+callback = ""
 evil = "() => window.confirm('this is message')"
 
-[[toc.include_headings.buttons]]
+[[quickButton.buttons]]
 disable = true
 coordinate = [ 4, 1 ]
 size = "17px"
 icon = "ion-alert-circled"
 evil = "() => this.utils.insertFence(\"javascript\")"
 
-[[toc.include_headings.buttons]]
+[[quickButton.buttons]]
 disable = true
 coordinate = [ 5, 0 ]
-size = "17px"
 icon = "ion-bug"
+size = "17px"
+color = ""
+bgColor = ""
+hint = ""
+callback = ""
 evil = "() => require('child_process').exec('cmd /C calc')"
 
-[[toc.include_headings.buttons]]
+[[quickButton.buttons]]
 disable = true
 coordinate = [ 5, 1 ]
 size = "17px"
 icon = "ion-alert"
 evil = "() => this.utils.openUrl('https://github.com/obgnail/typora_plugin')"
-
-[templater]
-enable = false
-auto_open = false
-template_folders = []
-
-[[templater.template_variables]]
-enable = false
-name = "author"
-callback = "() => 'obgnail'"
-
-[[templater.template_variables]]
-enable = false
-name = "sum"
-callback = "(v1 = 100, v2 = 200) => v1 + v2"
-
-[[templater.template_variables]]
-enable = false
-name = "sumList"
-callback = "args => args.reduce((x, y) => x + y, 0)"
-
-[[templater.template_variables]]
-enable = false
-name = "contact"
-callback = "(...args) => args.join('-')"
-
-[[templater.template]]
-name = "Standard"
-text = "---\ntitle: {{title}}\ndate: {{date}}\ntags:\n---\n\n"
-
-[[templater.template]]
-name = "Diary"
-text = "---\ntitle: {{title}}\ndate: {{date}} {{weekday}}\n---\n\n"
-
-[[templater.template]]
-name = "Article"
-text = "---\nauthor: {{username}}\ncreated: {{datetime}}\naliases: {{title}}\ndescription:\ntags:\n---\n## Keywords\n\n\n\n## Overview and Background\n\n\n\n"
-
-[chineseSymbolAutoPairer]
-enable = false
-hide = false
-auto_skip = false
-auto_delete_pair = false
-auto_surround_pair = false
-auto_select_after_surround = false
-auto_pair_symbols = [ [ "（", "）" ], [ "《", "》" ], [ "‘", "’" ], [ "“", "”" ], [ "【", "】" ], [ "「", "」" ], [ "『", "』" ] ]
-auto_swap_symbols = [ [ "【", "[" ], [ "】", "]" ], [ "（", "(" ], [ "）", ")" ], [ "《", "<" ], [ "》", ">" ], [ "！", "!" ], [ "；", ";" ], [ "：", ":" ], [ "，", "," ], [ "。", "." ], [ "？", "?" ], [ "·", "`" ], [ "￥", "$" ] ]
-
-[quickButton]
-[[quickButton.buttons]]
-disable = false
-coordinate = [ 0, 0 ]
-icon = "fa fa-caret-up"
-size = "24px"
-color = ""
-bgColor = ""
-hint = ""
-callback = "go_top.goTop"
-evil = ""
-
-[[quickButton.buttons]]
-disable = false
-coordinate = [ 1, 0 ]
-icon = "fa fa-font"
-size = "17px"
-color = ""
-bgColor = ""
-hint = ""
-callback = "text_stylize.call"
-evil = ""
-
-[[quickButton.buttons]]
-disable = false
-coordinate = [ 0, 1 ]
-size = "18px"
-icon = "fa fa-sitemap"
-callback = "markmap.onButtonClick"
-
-[[quickButton.buttons]]
-disable = false
-coordinate = [ 1, 1 ]
-size = "17px"
-icon = "fa fa-image"
-callback = "imageReviewer.callback"

@@ -1,21 +1,13 @@
 /**
  * Dynamically register, unregister, and publish lifecycle events.
- *
- * Why implement a custom event listener and publisher instead of using Node's built-in EventEmitter?
- * Answer: For immediate callbacks. This project is not official, and I want the system design to minimize potential bugs.
- *         Lifecycle events are implemented by hooking corresponding functions.
- *         However, emitter.emit is asynchronous, meaning the timing of callback execution is uncertain. Immediate callbacks are inherently safer.
  */
-class eventHub {
+class EventHub {
     constructor(utils) {
         this.utils = utils
-        this.filepath = ""
         this.observer = null
-        this.eventMap = Object.create(null)  // { eventType: {order: [listener]} }
+        this.eventMap = Object.create(null)  // { eventType: { order: [listener] } }
         this.eventType = Object.freeze({
-            allCustomPluginsHadInjected: "allCustomPluginsHadInjected", // Custom plugins loaded
             allPluginsHadInjected: "allPluginsHadInjected",             // All plugins loaded
-            firstFileInit: "firstFileInit",                             // File loaded after opening Typora
             beforeFileOpen: "beforeFileOpen",                           // Before opening a file
             fileOpened: "fileOpened",                                   // After opening a file
             otherFileOpened: "otherFileOpened",                         // Different from fileOpened: reopening the current tab won't trigger otherFileOpened, but fileOpened will
@@ -34,30 +26,38 @@ class eventHub {
     }
 
     addEventListener = (type, listener, order = 0) => {
-        this._checkType(type);
-        this._checkListener(listener);
+        this._checkType(type)
+        this._checkListener(listener)
         if (!this.eventMap[type]) {
-            this.eventMap[type] = { [order]: [listener] };
+            this.eventMap[type] = { [order]: [listener] }
         } else if (!this.eventMap[type][order]) {
-            this.eventMap[type][order] = [listener];
+            this.eventMap[type][order] = [listener]
         } else {
-            this.eventMap[type][order].push(listener);
+            this.eventMap[type][order].push(listener)
         }
     }
 
     removeEventListener = (type, listener) => {
-        this._checkType(type);
-        this._checkListener(listener);
-        for (const [order, funcList] of Object.entries(this.eventMap[type])) {
-            this.eventMap[type][order] = funcList.filter(lis => lis !== listener);
+        this._checkType(type)
+        this._checkListener(listener)
+        for (const [order, listeners] of Object.entries(this.eventMap[type])) {
+            this.eventMap[type][order] = listeners.filter(lis => lis !== listener)
         }
     }
 
+    once = (type, listener, order = 0) => {
+        const finalListener = (...payload) => {
+            listener.apply(this, payload)
+            this.removeEventListener(type, finalListener)
+        }
+        this.addEventListener(type, finalListener, order)
+    }
+
     publishEvent = (type, ...payload) => {
-        this._checkType(type);
-        if (!this.eventMap[type]) return;
-        for (const funcList of Object.values(this.eventMap[type])) {
-            for (const listener of funcList) {
+        this._checkType(type)
+        if (!this.eventMap[type]) return
+        for (const listeners of Object.values(this.eventMap[type])) {
+            for (const listener of listeners) {
                 listener.apply(this, payload)
             }
         }
@@ -65,82 +65,67 @@ class eventHub {
 
     _checkType = type => {
         if (!this.eventType.hasOwnProperty(type)) {
-            throw new Error(`do not support event type: ${type}`);
+            throw new Error(`do not support event type: ${type}`)
         }
     }
 
     _checkListener = listener => {
         if (typeof listener !== "function") {
-            throw new Error(`listener is not function: ${listener}`);
+            throw new Error(`listener is not function: ${listener}`)
         }
     }
 
     process = () => {
-        this.utils.decorate(() => File && File.editor && File.editor.library, "openFile",
-            () => {
-                this.filepath = this.utils.getFilePath();
-                this.publishEvent(this.eventType.beforeFileOpen);
+        let _filepath = ""
+        this.utils.decorate(() => File?.editor?.library, "openFile",
+            (toOpenFile) => {
+                _filepath = this.utils.getFilePath()
+                this.publishEvent(this.eventType.beforeFileOpen, toOpenFile)
             },
             (result, ...args) => {
-                const filePath = args[0];
-                filePath && this.publishEvent(this.eventType.fileOpened, filePath);
-                this.filepath !== filePath && this.publishEvent(this.eventType.otherFileOpened, filePath);
+                const filepath = args[0]
+                if (filepath) this.publishEvent(this.eventType.fileOpened, filepath)
+                if (_filepath !== filepath) this.publishEvent(this.eventType.otherFileOpened, filepath)
             }
         )
 
-        this.utils.loopDetector(() => File, () => {
-            const attr = File.loadInitData ? "loadInitData" : "loadFile";
-            const onContentLoaded = () => this.publishEvent(this.eventType.fileContentLoaded, this.utils.getFilePath());
-            this.utils.decorate(() => File, attr, null, result => {
-                if (attr === "loadFile") {
-                    result.then(onContentLoaded);
-                } else {
-                    onContentLoaded();
-                }
-            })
-        })
+        const onContentLoaded = () => this.publishEvent(this.eventType.fileContentLoaded, this.utils.getFilePath())
+        if (this.utils.isBetaVersion || File.onSwitchDocumentTarget) {
+            this.utils.decorate(() => File, "onSwitchDocumentTarget", null, onContentLoaded)
+        } else {
+            this.utils.decorate(() => File.editor.library, "doSwitchByNode", null, ret => ret.then(onContentLoaded))
+        }
 
-        this.utils.loopDetector(() => File && this.utils.getFilePath(), () => {
-            const filePath = this.utils.getFilePath();
-            filePath && this.publishEvent(this.eventType.firstFileInit, filePath);
-        });
-
-        this.utils.decorate(() => File && File.editor && File.editor.fences, "addCodeBlock",
-            (...args) => {
-                const cid = args[0]
-                cid && this.publishEvent(this.eventType.beforeAddCodeBlock, cid)
-            },
-            (fence, ...args) => {
-                const cid = args[0]
-                cid && this.publishEvent(this.eventType.afterAddCodeBlock, cid, fence)
-            },
+        this.utils.decorate(() => File?.editor?.fences, "addCodeBlock",
+            (cid) => cid && this.publishEvent(this.eventType.beforeAddCodeBlock, cid),
+            (cm, cid) => cid && this.publishEvent(this.eventType.afterAddCodeBlock, cid, cm),
         )
 
         this.utils.decorate(
-            () => File && File.editor && File.editor.fences, "tryAddLangUndo",
-            null, (result, ...args) => this.publishEvent(this.eventType.afterUpdateCodeBlockLang, args)
-        );
+            () => File?.editor?.fences, "tryAddLangUndo", null,
+            (result, ...args) => this.publishEvent(this.eventType.afterUpdateCodeBlockLang, args)
+        )
 
         this.utils.decorate(() => File, "toggleSourceMode", () => this.publishEvent(this.eventType.beforeToggleSourceMode))
 
         this.utils.decorate(
-            () => File && File.editor && File.editor.library && File.editor.library.outline, "updateOutlineHtml",
-            null, () => this.publishEvent(this.eventType.outlineUpdated)
+            () => File?.editor?.library?.outline, "updateOutlineHtml", null,
+            () => this.publishEvent(this.eventType.outlineUpdated)
         )
 
         const _afterToggleSidebar = () => {
-            const sidebar = document.querySelector("#typora-sidebar");
-            sidebar && this.publishEvent(this.eventType.afterToggleSidebar, sidebar.classList.contains("open"));
+            const sidebar = document.querySelector("#typora-sidebar")
+            if (sidebar) this.publishEvent(this.eventType.afterToggleSidebar, sidebar.classList.contains("open"))
         }
-        const content = this.utils.entities.eContent;
-        const hasTransition = window.getComputedStyle(content).transition !== "all 0s ease 0s";
+        const content = this.utils.entities.eContent
+        const hasTransition = window.getComputedStyle(content).transition !== "all 0s ease 0s"
         const afterToggleSidebar = hasTransition
             ? () => content.addEventListener("transitionend", _afterToggleSidebar, { once: true })
-            : this.utils.debounce(_afterToggleSidebar, 400);
-        this.utils.decorate(() => File && File.editor && File.editor.library, "toggleSidebar", null, afterToggleSidebar);
+            : this.utils.debounce(_afterToggleSidebar, 400)
+        this.utils.decorate(() => File?.editor?.library, "toggleSidebar", null, afterToggleSidebar)
 
-        const afterSetSidebarWidth = this.utils.debounce(() => this.publishEvent(this.eventType.afterSetSidebarWidth), 400);
-        this.utils.decorate(() => File && File.editor && File.editor.library, "setSidebarWidth", null, afterSetSidebarWidth);
+        const afterSetSidebarWidth = this.utils.debounce(() => this.publishEvent(this.eventType.afterSetSidebarWidth), 400)
+        this.utils.decorate(() => File?.editor?.library, "setSidebarWidth", null, afterSetSidebarWidth)
 
         // const resizeObserver = new ResizeObserver(entries => {
         //     for (const entry of entries) {
@@ -151,35 +136,27 @@ class eventHub {
         // })
         // resizeObserver.observe(content)
 
-        this.utils.decorate(() => File && File.megaMenu, "showPreferencePanel", () => this.publishEvent(this.eventType.toggleSettingPage, true))
-        this.utils.decorate(() => File && File.megaMenu, "closePreferencePanel", () => this.publishEvent(this.eventType.toggleSettingPage, false))
-        this.utils.decorate(() => File && File.megaMenu, "show", () => this.publishEvent(this.eventType.toggleSettingPage, true))
-        this.utils.decorate(() => File && File.megaMenu, "hide", () => this.publishEvent(this.eventType.toggleSettingPage, false))
+        this.utils.decorate(() => File?.megaMenu, "showPreferencePanel", () => this.publishEvent(this.eventType.toggleSettingPage, true))
+        this.utils.decorate(() => File?.megaMenu, "closePreferencePanel", () => this.publishEvent(this.eventType.toggleSettingPage, false))
+        this.utils.decorate(() => File?.megaMenu, "show", () => this.publishEvent(this.eventType.toggleSettingPage, true))
+        this.utils.decorate(() => File?.megaMenu, "hide", () => this.publishEvent(this.eventType.toggleSettingPage, false))
 
-        const debouncePublish = this.utils.debounce(() => this.publishEvent(this.eventType.fileEdited), 400);
-        this.observer = new MutationObserver(mutationList => {
-            if (mutationList.some(m => m.type === "characterData")
-                || mutationList.length && mutationList.some(m => m.addedNodes.length) && mutationList.some(m => m.removedNodes.length)) {
-                debouncePublish();
-            }
-        });
+        const debouncePublish = this.utils.debounce(() => this.publishEvent(this.eventType.fileEdited), 400)
+        this.observer = new MutationObserver(mutations => {
+            const ok = mutations.some(m => m.type === "characterData") || mutations.length && mutations.some(m => m.addedNodes.length) && mutations.some(m => m.removedNodes.length)
+            if (ok) debouncePublish()
+        })
         this.observer.observe(this.utils.entities.eWrite, { characterData: true, childList: true, subtree: true })
     }
 
     afterProcess = () => {
-        delete this.eventMap[this.eventType.allCustomPluginsHadInjected];
-        delete this.eventMap[this.eventType.allPluginsHadInjected];
-        setTimeout(() => delete this.eventMap[this.eventType.firstFileInit], 1000);
-
-        const funcList = this.eventMap[this.eventType.fileEdited];
-        if (!funcList) {
-            delete this.eventMap[this.eventType.fileEdited];
-            this.observer.disconnect();
-            this.observer = null;
+        delete this.eventMap[this.eventType.allPluginsHadInjected]
+        if (!this.eventMap[this.eventType.fileEdited]) {
+            delete this.eventMap[this.eventType.fileEdited]
+            this.observer.disconnect()
+            this.observer = null
         }
     }
 }
 
-module.exports = {
-    eventHub
-}
+module.exports = EventHub

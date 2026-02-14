@@ -1,21 +1,19 @@
-const { utils } = require("../global/core/utils")
-
-// `SetValue` will write file, and a short write event interval can cause bugs
-function setValueDelay(context, key, value, delay = 500) {
-    setTimeout(() => {
-        context.setValue(key, value)
-        utils.notification.show("Cascade Modify", "info")
-    }, delay)
-}
-
-function createBidirectionalConstraint(keyX, keyY, logic) {
-    const directions = [
-        { source: keyX, target: keyY, getCorrection: logic.getCorrectYFromX },
-        { source: keyY, target: keyX, getCorrection: logic.getCorrectXFromY },
-    ]
-    return directions.reduce((acc, dir) => {
-        const watcherKey = `_sync_${dir.target}_from_${dir.source}`
-        acc[watcherKey] = {
+module.exports = (plugin) => {
+    const { utils } = plugin
+    const createBidirectionalConstraint = (keyX, keyY, logic) => {
+        // `setValue` will write file, and a short write event interval can cause bugs
+        const setValueDelay = (context, key, value, delay = 500) => {
+            setTimeout(() => {
+                context.setValue(key, value)
+                utils.notification.show(`Cascade Modify: Auto-correct Field "${key}"`, "info")
+            }, delay)
+        }
+        const directions = [
+            { source: keyX, target: keyY, getCorrection: logic.getCorrectYFromX },
+            { source: keyY, target: keyX, getCorrection: logic.getCorrectXFromY },
+        ]
+        return directions.map(dir => ({
+            name: `_sync_${dir.target}_from_${dir.source}`,
             when: { [dir.source]: { $ne: null } },
             effect: (isConditionMet, context) => {
                 if (!isConditionMet) return
@@ -27,30 +25,65 @@ function createBidirectionalConstraint(keyX, keyY, logic) {
                     setValueDelay(context, dir.target, correctedTargetValue)
                 }
             }
-        }
-        return acc
-    }, {})
-}
+        }))
+    }
 
-module.exports = {
-    echarts: {
-        ...createBidirectionalConstraint("RENDERER", "EXPORT_TYPE", {
-            isValid(renderer, exportType) {
-                if (!renderer || !exportType) return true
-                const isSvgValid = renderer === "svg" && exportType === "svg"
-                const isCanvasValid = renderer === "canvas" && ["png", "jpg"].includes(exportType)
-                return isSvgValid || isCanvasValid
-            },
-            getCorrectYFromX(renderer) {
-                if (renderer === "svg") return "svg"
-                if (renderer === "canvas") return "png"
-                return null
-            },
-            getCorrectXFromY(exportType) {
-                if (exportType === "svg") return "svg"
-                if (["png", "jpg"].includes(exportType)) return "canvas"
-                return null
+    const rendererConstraints = createBidirectionalConstraint("RENDERER", "EXPORT_TYPE", {
+        isValid(renderer, exportType) {
+            if (!renderer || !exportType) return true
+            const isSvgValid = renderer === "svg" && exportType === "svg"
+            const isCanvasValid = renderer === "canvas" && ["png", "jpg"].includes(exportType)
+            return isSvgValid || isCanvasValid
+        },
+        getCorrectYFromX(renderer) {
+            if (renderer === "svg") return "svg"
+            if (renderer === "canvas") return "png"
+            return null
+        },
+        getCorrectXFromY(exportType) {
+            if (exportType === "svg") return "svg"
+            if (["png", "jpg"].includes(exportType)) return "canvas"
+            return null
+        }
+    })
+
+    return {
+        echarts: rendererConstraints,
+        plantUML: [{
+            name: "showPlantUMLServerHint",
+            when: { $and: [{ enable: true }, { $meta: { $isMounting: false } }] },
+            affects: [],
+            effect: (isConditionMet, context) => {
+                if (isConditionMet) utils.notification.show(`Plugin Enabled!\nPlease ensure server ${context.getValue("SERVER_URL")} is available.`)
             }
-        })
-    },
+        }],
+        json_rpc: [{
+            name: "showRPCServerHint",
+            when: { $and: [{ ENABLE: true }, { $meta: { $isMounting: false } }] },
+            affects: [],
+            effect: (isMet, context) => {
+                if (isMet) {
+                    const { host, port } = context.getValue("SERVER_OPTIONS")
+                    utils.notification.show(`Plugin Enabled!\nPlease ensure server ${host}:${port} is available.`)
+                }
+            }
+        }],
+        article_uploader: [{
+            name: "showArticleUploaderHint",
+            when: { $and: [{ ENABLE: true }, { $meta: { $isMounting: false } }] },
+            affects: [],
+            effect: (isMet) => {
+                if (isMet) {
+                    utils.notification.show(`Plugin Enabled!\nPlease ensure uploader has been installed.`)
+                }
+            }
+        }],
+        sidebar_enhance: [{
+            when: { $and: [{ CUSTOMIZE_SIDEBAR_ICONS: true }, { $meta: { $isMounting: false, $isBetaTypora: true } }] },
+            affects: [],
+            effect: (isMet) => {
+                if (isMet) utils.notification.show('The Beta version of Typora has NOT the "ty-file-icon" style.\nPlease switch to Font-Awesome or Ion-Icons')
+            },
+        }],
+    }
 }

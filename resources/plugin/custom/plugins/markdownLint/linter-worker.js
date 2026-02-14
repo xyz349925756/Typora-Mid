@@ -1,20 +1,25 @@
 let LIB
+let RULE_CONFIG
 let CUSTOM_RULES
-let RULES
 
 const linter = {
-    configure: ({ libPath, customRulesFiles, rules, content }) => {
-        if (libPath) {
-            LIB = require(libPath)
+    configure: ({ polyfillLib, coreLib, helpersLib, customRuleFiles, ruleConfig, content }) => {
+        if (polyfillLib) {
+            require(polyfillLib)
         }
-        if (customRulesFiles) {
-            CUSTOM_RULES = customRulesFiles.flatMap(e => require(e))
+        if (coreLib) {
+            LIB = require(coreLib)
         }
-        if (rules) {
-            RULES = rules
+        if (helpersLib && customRuleFiles) {
+            const helpers = require(helpersLib)
+            const define = (defineRule) => defineRule(helpers)  // Dependency Injection
+            CUSTOM_RULES = customRuleFiles.map(require).flatMap(define)
+        }
+        if (ruleConfig) {
+            RULE_CONFIG = ruleConfig
         }
         if (LIB) {
-            console.debug(`markdownlint@${LIB.getVersion()} worker is initialized with rules`, RULES)
+            console.debug(`[Markdownlint] markdownlint@${LIB.getVersion()} worker is configured with rules`, RULE_CONFIG)
         }
         if (content) {
             return linter.check({ content })
@@ -22,13 +27,12 @@ const linter = {
     },
     check: async ({ content }) => {
         if (!LIB) return
-        const op = { strings: { content }, config: RULES, customRules: CUSTOM_RULES }
+        const op = { strings: { content }, config: RULE_CONFIG, customRules: CUSTOM_RULES }
         const result = await LIB.lint(op)
         return result.content
     },
     fix: async ({ content, fixInfo }) => {
-        if (!LIB) return
-        if (fixInfo && fixInfo.length) {
+        if (LIB && fixInfo?.length) {
             return LIB.applyFixes(content, fixInfo)
         }
     },

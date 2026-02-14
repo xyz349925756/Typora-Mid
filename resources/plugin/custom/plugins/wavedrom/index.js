@@ -30,7 +30,7 @@
  *
  * Wavedrom's documentation is incomplete; source code inspection is often required.
  */
-class wavedromPlugin extends BaseCustomPlugin {
+class WavedromPlugin extends BaseCustomPlugin {
     init = () => {
         this.wavedromPkg = null
         this.prefix = "WaveDrom_Display_"
@@ -60,7 +60,10 @@ class wavedromPlugin extends BaseCustomPlugin {
             destroyFunc: null,
             beforeExportToNative: null,
             beforeExportToHTML: null,
-            extraStyleGetter: null,
+            extraStyleGetter: parser.SVG_PRINT_STYLE_FIXER(
+                this.config.LANGUAGE,
+                ".plugin-wavedrom-content",
+            ),
             versionGetter: this.getVersion,
         })
     }
@@ -73,14 +76,15 @@ class wavedromPlugin extends BaseCustomPlugin {
         this.wavedromPkg.renderWaveForm(index, waveJson, this.prefix, notFirstSignal)
     }
 
-    getVersion = () => this.wavedromPkg && this.wavedromPkg.version
+    getVersion = () => this.wavedromPkg?.version
 
     lazyLoad = () => {
         this.wavedromPkg = require("./wavedrom.min.js")
-        window.WaveSkin = this.wavedromPkg.waveSkin  // renderWaveForm() will use window.WaveSkin
+        const skins = this.config.SKIN_FILES.map(file => require(this.utils.resolvePath(file)))
+        window.WaveSkin = Object.assign(this.wavedromPkg.waveSkin, ...skins)  // renderWaveForm() will use window.WaveSkin
     }
 }
 
 module.exports = {
-    plugin: wavedromPlugin
+    plugin: WavedromPlugin
 }

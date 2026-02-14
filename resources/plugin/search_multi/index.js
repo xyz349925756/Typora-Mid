@@ -1,7 +1,7 @@
-const { Searcher } = require("./searcher")
-const { Highlighter } = require("./highlighter")
+const Searcher = require("./searcher")
+const Highlighter = require("./highlighter")
 
-class searchMultiPlugin extends BasePlugin {
+class SearchMultiPlugin extends BasePlugin {
     styleTemplate = () => {
         const colors_style = this.config.HIGHLIGHT_COLORS
             .map((color, idx) => `.cm-plugin-highlight-hit-${idx} { background-color: ${color} !important; }`)
@@ -63,21 +63,17 @@ class searchMultiPlugin extends BasePlugin {
         this.searcher.process()
         this.highlighter.process()
         this.entities.files.addEventListener("click", ev => {
-            const target = ev.target.closest(".plugin-search-item")
-            if (target) {
-                const filepath = target.dataset.path
-                this.utils.openFile(filepath)
-            }
+            const path = ev.target.closest(".plugin-search-item")?.dataset.path
+            if (path) this.utils.openFile(path)
         })
         this.entities.btn.addEventListener("click", () => {
             this.entities.btn.classList.toggle("select")
             this.config.CASE_SENSITIVE = !this.config.CASE_SENSITIVE
         })
         this.entities.window.addEventListener("btn-click", ev => {
-            const { action } = ev.detail
-            if (action === "showGrammar") {
+            if (ev.detail.action === "showGrammar") {
                 this.searcher.showGrammar()
-            } else if (action === "close") {
+            } else if (ev.detail.action === "close") {
                 this.hide()
             }
         })
@@ -124,7 +120,7 @@ class searchMultiPlugin extends BasePlugin {
             ast = ast || this.getAST()
             this.utils.hide(this.entities.highlights)
             if (!ast) return
-            const tokens = this.searcher.getContentTokens(ast).filter(Boolean)
+            const tokens = this.searcher.getPositiveContentTokens(ast)
             if (tokens.length === 0) return
 
             const hint = this.i18n.t("highlightHint")
@@ -154,7 +150,7 @@ class searchMultiPlugin extends BasePlugin {
         this.entities.files.innerHTML = ""
 
         const { MAX_SIZE, MAX_DEPTH, MAX_STATS, TIMEOUT, TRAVERSE_STRATEGY, CONCURRENCY_LIMIT, IGNORE_FOLDERS, FOLLOW_SYMBOLIC_LINKS, STOP_SEARCHING_ON_HIDING } = this.config
-        const { Path: { extname }, Fs: { promises: { readFile } } } = this.utils.Package
+        const { Path: { extname }, FsExtra: { readFile } } = this.utils.Package
 
         const getFileFilter = () => {
             const verifyExt = name => this.allowedExtensions.has(extname(name).toLowerCase())
@@ -166,7 +162,7 @@ class searchMultiPlugin extends BasePlugin {
         const getFileParamsCreator = () => {
             const readFileScopes = this.searcher.getReadFileScopes(ast)
             return readFileScopes.length !== 0
-                ? async (path, file, dir, stats) => ({ path, file, stats, content: (await readFile(path)).toString() })
+                ? async (path, file, dir, stats) => ({ path, file, stats, content: await readFile(path, "utf-8") })
                 : (path, file, dir, stats) => ({ path, file, stats })
         }
         const getOnFile = () => {
@@ -174,13 +170,16 @@ class searchMultiPlugin extends BasePlugin {
             return this._showSearchResult(rootPath, matcher)
         }
         const getSignal = () => {
-            this.cancelController = new AbortController()
             const signals = []
-            if (TIMEOUT > 0) signals.push(AbortSignal.timeout(TIMEOUT))
-            if (STOP_SEARCHING_ON_HIDING) signals.push(this.cancelController.signal)
-            return signals.length === 0
-                ? undefined
-                : signals.length === 1 ? signals[0] : AbortSignal.any(signals)
+            if (TIMEOUT > 0) {
+                signals.push(AbortSignal.timeout(TIMEOUT))
+            }
+            if (STOP_SEARCHING_ON_HIDING) {
+                this.cancelController = new AbortController()
+                signals.push(this.cancelController.signal)
+            }
+            if (signals.length === 0) return undefined
+            return signals.length === 1 ? signals[0] : AbortSignal.any(signals)
         }
         const onFinished = (err) => {
             this.cancelController = null
@@ -189,7 +188,7 @@ class searchMultiPlugin extends BasePlugin {
             if (!err) return
             if (err.name === "AbortError") return  // user cancellation
             console.error(err)
-            const msg = err.name === "TimeoutError" ? this.i18n._t("global", "error.timeout") : err.toString()
+            const msg = err.name === "TimeoutError" ? this.i18n.t("error.timeout") : err.toString()
             this.utils.notification.show(msg, "error")
         }
 
@@ -250,14 +249,12 @@ class searchMultiPlugin extends BasePlugin {
         this.entities.window.hide()
         this.utils.hide(this.entities.searching)
         this.highlighter.clearSearch()
-        if (this.cancelController) {
-            this.cancelController.abort(new DOMException("User Cancellation", "AbortError"))
-        }
+        this.cancelController?.abort(new DOMException("User Cancellation", "AbortError"))
     }
 
     show = () => {
         this.entities.window.show()
-        setTimeout(() => this.entities.input.select())
+        requestAnimationFrame(() => this.entities.input.select())
     }
 
     call = () => {
@@ -270,5 +267,5 @@ class searchMultiPlugin extends BasePlugin {
 }
 
 module.exports = {
-    plugin: searchMultiPlugin
+    plugin: SearchMultiPlugin
 }

@@ -3,7 +3,7 @@
  *  2. ::before uses the left style to float out of the parent element's BoundingClientRect
  *  3. When the parent element detects a click, check the mouse position. If the mouse position is outside the parent element's Rect, then determine that the pseudo-class has been clicked
  */
-class collapseListPlugin extends BasePlugin {
+class CollapseListPlugin extends BasePlugin {
     beforeProcess = () => {
         this.className = "plugin-collapsed-list";
         this.selector = '#write [mdtype="list"]';
@@ -14,7 +14,7 @@ class collapseListPlugin extends BasePlugin {
     styleTemplate = () => true
 
     process = () => {
-        this.utils.settings.autoSaveSettings(this)
+        this.utils.settings.autoSave(this)
         this.recordCollapseState(false);
         this.utils.entities.eWrite.addEventListener("click", ev => {
             const parent = ev.target.closest(this.selector);
@@ -47,30 +47,30 @@ class collapseListPlugin extends BasePlugin {
     toggleCollapse = ele => ele.classList.toggle(this.className);
 
     recordCollapseState = (needChange = true) => {
-        const name = "recordCollapseList";
         if (needChange) {
-            this.config.RECORD_COLLAPSE = !this.config.RECORD_COLLAPSE;
+            this.config.RECORD_COLLAPSE = !this.config.RECORD_COLLAPSE
         }
         if (this.config.RECORD_COLLAPSE) {
-            this.utils.stateRecorder.register(name, this.selector, this.checkCollapse, this.setCollapse)
+            this.utils.stateRecorder.register({
+                name: this.fixedName,
+                selector: this.selector,
+                stateGetter: this.checkCollapse,
+                stateRestorer: this.setCollapse,
+            })
         } else {
-            this.utils.stateRecorder.unregister(name);
+            this.utils.stateRecorder.unregister(this.fixedName)
         }
     }
 
     rollback = start => {
-        let cur = start;
-        while (true) {
-            cur = cur.closest(`.${this.className}`);
-            if (!cur) return;
-            this.cancelCollapse(cur);
-            cur = cur.parentElement;
+        let cur = start
+        while (cur && (cur = cur.closest(`.${this.className}`))) {
+            this.cancelCollapse(cur)
+            cur = cur.parentElement
         }
     }
 
-    getDynamicActions = () => this.i18n.fillActions([
-        { act_value: "record_collapse_state", act_state: this.config.RECORD_COLLAPSE }
-    ])
+    getDynamicActions = () => [{ act_value: "record_collapse_state", act_state: this.config.RECORD_COLLAPSE, act_name: this.i18n.t("$label.RECORD_COLLAPSE") }]
 
     call = action => {
         if (action === "record_collapse_state") {
@@ -80,5 +80,5 @@ class collapseListPlugin extends BasePlugin {
 }
 
 module.exports = {
-    plugin: collapseListPlugin
+    plugin: CollapseListPlugin
 }

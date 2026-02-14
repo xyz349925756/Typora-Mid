@@ -1,4 +1,4 @@
-class slashCommandsPlugin extends BasePlugin {
+class SlashCommandsPlugin extends BasePlugin {
     beforeProcess = () => {
         this.SCOPE = { INLINE_MATH: "inline_math", PLAIN: "plain" }
         this.TYPE = { COMMAND: "command", SNIPPET: "snippet", GENERATE_SNIPPET: "gen-snp" }
@@ -27,7 +27,7 @@ class slashCommandsPlugin extends BasePlugin {
 
     process = () => {
         if (this.config.SUGGESTION_TIMING === "on_input") {
-            this.utils.decorate(() => File && File.editor && File.editor.brush, "triggerAutoComplete", null, this._onEdit)
+            this.utils.decorate(() => File?.editor?.brush, "triggerAutoComplete", null, this._onEdit)
         } else {
             this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.fileEdited, this._onEdit)
         }
@@ -35,7 +35,7 @@ class slashCommandsPlugin extends BasePlugin {
 
     _getTextAround = () => {
         const range = File.editor.selection.getRangy()
-        if (range && range.collapsed) {
+        if (range?.collapsed) {
             const container = $(range.startContainer).closest(`[md-inline="plain"], [type="math/tex"]`)[0]
             if (container) {
                 const scope = this._getScope(container)
@@ -60,7 +60,7 @@ class slashCommandsPlugin extends BasePlugin {
         const [textBefore, textAfter, bookmark, scope] = this._getTextAround()
         if (!textBefore) return
         const match = textBefore.match(this.regexp)
-        const kw = match && match.groups && match.groups.kw
+        const kw = match?.groups?.kw
         if (kw == null) return
 
         const [command, ...params] = kw.split(this.config.FUNC_PARAM_SEPARATOR)
@@ -170,7 +170,7 @@ class slashCommandsPlugin extends BasePlugin {
 
     _evalFunction = (fnString, ...args) => {
         const ret = eval(fnString)
-        return ret instanceof Function ? (ret(...args) || "").toString() : fnString
+        return (typeof ret === "function") ? (ret(...args) || "").toString() : fnString
     }
 
     _clearAnchor = (anchor) => {
@@ -246,5 +246,5 @@ class slashCommandsPlugin extends BasePlugin {
 }
 
 module.exports = {
-    plugin: slashCommandsPlugin
+    plugin: SlashCommandsPlugin
 }

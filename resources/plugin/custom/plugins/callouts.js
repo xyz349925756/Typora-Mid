@@ -1,4 +1,4 @@
-class calloutsPlugin extends BaseCustomPlugin {
+class CalloutsPlugin extends BaseCustomPlugin {
     styleTemplate = () => {
         const { list, hover_to_show_fold_callout, set_title_color } = this.config;
         const callouts = list.map(c => (
@@ -17,26 +17,20 @@ class calloutsPlugin extends BaseCustomPlugin {
     }
 
     process = () => {
-        const { eventHub, exportHelper } = this.utils;
-        eventHub.addEventListener(eventHub.eventType.firstFileInit, this.range);
-        eventHub.addEventListener(eventHub.eventType.fileEdited, this.range);
-        exportHelper.register("callouts", this.beforeExport, this.afterExport);
+        this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.fileEdited, this.setCallouts)
+        this.utils.exportHelper.register("callouts", this.beforeExport, this.afterExport)
     }
 
-    range = () => {
-        const pList = this.utils.entities.querySelectorAllInWrite("blockquote > p:first-child");
-        pList.forEach(p => {
+    setCallouts = () => {
+        this.utils.entities.querySelectorAllInWrite("blockquote > p:first-child").forEach(p => {
             const blockquote = p.parentElement;
             const result = p.textContent.match(/^\[!(?<type>\w+)\](?<fold>[+-]?)/);
-            const ok = result && result.groups;
+            const ok = !!(result?.groups)
             blockquote.classList.toggle("plugin-callout", ok);
             if (ok) {
                 const { type, fold } = result.groups;
                 // Add data-type attribute to spans containing [!type]
-                const firstSpan = p.querySelector('span:first-child');
-                if (firstSpan) {
-                    firstSpan.setAttribute('data-type', type);
-                }
+                p.querySelector("span:first-child")?.setAttribute("data-type", type)
                 blockquote.setAttribute("callout-type", type.toLowerCase());
                 blockquote.classList.toggle("callout-folded", fold === "-");
             }
@@ -46,8 +40,8 @@ class calloutsPlugin extends BaseCustomPlugin {
     callback = anchorNode => this.utils.insertText(anchorNode, this.config.template)
 
     check = args => {
-        const isIgnoreType = args && args[0] && args[0].type === "html-plain";
-        const hasCallout = this.utils.entities.querySelectorInWrite(".plugin-callout");
+        const isIgnoreType = args?.[0]?.type === "html-plain"
+        const hasCallout = this.utils.entities.querySelectorInWrite(".plugin-callout")
         return !isIgnoreType && hasCallout
     }
 
@@ -56,8 +50,8 @@ class calloutsPlugin extends BaseCustomPlugin {
 
         const extra = `
             @font-face {
-                font-family: '${this.config.font_family}';
-                src: url(${this.config.network_icon_url}) format('woff');
+                font-family: "${this.config.font_family}";
+                src: url("${this.config.network_icon_url}");
                 font-weight: normal;
                 font-style: normal;
             }`
@@ -86,9 +80,7 @@ class calloutsPlugin extends BaseCustomPlugin {
                 quoteInHTML.setAttribute("callout-type", calloutType)
 
                 const span = quoteInHTML.querySelector(":scope > p:first-child > span:first-child")
-                if (span) {
-                    span.setAttribute("data-type", calloutType.toUpperCase())
-                }
+                span?.setAttribute("data-type", calloutType.toUpperCase())
             }
         }
         return `<!DOCTYPE HTML>\n${doc.documentElement.outerHTML}`
@@ -96,5 +88,5 @@ class calloutsPlugin extends BaseCustomPlugin {
 }
 
 module.exports = {
-    plugin: calloutsPlugin,
+    plugin: CalloutsPlugin
 }

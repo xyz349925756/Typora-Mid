@@ -1,7 +1,7 @@
 /**
  * Dynamically register and unregister new code block diagram.
  */
-class diagramParser {
+class DiagramParser {
     constructor(utils, i18n) {
         this.utils = utils;
         this.i18n = i18n;
@@ -59,22 +59,16 @@ class diagramParser {
 
     renderAllLangFence = lang => {
         document.querySelectorAll(`#write .md-fences[lang=${lang}]`).forEach(fence => {
-            const codeMirror = fence.querySelector(":scope > .CodeMirror")
-            if (!codeMirror) {
-                const cid = fence.getAttribute("cid")
-                if (cid) {
-                    File.editor.fences.addCodeBlock(cid)
-                }
-            }
+            const cid = fence.getAttribute("cid")
+            const cm = File.editor.fences.queue[cid]
+            if (!cm) File.editor.fences.addCodeBlock(cid)
         })
     }
 
     refreshAllLangFence = lang => {
         document.querySelectorAll(`#write .md-fences[lang="${lang}"]`).forEach(fence => {
             const cid = fence.getAttribute("cid")
-            if (cid) {
-                File.editor.diagrams.updateDiagram(cid)
-            }
+            if (cid) File.editor.diagrams.updateDiagram(cid)
         })
     }
 
@@ -103,7 +97,7 @@ class diagramParser {
         }
     }
 
-    registerLangTooltip = () => File.editor.fences.ALL && File.editor.fences.ALL.push(...this.parsers.keys())
+    registerLangTooltip = () => File.editor.fences.ALL?.push(...this.parsers.keys())
 
     registerLangModeMapping = () => {
         const after = mode => {
@@ -131,21 +125,25 @@ class diagramParser {
         throw { errorLine, reason }
     }
 
+    assertOK = (must, errorLine, reason) => {
+        if (!must) this.throwParseError(errorLine, reason)
+    }
+
     getErrorMessage = error => {
         if (error instanceof Error) {
             return this.utils.escape(error.stack)
         }
-        const { errorLine, reason } = error
+        const { errorLine, reason } = error || {}
         let msg = errorLine ? this.i18n.t("global", "error.atLine", { errorLine }) : ''
         if (reason instanceof Error) {
             msg += "\n" + this.utils.escape(reason.stack)
         } else if (reason) {
-            msg += `: ${reason}`
+            msg += "\n" + this.utils.escape(reason.toString())
         }
-        return msg || error.toString()
+        return msg || this.utils.escape(error.toString())
     }
 
-    whenCantDraw = async (cid, lang, $pre, content, error) => {
+    whenCannotDraw = async (cid, lang, $pre, content, error) => {
         if (!error) {
             $pre.removeClass("md-fences-advanced")
             $pre.children(".md-diagram-panel").remove()
@@ -182,8 +180,8 @@ class diagramParser {
 
     destroyIfNeed = (parser, cid, lang, $pre) => {
         if (parser.destroyWhenUpdate) {
-            parser.cancelFunc && parser.cancelFunc(cid, lang);
-            $pre.find(".md-diagram-panel-preview").html("");
+            parser.cancelFunc?.(cid, lang)
+            $pre.find(".md-diagram-panel-preview").html("")
         }
     }
 
@@ -212,7 +210,7 @@ class diagramParser {
         try {
             await parser.renderFunc(cid, content, $pre, lang);
         } catch (error) {
-            await this.whenCantDraw(cid, lang, $pre, content, error);
+            await this.whenCannotDraw(cid, lang, $pre, content, error)
         }
     }
 
@@ -234,7 +232,7 @@ class diagramParser {
             const parser = this.parsers.get(lang);
             if (parser) {
                 $pre.addClass("plugin-custom-diagram");
-                parser.interactiveMode && $pre.addClass("md-fences-interactive");
+                if (parser.interactiveMode) $pre.addClass("md-fences-interactive")
                 await this.renderCustomDiagram(cid, lang, $pre);
             } else {
                 $pre.removeClass("md-fences-interactive plugin-custom-diagram");
@@ -257,13 +255,9 @@ class diagramParser {
 
     onAddCodeBlock = () => this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.afterAddCodeBlock, this.renderDiagram)
 
-    onTryAddLangUndo = () => this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.afterUpdateCodeBlockLang, args => args && args[0] && this.renderDiagram(args[0].cid))
+    onTryAddLangUndo = () => this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.afterUpdateCodeBlockLang, ([node] = []) => node && this.renderDiagram(node.cid))
 
-    onUpdateDiagram = () => {
-        const objGetter = () => File && File.editor && File.editor.diagrams;
-        const after = (result, ...args) => this.renderDiagram(args[0]);
-        this.utils.decorate(objGetter, "updateDiagram", null, after);
-    }
+    onUpdateDiagram = () => this.utils.decorate(() => File?.editor?.diagrams, "updateDiagram", null, (_, cid) => this.renderDiagram(cid))
 
     onExport = () => {
         const afterExport = () => {
@@ -276,23 +270,21 @@ class diagramParser {
 
         const callback = () => {
             const beforeToHTML = () => {
-                const extraCssList = []
+                const extraCSSs = []
                 this.parsers.forEach((parser, lang) => {
                     this.renderAllLangFence(lang)
-                    const getter = parser.extraStyleGetter
-                    const exist = this.utils.entities.querySelectorInWrite(`.md-fences[lang="${lang}"]`)
-                    if (getter && exist) {
-                        const extraCss = getter()
-                        extraCssList.push(extraCss)
+                    if (typeof parser.extraStyleGetter === "function" && !!this.utils.entities.querySelectorInWrite(`.md-fences[lang="${lang}"]`)) {
+                        extraCSSs.push(parser.extraStyleGetter())
                     }
                 })
-                if (extraCssList.length) {
-                    const base = ` .md-diagram-panel, svg {page-break-inside: avoid;} `
-                    return base + extraCssList.join(" ")
+                if (extraCSSs.length) {
+                    const base = ` .md-diagram-panel, svg { page-break-inside: avoid } `
+                    return base + extraCSSs.join(" ")
                 }
             }
-            // Make `frame.js` happy. Avoid null pointer exceptions
-            // There is a line of code in the export source code: document.querySelector("[cid='" + t.cid + "'] svg").getBoundingClientRect()
+            // Make `frame.js` happy. To avoid null pointer exceptions
+            // There is a line of code in `frame.js` in exporting logic:
+            //    document.querySelector("[cid='" + t.cid + "'] svg").getBoundingClientRect()
             const beforeToNative = () => {
                 this.parsers.forEach((parser, lang) => {
                     this.renderAllLangFence(lang)
@@ -320,20 +312,19 @@ class diagramParser {
             setTimeout(() => dontFocus = true, 200);
         }
 
-        const stopCall = (...args) => {
-            if (!dontFocus || !args || !args[0]) return;
-
-            const cid = ("string" == typeof args[0]) ? args[0] : args[0]["id"];
-            if (cid) {
-                const lang = (File.editor.findElemById(cid).attr("lang") || "").trim().toLowerCase();
-                if (!cid || !lang) return;
-                const parser = this.parsers.get(lang);
-                if (parser && parser.interactiveMode) return this.utils.stopCallError
+        const stopCall = (node) => {
+            if (!dontFocus || !node) return
+            const cid = ("string" == typeof node) ? node : node.id
+            if (!cid) return
+            const lang = File.editor.findElemById(cid).attr("lang")?.trim().toLowerCase()
+            if (!lang) return
+            if (this.parsers.get(lang)?.interactiveMode) {
+                return this.utils.stopCallError
             }
         }
 
-        this.utils.decorate(() => File && File.editor && File.editor.fences, "focus", stopCall);
-        this.utils.decorate(() => File && File.editor, "refocus", stopCall);
+        this.utils.decorate(() => File?.editor?.fences, "focus", stopCall)
+        this.utils.decorate(() => File?.editor, "refocus", stopCall)
 
         const showAllTButton = fence => {
             const enhance = fence.querySelector(".fence-enhance");
@@ -343,26 +334,27 @@ class diagramParser {
         }
 
         const showEditButtonOnly = fence => {
-            const enhance = fence.querySelector(".fence-enhance");
-            if (!enhance) return;
-            enhance.style.display = "";
-            enhance.querySelectorAll(".enhance-btn").forEach(ele => ele.style.display = "none");
-            enhance.querySelector(".edit-diagram").style.display = "";
+            const enhance = fence.querySelector(".fence-enhance")
+            if (!enhance) return
+            enhance.style.display = ""
+            enhance.querySelectorAll(".enhance-btn").forEach(el => el.style.display = "none")
+            enhance.querySelector('.enhance-btn[action="edit"]').style.display = ""
         }
 
         const hideAllButton = fence => {
-            const enhance = showAllTButton(fence);
-            if (!enhance) return;
-            const editButton = enhance.querySelector(".edit-diagram");
+            const enhance = showAllTButton(fence)
+            if (!enhance) return
+            const editButton = enhance.querySelector('.enhance-btn[action="edit"]')
             if (editButton) {
-                editButton.style.display = "none";
+                editButton.style.display = "none"
             }
-            enhance.style.display = "none";
+            enhance.style.display = "none"
         }
 
-        const registerFenceEnhanceButton = (className, action, hint, iconClassName, enable, listener, extraFunc) => {
-            const btn = { className, action, hint, iconClassName, enable, listener, extraFunc }
-            return this.utils.callPluginFunction("fence_enhance", "registerButton", btn)
+        const registerButton = (action, hint, iconClassName, enable, listener, extraFunc) => {
+            const fn = this.utils.getPluginFunction("fence_enhance", "registerButton")
+            fn?.({ action, hint, iconClassName, enable, listener, extraFunc })
+            return !!fn
         }
 
         const handleCtrlClick = () => {
@@ -382,11 +374,11 @@ class diagramParser {
             if (!editBtn || !hasInteractive) return;
 
             const editText = this.i18n.t("global", "edit")
-            const listener = (ev, button) => {
-                button.closest(".fence-enhance").querySelectorAll(".enhance-btn").forEach(ele => ele.style.display = "");
-                enableFocus();
+            const listener = ({ btn }) => {
+                btn.closest(".fence-enhance").querySelectorAll(".enhance-btn").forEach(ele => ele.style.display = "")
+                enableFocus()
             }
-            const ok = registerFenceEnhanceButton("edit-diagram", "editDiagram", editText, "fa fa-pencil", false, listener);
+            const ok = registerButton("edit", editText, "fa fa-pencil", false, listener)
             if (!ok) return;
 
             this.utils.entities.$eWrite.on("mouseenter", ".md-fences-interactive:not(.md-focus)", function () {
@@ -407,33 +399,28 @@ class diagramParser {
     onChangeFile = () => {
         this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.otherFileOpened, () => {
             for (const { destroyAllFunc } of this.parsers.values()) {
-                destroyAllFunc && destroyAllFunc();
+                destroyAllFunc?.()
             }
         });
     }
 
     onCheckIsDiagramType = () => {
-        const objGetter = () => File && File.editor && File.editor.diagrams && File.editor.diagrams.constructor
-        const after = (result, ...args) => {
-            if (result === true) return true;
+        const after = (origin, lang) => {
+            if (origin === true) return true
+            if (!lang) return false
 
-            let lang = args[0];
-            if (!lang) return false;
-
-            const type = typeof lang;
-            if (type === "object" && lang.mappingType === this.diagramModeFlag) return true;
-            if (type === "object" && lang.name) {
-                lang = lang.name;
+            const t = typeof lang
+            if (t === "object" && lang.mappingType === this.diagramModeFlag) return true
+            if (t === "object" && lang.name) {
+                lang = lang.name
             }
-            if (type === "string") {
-                return this.parsers.get(lang.toLowerCase());
+            if (t === "string") {
+                return this.parsers.get(lang.toLowerCase())
             }
-            return result
+            return origin
         }
-        this.utils.decorate(objGetter, "isDiagramType", null, after, true);
+        this.utils.decorate(() => File?.editor?.diagrams?.constructor, "isDiagramType", null, after, true)
     }
 }
 
-module.exports = {
-    diagramParser
-}
+module.exports = DiagramParser

@@ -1,4 +1,4 @@
-class formDialog {
+class FormDialog {
     constructor(utils, i18n) {
         this.utils = utils
         this.i18n = i18n
@@ -48,6 +48,7 @@ class formDialog {
 
         this.resolver({ response: state, data: this.entities.form.options.data })
         this.resolver = null
+        this.entities.form.clear()
     }
 
     modal = ({ title, ...options }) => {
@@ -75,6 +76,4 @@ class formDialog {
     exit = () => this.entities.cancel.click()
 }
 
-module.exports = {
-    formDialog
-}
+module.exports = FormDialog

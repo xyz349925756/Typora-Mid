@@ -1,7 +1,7 @@
-class marpPlugin extends BaseCustomPlugin {
+class MarpPlugin extends BaseCustomPlugin {
     styleTemplate = () => true
 
-    init = () => this.marpPkg = null
+    init = () => this.marp = null
 
     callback = anchorNode => this.utils.insertText(anchorNode, this.config.TEMPLATE)
 
@@ -28,20 +28,55 @@ class marpPlugin extends BaseCustomPlugin {
     }
 
     create = ($wrap, content) => {
-        const { Marp, marp } = this.marpPkg  // more detail: https://github.com/marp-team/marp-core
-        const shadowRoot = $wrap[0].shadowRoot || $wrap[0].attachShadow({ mode: "open" }) // use shadowDOM to isolate styles
-        const { html, css } = marp.render(content)
+        const { html, css } = this.marp.render(content)
+        const shadowRoot = $wrap[0].shadowRoot || $wrap[0].attachShadow({ mode: "open" }) // Use shadowDOM to isolate styles
         shadowRoot.innerHTML = `<style>${css}</style>` + html
         return shadowRoot
     }
 
     destroy = shadowRoot => shadowRoot.innerHTML = ""
 
-    getVersion = () => "marp-core@3.9.0"
+    getVersion = () => "marp-core@4.2.0"
 
-    lazyLoad = () => this.marpPkg = require("./marp.min.js")
+    // More detail: https://github.com/marp-team/marp-core
+    lazyLoad = () => {
+        const { Marp } = require("./marp-core.min.js")
+        this.Marp = Marp
+        this.marp = new Marp(this.config.MARP_CORE_OPTIONS).use(this._marpAbsoluteImagePath())
+    }
+
+    _marpAbsoluteImagePath = () => {
+        const toAbsPath = (url) => {
+            const decodedURL = decodeURIComponent(url)
+            const dir = this.utils.getLocalRootUrl()
+            const absPath = (this.utils.isNetworkImage(decodedURL) || this.utils.isSpecialImage(decodedURL))
+                ? decodedURL
+                : this.utils.Package.Path.resolve(dir, decodedURL)
+            return absPath.split(this.utils.Package.Path.sep).join("/")
+        }
+
+        return function (marp) {
+            // Image commands (`![bg](...) `): They will be processed by `marp.normalizeLink`, replaced to the `background-image: url(...)` in `style` attribute.
+            const originalNormalizeLink = marp.normalizeLink
+            marp.normalizeLink = (url) => {
+                const normalized = originalNormalizeLink(url)
+                return toAbsPath(normalized)
+            }
+            const originalImageRule = marp.renderer.rules.image
+
+            // Ordinary images (`![alt](...) `): They will be processed by `md.renderer.rules.images`, replaced to the `src` attribute of the `<img>` tag.
+            marp.renderer.rules.image = (tokens, idx, options, env, self) => {
+                const token = tokens[idx]
+                const srcIndex = token.attrIndex("src")
+                if (srcIndex >= 0) {
+                    token.attrs[srcIndex][1] = toAbsPath(token.attrs[srcIndex][1])
+                }
+                return originalImageRule ? originalImageRule(tokens, idx, options, env, self) : self.renderToken(tokens, idx, options)
+            }
+        }
+    }
 }
 
 module.exports = {
-    plugin: marpPlugin
+    plugin: MarpPlugin
 }

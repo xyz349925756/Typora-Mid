@@ -1,15 +1,13 @@
-class resizeTablePlugin extends BasePlugin {
+class ResizeTablePlugin extends BasePlugin {
     styleTemplate = () => this.config.REMOVE_MIN_CELL_WIDTH
 
     process = () => {
-        this.utils.settings.autoSaveSettings(this)
+        this.utils.settings.autoSave(this)
         this.toggleRecorder(false);
         this.onResize();
     }
 
-    getDynamicActions = anchorNode => this.i18n.fillActions([
-        { act_value: "record_resize_state", act_state: this.config.RECORD_RESIZE }
-    ])
+    getDynamicActions = anchorNode => [{ act_value: "record_resize_state", act_state: this.config.RECORD_RESIZE, act_name: this.i18n.t("$label.RECORD_RESIZE") }]
 
     call = action => action === "record_resize_state" && this.toggleRecorder()
 
@@ -65,16 +63,17 @@ class resizeTablePlugin extends BasePlugin {
 
     toggleRecorder = (needChange = true) => {
         if (needChange) {
-            this.config.RECORD_RESIZE = !this.config.RECORD_RESIZE;
+            this.config.RECORD_RESIZE = !this.config.RECORD_RESIZE
         }
-        const name = "recordResizeTable";
-        const selector = "#write th, #write td";
-        const stateGetter = ele => ele.style.cssText
-        const stateRestorer = (ele, state) => ele.style = state
         if (this.config.RECORD_RESIZE) {
-            this.utils.stateRecorder.register(name, selector, stateGetter, stateRestorer);
+            this.utils.stateRecorder.register({
+                name: this.fixedName,
+                selector: "#write th, #write td",
+                stateGetter: el => el.style.cssText,
+                stateRestorer: (el, state) => el.style = state,
+            })
         } else {
-            this.utils.stateRecorder.unregister(name);
+            this.utils.stateRecorder.unregister(this.fixedName)
         }
     }
 
@@ -123,5 +122,5 @@ class resizeTablePlugin extends BasePlugin {
 }
 
 module.exports = {
-    plugin: resizeTablePlugin
+    plugin: ResizeTablePlugin
 }

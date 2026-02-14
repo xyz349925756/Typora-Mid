@@ -1,4 +1,4 @@
-class calendarPlugin extends BaseCustomPlugin {
+class CalendarPlugin extends BaseCustomPlugin {
     init = () => this.Calendar = null
 
     callback = anchorNode => this.utils.insertText(anchorNode, this.config.TEMPLATE)
@@ -23,7 +23,7 @@ class calendarPlugin extends BaseCustomPlugin {
             destroyFunc: this.destroy,
             beforeExportToNative: null,
             beforeExportToHTML: null,
-            extraStyleGetter: null,
+            extraStyleGetter: this.getStyleContent,
             versionGetter: this.getVersion,
         })
     }
@@ -49,8 +49,13 @@ class calendarPlugin extends BaseCustomPlugin {
         const { Calendar } = require("./toastui-calendar.min.js")
         this.Calendar = Calendar
     }
+
+    getStyleContent = () => {
+        const path = this.utils.joinPath("./plugin/custom/plugins/calendar/toastui-calendar.min.css")
+        return this.utils.Package.FsExtra.readFileSync(path, "utf-8")
+    }
 }
 
 module.exports = {
-    plugin: calendarPlugin
+    plugin: CalendarPlugin
 }

@@ -1,4 +1,4 @@
-class quickButtonPlugin extends BaseCustomPlugin {
+class QuickButtonPlugin extends BaseCustomPlugin {
     html = () => '<div id="plugin-quick-button"></div>'
 
     hotkey = () => [this.config.hotkey]
@@ -24,14 +24,13 @@ class quickButtonPlugin extends BaseCustomPlugin {
         this.buttonGroup.addEventListener("mousedown", ev => {
             const target = ev.target.closest(".action-item")
             if (!target) return
+            ev.stopPropagation()
+            ev.preventDefault()
             if (ev.button === 2 && this.config.support_right_click) {
                 [...this.buttonGroup.children]
                     .filter(e => e !== target)
                     .forEach(e => e.classList.toggle("plu-hidden"))
             } else if (ev.button === 0) {
-                target.classList.add("plu-click")
-                setTimeout(() => target.classList.remove("plu-click"), 80)
-
                 const action = target.getAttribute("action")
                 const button = this.buttons.get(action)
                 if (action && button) {
@@ -50,7 +49,7 @@ class quickButtonPlugin extends BaseCustomPlugin {
             const cb = evil
                 ? eval(evil)
                 : this.utils.getPluginFunction(...callback.split("."))
-            if (cb instanceof Function && x >= 0 && y >= 0) {
+            if (typeof cb === "function" && x >= 0 && y >= 0) {
                 const action = `__${idx}`
                 const btn = { x, y, action, hint, icon, size, color, bgColor, callback: cb }
                 this.buttons.set(action, btn)
@@ -66,29 +65,31 @@ class quickButtonPlugin extends BaseCustomPlugin {
             for (let y = 0; y <= maxY; y++) {
                 const coordinate = `${maxX - x}-${maxY - y}`
                 const btn = btnMap.get(coordinate)
-                const div = document.createElement("div")
-                div.classList.add("action-item")
+                const item = document.createElement("div")
+                item.classList.add("action-item")
                 if (btn) {
-                    div.setAttribute("action", btn.action)
+                    item.setAttribute("action", btn.action)
                     if (btn.icon) {
-                        div.classList.add(...btn.icon.split(" "))
+                        const i = document.createElement("i")
+                        i.className = btn.icon
+                        item.appendChild(i)
                     }
                     if (!this.config.hide_button_hint && btn.hint) {
-                        div.setAttribute("ty-hint", btn.hint)
+                        item.setAttribute("ty-hint", btn.hint)
                     }
                     if (btn.size) {
-                        div.style.fontSize = btn.size
+                        item.style.fontSize = btn.size
                     }
                     if (btn.color) {
-                        div.style.color = btn.color
+                        item.style.color = btn.color
                     }
                     if (btn.bgColor) {
-                        div.style.backgroundColor = btn.bgColor
+                        item.style.backgroundColor = btn.bgColor
                     }
                 } else {
-                    div.classList.add("plu-unused")
+                    item.classList.add("plu-unused")
                 }
-                buttons.push(div)
+                buttons.push(item)
             }
         }
         return buttons
@@ -98,5 +99,5 @@ class quickButtonPlugin extends BaseCustomPlugin {
 }
 
 module.exports = {
-    plugin: quickButtonPlugin
+    plugin: QuickButtonPlugin
 }

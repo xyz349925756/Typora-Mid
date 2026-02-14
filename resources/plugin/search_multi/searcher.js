@@ -1,4 +1,4 @@
-const { Parser } = require("./parser")
+const Parser = require("./parser")
 
 class QualifierMixin {
     static _normalizeDate = date => new Date(date).setHours(0, 0, 0, 0)
@@ -437,7 +437,7 @@ class Searcher {
                         output.push(node)
                     }
                     const c = node.children
-                    if (c && c.length) {
+                    if (c?.length) {
                         recurse(c)
                     }
                 }
@@ -512,7 +512,7 @@ class Searcher {
 
     postParse = (ast) => {
         const { REGEXP } = this.parser.TYPE
-        this.parser.walk(ast, node => {
+        this.parser.walkLeaves(ast, node => {
             const qualifier = this.qualifiers.get(node.scope.toLowerCase())
             node.operand = qualifier.preprocess(node.scope, node.operator, node.operand, node.type)
             node.validateError = qualifier.validate(node.scope.toUpperCase(), node.operator, node.operand, node.type)
@@ -524,6 +524,7 @@ class Searcher {
     }
 
     /**
+     * Re-balances OR/AND trees to execute cheaper conditions first (Short-circuiting)
      * Process OR/AND nodes by:
      *   1. Gathering data child nodes into `dataNodes`
      *   2. Sorting `dataNodes` by `cost`
@@ -532,54 +533,56 @@ class Searcher {
     optimize = (ast) => {
         if (!ast) return
 
-        const { OR, AND } = this.parser.TYPE
-        const setCost = node => {
-            if (!node) return
-
-            setCost(node.left)
-            setCost(node.right)
-
-            const rootCost = node.cost || 1
-            const leftCost = (node.left && node.left.cost) || 1
-            const rightCost = (node.right && node.right.cost) || 1
-            node.cost = Math.max(rootCost, leftCost, rightCost)
-        }
-        const getDataNodes = (cur, root, dataNodes = []) => {
-            if (cur.type === root.type) {
-                if (cur.right) {
-                    getDataNodes(cur.right, root, dataNodes)
-                }
-                if (cur.left) {
-                    getDataNodes(cur.left, root, dataNodes)
-                }
-            } else {
-                dataNodes.push(cur)
+        const { OR, AND, NOT } = this.parser.TYPE
+        const calcCost = (node) => {
+            if (!node) return 0
+            if (node.cost !== undefined && node.type !== OR && node.type !== AND && node.type !== NOT) {
+                return node.cost
             }
-            return dataNodes
-        }
-        const rebuild = node => {
-            if (!node) return
-
-            if (node.type === OR || node.type === AND) {
-                const dataNodes = getDataNodes(node, node)
-                if (dataNodes.length > 1) {
-                    dataNodes.sort((a, b) => a.cost - b.cost)
-                    let newNode = dataNodes.shift()
-                    while (dataNodes.length) {
-                        const right = dataNodes.shift()
-                        newNode = { type: node.type, left: newNode, right: right, cost: right.cost }
-                    }
-                    node.left = newNode.left
-                    node.right = newNode.right
-                    node.cost = newNode.cost
-                }
+            if (node.type === NOT) {
+                node.cost = calcCost(node.right)
+                return node.cost
             }
+            const leftCost = calcCost(node.left)
+            const rightCost = calcCost(node.right)
+            node.cost = Math.max(leftCost, rightCost)
+            return node.cost
+        }
+        const rebuild = (node) => {
+            if (!node) return
+            if (node.type === NOT) {
+                rebuild(node.right)
+                return
+            }
+            if (node.type !== OR && node.type !== AND) return
 
-            rebuild(node.right)
             rebuild(node.left)
+            rebuild(node.right)
+
+            const dataNodes = getDataNodes(node, node.type)
+            if (dataNodes.length > 1) {
+                dataNodes.sort((a, b) => (a.cost || 0) - (b.cost || 0))
+                let newNode = dataNodes.shift()
+                while (dataNodes.length) {
+                    const right = dataNodes.shift()
+                    newNode = { type: node.type, left: newNode, right: right, cost: Math.max(newNode.cost, right.cost) }
+                }
+                node.left = newNode.left
+                node.right = newNode.right
+                node.cost = newNode.cost
+            }
+        }
+        const getDataNodes = (node, type, ret = []) => {
+            if (node.type === type) {
+                getDataNodes(node.left, type, ret)
+                getDataNodes(node.right, type, ret)
+            } else {
+                ret.push(node)
+            }
+            return ret
         }
 
-        setCost(ast)
+        calcCost(ast)
         rebuild(ast)
         return ast
     }
@@ -595,8 +598,8 @@ class Searcher {
         if (!this.config.CASE_SENSITIVE) {
             if (typeof queryResult === "string") {
                 queryResult = queryResult.toLowerCase()
-            } else if (Array.isArray(queryResult) && typeof queryResult[0] === "string") {
-                queryResult = queryResult.map(s => s.toLowerCase())
+            } else if (Array.isArray(queryResult)) {
+                queryResult = queryResult.map(s => typeof s === "string" ? s.toLowerCase() : s)
             }
         }
         const match = qualifier[type]
@@ -606,7 +609,7 @@ class Searcher {
     getReadFileScopes = (ast) => {
         const scope = new Set()
         const needRead = new Set([...this.qualifiers.values()].filter(q => q.need_read_file).map(q => q.scope))
-        this.parser.walk(ast, node => {
+        this.parser.walkLeaves(ast, node => {
             if (needRead.has(node.scope)) {
                 scope.add(node.scope)
             }
@@ -614,47 +617,42 @@ class Searcher {
         return [...scope]
     }
 
-    getContentTokens = (ast) => {
+    getPositiveContentTokens = (ast) => {
         const { KEYWORD, PHRASE, REGEXP, OR, AND, NOT } = this.parser.TYPE
         const isMeta = new Set([...this.qualifiers.values()].filter(q => q.is_meta).map(q => q.scope))
         const contentNodes = new Set()
         const _eval = (node, negated) => {
-            const { type, left, right, scope } = node
-            switch (type) {
+            if (!node) return
+            switch (node.type) {
                 case KEYWORD:
                 case PHRASE:
                 case REGEXP:
-                    if (!isMeta.has(scope)) {
+                    if (!isMeta.has(node.scope)) {
                         node._negated = negated
                         contentNodes.add(node)
                     }
                     break
                 case OR:
                 case AND:
-                    _eval(left, negated)
-                    _eval(right, negated)
+                    _eval(node.left, negated)
+                    _eval(node.right, negated)
                     break
                 case NOT:
-                    if (left) {
-                        _eval(left, negated)
-                    }
-                    _eval(right, !negated)
+                    _eval(node.right, !negated)
                     break
                 default:
-                    throw new Error(`Unknown AST Node「${type}」`)
+                    throw new Error(`Unknown Node Type: ${node.type}`)
             }
         }
 
-        _eval(ast)
+        _eval(ast, false)
         return [...contentNodes]
             .filter(n => !n._negated)
-            .map(n => {
-                const operand = n.operand
-                return n.type === REGEXP ? operand : operand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-            })
+            .map(n => n.type === REGEXP ? n.operand : n.operand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+            .filter(Boolean)
     }
 
-    toMermaid = (ast, translate = false, direction = "TB") => {
+    toMermaid = (ast, translate = false, textStyle = false, direction = "TB") => {
         let idx = 0
         const { t, link } = this.i18n
         const { KEYWORD, PHRASE, REGEXP, OR, AND, NOT } = this.parser.TYPE
@@ -679,24 +677,26 @@ class Searcher {
             let longName
             const isRegex = node.type === REGEXP
             const operand = isRegex ? `/${node.operand}/` : node.operand
+            const styledOperand = textStyle ? `<u>${operand}</u>` : operand
             const negated = node.negated
             if (translate) {
                 const name = this.qualifiers.get(node.scope).name
+                const styledName = textStyle ? `<b>${name}</b>` : name
                 if (typeof node.castResult === "boolean") {
                     const finalNegated = node.castResult ? negated : !negated
                     const negatedText = finalNegated ? I18N.not : ""
-                    longName = link([negatedText, name])
+                    longName = link([negatedText, styledName])
                 } else {
                     const operator = isRegex ? I18N.matchRegex : I18N[node.operator]
                     const negatedText = negated ? I18N.not : ""
-                    longName = link([name, negatedText, operator, operand])
+                    longName = link([styledName, negatedText, operator, styledOperand])
                 }
             } else {
                 const negatedText = negated ? "-" : ""
-                longName = [negatedText, node.scope, node.operator, operand].join(" ").trim()
+                longName = [negatedText, node.scope, node.operator, styledOperand].join(" ").trim()
             }
 
-            return `${node._shortName}("${longName}")`
+            return `${node._shortName}("${longName.replace(/"/g, "#quot;")}")`
         }
 
         const _link = (left, right) => {
@@ -721,7 +721,7 @@ class Searcher {
                     node.result = [...left.result, ...right.result]
                     return node
                 case NOT:
-                    left = node.left ? _eval(node.left, negated) : { result: [], head: [], tail: [] }
+                    left = { result: [], head: [], tail: [] }
                     right = _eval(node.right, !negated)
                     node.head = node.left ? left.head : right.head
                     node.tail = right.tail
@@ -744,10 +744,11 @@ class Searcher {
         const { head, tail, result } = _eval(ast)
         const start = head.map(h => `S --> ${_getName(h)}`)
         const end = tail.map(t => `${_getName(t)} --> E`)
-        return [`graph ${direction}`, "S((Start))", "E((End))", ...result, ...start, ...end].join("\n")
+        const styles = ["S", "E"].map(id => `style ${id} fill:#bbf,stroke:#f66,stroke-width:2px,color:#fff,stroke-dasharray: 0 1`)
+        return [`graph ${direction}`, "S((START))", "E((END))", ...result, ...start, ...end, ...styles].join("\n")
     }
 
-    toExplain = (ast) => {
+    toExplain = (ast, textStyle = false) => {
         const { t, link } = this.i18n
         const { KEYWORD, PHRASE, REGEXP, OR, AND, NOT } = this.parser.TYPE
         const I18N = {
@@ -767,16 +768,18 @@ class Searcher {
         const _getName = (node) => {
             let negated = node.negated
             const name = this.qualifiers.get(node.scope).name
+            const styledName = textStyle ? `<b>${name}</b>` : name
             const operator = node.type === REGEXP ? I18N.matchRegex : I18N[node.operator]
             const operand = node.type === REGEXP ? `/${node.operand}/` : node.operand
+            const styledOperand = textStyle ? `<u>${operand}</u>` : operand
             let content
             if (typeof node.castResult === "boolean") {
                 negated = node.castResult ? negated : !negated
                 const negatedText = negated ? I18N.not : ""
-                content = link([negatedText, name])
+                content = link([negatedText, styledName])
             } else {
                 const negatedText = negated ? I18N.not : ""
-                content = link([name, negatedText, operator, operand])
+                content = link([styledName, negatedText, operator, styledOperand])
             }
             return `「${content}」`
         }
@@ -799,7 +802,7 @@ class Searcher {
                     node.result = [...left.result, ...right.result]
                     return node
                 case NOT:
-                    left = node.left ? _eval(node.left, negated) : { result: [[]], head: [], tail: [] }
+                    left = { result: [[]], head: [], tail: [] }
                     right = _eval(node.right, !negated)
                     node.result = _link(left, right)
                     return node
@@ -829,58 +832,53 @@ class Searcher {
         const metaScope = scope.filter(s => s.is_meta)
         const contentScope = scope.filter(s => !s.is_meta)
 
-        const bold = (cnt) => `<b>${cnt}</b>`
-        const emphasis = (cnt) => `<em>${cnt}</em>`
-        const genScope = scopes => scopes.map(e => emphasis(e.scope)).join("、")
-        const genOperator = (...operators) => operators.map(emphasis).join("、")
-        const genUL = (...li) => `<ul style="padding-left: 1.2em; margin: 0; word-break: break-word;">${li.map(e => `<li>${e}</li>`).join("")}</ul>`
-        const _scope = [
-            bold(t("modal.hintDetail.scope.meta")) + ": " + genScope(metaScope),
-            bold(t("modal.hintDetail.scope.content")) + ": " + genScope(contentScope),
-        ]
-        const _operator = [
-            bold(genOperator(":")) + " " + t("modal.hintDetail.operator.colon"),
-            bold(genOperator("=", "!=")) + " " + t("modal.hintDetail.operator.equal"),
-            bold(genOperator(">", "<", ">=", "<=")) + " " + t("modal.hintDetail.operator.compare"),
-        ]
-        const _operand = [
-            t("modal.hintDetail.operand.text"),
-            t("modal.hintDetail.operand.quotes", { eg: emphasis('"sour pear"') }),
-            t("modal.hintDetail.operand.regex", { eg: emphasis("/\\bsour\\b/") }),
-        ]
-        const _combineCond = [
-            t("modal.hintDetail.combineCond.and", { eg: emphasis("size>2kb AND ext:txt") }),
-            t("modal.hintDetail.combineCond.or", { eg: emphasis("size>2kb OR ext:txt") }),
-            t("modal.hintDetail.combineCond.not", { eg: emphasis("NOT size>2kb") }),
-            t("modal.hintDetail.combineCond.parentheses", { eg: emphasis("size>2kb OR (ext:txt AND hasimage=true)") }),
-        ]
+        const bold = x => `<b>${x}</b>`
+        const em = x => `<em>${x}</em>`
+        const joinEm = arr => arr.map(em).join("、")
+        const ul = (...li) => `<ul style="padding-left: 1.2em; margin: 0; word-break: break-word;">${li.map(e => `<li>${e}</li>`).join("")}</ul>`
         const hintDetail = {
-            syntax: t("modal.hintDetail.syntax", { eg: emphasis("size>2kb") }),
-            scope: genUL(..._scope),
-            operator: genUL(..._operator),
-            operand: genUL(..._operand),
-            combineCond: genUL(..._combineCond),
+            syntax: t("modal.hintDetail.syntax", { eg: em("size>2kb") }),
+            scope: ul(
+                bold(t("modal.hintDetail.scope.meta")) + ": " + joinEm(metaScope.map(e => e.scope)),
+                bold(t("modal.hintDetail.scope.content")) + ": " + joinEm(contentScope.map(e => e.scope)),
+            ),
+            operator: ul(
+                bold(joinEm([":"])) + " " + t("modal.hintDetail.operator.colon"),
+                bold(joinEm(["=", "!="])) + " " + t("modal.hintDetail.operator.equal"),
+                bold(joinEm([">", "<", ">=", "<="])) + " " + t("modal.hintDetail.operator.compare"),
+            ),
+            operand: ul(
+                t("modal.hintDetail.operand.text"),
+                t("modal.hintDetail.operand.quotes", { eg: em('"sour pear"') }),
+                t("modal.hintDetail.operand.regex", { eg: em("/\\bsour\\b/") }),
+            ),
+            combineCond: ul(
+                t("modal.hintDetail.combineCond.and", { eg: em("size>2kb AND ext:txt") }),
+                t("modal.hintDetail.combineCond.or", { eg: em("size>2kb OR ext:txt") }),
+                t("modal.hintDetail.combineCond.not", { eg: em("NOT size>2kb") }),
+                t("modal.hintDetail.combineCond.parentheses", { eg: em("size>2kb OR (ext:txt AND hasimage=true)") }),
+            ),
             syntacticSugar: t("modal.hintDetail.syntacticSugar", {
-                scope: emphasis("default"),
-                operator: emphasis(":"),
-                shortCond: emphasis("pear"),
-                normalCond: emphasis("default:pear"),
-                longCond: emphasis("path:pear OR content:pear"),
+                scope: em("default"),
+                operator: em(":"),
+                shortCond: em("pear"),
+                normalCond: em("default:pear"),
+                longCond: em("path:pear OR content:pear"),
             }),
         }
 
         const example = this.utils.buildTable([
             [t("modal.example.expression"), t("modal.example.query")],
-            [emphasis("pear"), `${t("modal.example.desc1")} ${t("modal.example.equivalentTo")} ${emphasis("default:pear")}`],
-            [emphasis("-pear"), `${t("modal.example.desc2")} ${t("modal.example.equivalentTo")} ${emphasis("NOT pear")}`],
-            [emphasis("sour pear"), `${t("modal.example.desc3")} ${t("modal.example.equivalentTo")} ${emphasis("sour AND pear")}`],
-            [emphasis("sour | pear"), `${t("modal.example.desc4")} ${t("modal.example.equivalentTo")} ${emphasis("sour OR pear")}`],
-            [emphasis('"sour pear"'), t("modal.example.desc5")],
-            [emphasis("/\\bsour\\b/ pear mtime<2024-05-16"), t("modal.example.desc6")],
-            [emphasis("frontmatter:dev | head=plugin | strong:MIT"), t("modal.example.desc7")],
-            [emphasis("size>10kb (linenum>=1000 | hasimage=true)"), t("modal.example.desc8")],
-            [emphasis("path:(info | warn | err) -ext:md"), t("modal.example.desc9")],
-            [emphasis('thead:k8s h2:prometheus blockcode:"kubectl apply"'), t("modal.example.desc10")],
+            [em("pear"), `${t("modal.example.desc1")} ${t("modal.example.equivalentTo")} ${em("default:pear")}`],
+            [em("-pear"), `${t("modal.example.desc2")} ${t("modal.example.equivalentTo")} ${em("NOT pear")}`],
+            [em("sour pear"), `${t("modal.example.desc3")} ${t("modal.example.equivalentTo")} ${em("sour AND pear")}`],
+            [em("sour | pear"), `${t("modal.example.desc4")} ${t("modal.example.equivalentTo")} ${em("sour OR pear")}`],
+            [em('"sour pear"'), t("modal.example.desc5")],
+            [em("/\\bsour\\b/ pear mtime<2024-05-16"), t("modal.example.desc6")],
+            [em("frontmatter:dev | head=plugin | strong:MIT"), t("modal.example.desc7")],
+            [em("size>10kb (linenum>=1000 | hasimage=true)"), t("modal.example.desc8")],
+            [em("-(path:warn | path:err) -ext:md"), t("modal.example.desc9")],
+            [em('thead:k8s h2:prometheus blockcode:"kubectl apply"'), t("modal.example.desc10")],
         ])
 
         const operators = [...Object.keys(this.MIXIN.OPERATOR)].map(s => `'${s}'`).join(" | ")
@@ -911,31 +909,21 @@ class Searcher {
             }
         }
         const _toJSON = ({ expression, optimize }) => _to(expression, optimize, ast => JSON.stringify(ast, null, "\t"))
-        const _toText = ({ expression, optimize }) => _to(expression, optimize, ast => this.toExplain(ast))
-        const _toGraph = async ({ expression, optimize, translate, direction }) => {
+        const _toText = ({ expression, optimize, textStyle }) => _to(expression, optimize, ast => this.toExplain(ast, textStyle))
+        const _toGraph = async ({ expression, optimize, translate, textStyle, direction }) => {
             return _to(expression, optimize, async ast => {
-                const definition = this.toMermaid(ast, translate, direction)
+                const definition = this.toMermaid(ast, translate, textStyle, direction)
                 const svg = await this.utils.mermaid.render(definition)
                 return `<div style="font-size:initial; line-height: initial; text-align:center;">${svg}</div>`
             })
         }
 
-        const getSchema = async ({ expression, optimize, translate, direction, presentation, grammar }) => {
-            const dep = { dependencies: { presentation: "graph" } }
-            const directionOps = Object.fromEntries(["TB", "BT", "RL", "LR"].map(e => [e, e]))
+        const getSchema = () => {
             const presentOps = {
-                text: t("modal.playground.presentation.text"),
                 graph: t("modal.playground.presentation.graph"),
+                text: t("modal.playground.presentation.text"),
                 ast: t("modal.playground.presentation.ast"),
             }
-
-            let presentField = { key: "ast", type: "textarea", readonly: true, rows: 5 }
-            if (presentation === "graph" || presentation === "text") {
-                const to = presentation === "graph" ? _toGraph : _toText
-                const content = await to({ expression, optimize, translate, direction })
-                presentField = { type: "hint", hintDetail: content, unsafe: true }
-            }
-
             const syntaxFields = [
                 { type: "hint", unsafe: true, hintHeader: t("modal.hintHeader.syntax"), hintDetail: hintDetail.syntax },
                 { type: "hint", unsafe: true, hintHeader: t("modal.hintHeader.scope"), hintDetail: hintDetail.scope },
@@ -944,65 +932,67 @@ class Searcher {
                 { type: "hint", unsafe: true, hintHeader: t("modal.hintHeader.combineCond"), hintDetail: hintDetail.combineCond },
                 { type: "hint", unsafe: true, hintHeader: t("modal.hintHeader.syntacticSugar"), hintDetail: hintDetail.syntacticSugar },
             ]
-            const exampleFields = [{ type: "custom", content: example, unsafe: true }]
             const playgroundFields = [
                 { key: "expression", type: "textarea", rows: 3, noResize: true },
-                presentField,
+                { key: "_displayAST", type: "code", readonly: true, dependencies: { presentation: "ast" }, dependencyUnmetAction: "hide" },
+                { key: "_displayGraph", type: "hint", unsafe: true, dependencies: { presentation: "graph" }, dependencyUnmetAction: "hide" },
+                { key: "_displayText", type: "hint", unsafe: true, dependencies: { presentation: "text" }, dependencyUnmetAction: "hide" },
                 { key: "optimize", type: "switch", label: t("$label.OPTIMIZE_SEARCH"), tooltip: t("$tooltip.breakOrder") },
+                { key: "textStyle", type: "switch", label: t("modal.playground.textStyle"), dependencies: { presentation: { $includes: ["graph", "text"] } } },
                 { key: "presentation", type: "select", label: t("modal.playground.presentation"), options: presentOps },
-                { key: "direction", type: "select", label: t("modal.playground.direction"), options: directionOps, ...dep },
-                { key: "translate", type: "switch", label: t("modal.playground.translate"), ...dep },
+                { key: "direction", type: "select", label: t("modal.playground.direction"), options: ["TB", "BT", "RL", "LR"], dependencies: { presentation: "graph" } },
+                { key: "translate", type: "switch", label: t("modal.playground.translate"), dependencies: { presentation: "graph" } },
             ]
-            const otherFields = [{ key: "showGrammar", type: "action", label: t("modal.title.grammar") }]
-            const grammarBox = grammar
-                ? [{ title: t("modal.title.grammar"), fields: [{ key: "grammar", type: "textarea", readonly: true, rows: 21 }] }]
-                : []
             return [
                 { title: undefined, fields: syntaxFields },
-                { title: t("modal.title.example"), fields: exampleFields },
+                { title: t("modal.title.example"), fields: [{ type: "custom", content: example, unsafe: true }] },
                 { title: t("modal.title.playground"), fields: playgroundFields },
-                { title: undefined, fields: otherFields },
-                ...grammarBox,
+                { title: undefined, fields: [{ key: "_grammar_box_visible", type: "action", label: t("modal.title.grammar"), actionType: "toggle" }] },
+                { title: undefined, fields: [{ key: "grammar", type: "code", readonly: true }], dependencies: { _grammar_box_visible: true } },
             ]
         }
 
-        const defaultData = {
-            grammar: "",
-            expression: "head:sour  file:pear  ( linenum<=200 | size>10kb )",
-            presentation: "graph",
-            direction: "LR",
-            ast: "",
-            optimize: false,
-            translate: true,
-        }
         const op = {
             title: t("grammar"),
-            schema: await getSchema(defaultData),
-            data: defaultData,
-            actions: {
-                showGrammar: () => {
-                    this.utils.formDialog.updateModal(async op => {
-                        op.data.grammar = op.data.grammar ? "" : grammar
-                        op.schema = await getSchema(op.data)
-                    })
-                },
+            schema: getSchema(),
+            data: {
+                grammar: grammar.trim(),
+                expression: '-file:baz  head:"foo bar"  ( linenum<200 | size>2kb | abc )',
+                presentation: "graph",
+                direction: "LR",
+                optimize: false,
+                textStyle: true,
+                translate: true,
+                _displayAST: "",
+                _displayGraph: { hintDetail: "" },
+                _displayText: { hintDetail: "" },
+                _grammar_box_visible: false,
             },
-            hooks: {
-                onCommit: ({ key, value }) => {
-                    this.utils.formDialog.updateModal(async op => {
-                        op.data[key] = value
-                        if ((key === "presentation" && value === "ast") || (key === "expression" && op.data.presentation === "ast")) {
-                            op.data.ast = await _toJSON(op.data)
-                        }
-                        op.schema = await getSchema(op.data)
-                    })
+            rules: { expression: "required" },
+            watchers: [{
+                triggers: ["expression", "presentation", "direction", "optimize", "textStyle", "translate"],
+                affects: ["_displayAST", "_displayText", "_displayGraph"],
+                effect: (isMet, ctx) => {
+                    if (!isMet) return
+                    const presentation = ctx.getValue("presentation")
+                    const expression = ctx.getValue("expression")
+                    const optimize = ctx.getValue("optimize")
+                    const textStyle = ctx.getValue("textStyle")
+                    if (presentation === "ast") {
+                        _toJSON({ expression, optimize }).then(data => ctx.setValue("_displayAST", data))
+                    } else if (presentation === "text") {
+                        _toText({ expression, optimize, textStyle }).then(data => ctx.setValue("_displayText", { hintDetail: data }))
+                    } else if (presentation === "graph") {
+                        const translate = ctx.getValue("translate")
+                        const direction = ctx.getValue("direction")
+                        _toGraph({ expression, optimize, translate, textStyle, direction }).then(data => ctx.setValue("_displayGraph", { hintDetail: data }))
+                    }
                 }
-            },
+            }],
+            collapsibleBox: false,
         }
         await this.utils.formDialog.modal(op)
     }
 }
 
-module.exports = {
-    Searcher
-}
+module.exports = Searcher

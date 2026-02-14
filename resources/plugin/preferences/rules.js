@@ -1,28 +1,21 @@
+const self = (rules) => ({ $self: rules })
+const each = (rules) => ({ $each: rules })
+
 const url = "url"
 const regex = "regex"
 const path = "path"
 const required = "required"
-const notEqualZero = { name: "notEqual", args: [0] }
+const array = "array"
+const notZero = { name: "notEqual", args: [0] }
 const hotkey = { name: "pattern", args: [/^((ctrl|shift|alt)\+)*\w+$/i] }
 const fileExt = { name: "pattern", args: [/^([a-zA-Z0-9]+)?$/] }
+const codingLang = { name: "pattern", args: [/^[a-zA-Z0-9#+.\-]+$/] }
 const hexColor = { name: "pattern", args: [/^#([a-f0-9]{8}|[a-f0-9]{6}|[a-f0-9]{4}|[a-f0-9]{3})$/i] }
 
-const hexColor2DArray = ({ value }) => {
-    if (!Array.isArray(value)) {
-        return new Error("Must Be A 2D Array")
-    }
-    const regex = /^#([a-f0-9]{8}|[a-f0-9]{6}|[a-f0-9]{4}|[a-f0-9]{3})$/i
-    for (const rows of value) {
-        if (!Array.isArray(rows)) {
-            return new Error("Must Be A 2D Array")
-        }
-        for (const color of rows) {
-            if (!regex.test(value)) {
-                return new Error(`${color} is not valid hex color`)
-            }
-        }
-    }
-}
+const minItems = (min) => ({ name: "minItems", args: [min] })
+const maxItems = (max) => ({ name: "minItems", args: [max] })
+
+const hotkeys = each([required, hotkey])
 
 const chartStyles = {
     DEFAULT_FENCE_HEIGHT: required,
@@ -30,35 +23,34 @@ const chartStyles = {
     TEMPLATE: required,
 }
 
-// TODO: Experimental Features. Validate rules for all settings
 module.exports = {
     window_tab: {
         TAB_MIN_WIDTH: required,
         TAB_MAX_WIDTH: required,
-        MAX_TAB_NUM: notEqualZero,
-        DRAG_NEW_WINDOW_THRESHOLD: notEqualZero,
-        CLOSE_HOTKEY: hotkey,
-        SWITCH_PREVIOUS_TAB_HOTKEY: hotkey,
-        SWITCH_NEXT_TAB_HOTKEY: hotkey,
-        SORT_TABS_HOTKEY: hotkey,
-        COPY_PATH_HOTKEY: hotkey,
-        TOGGLE_TAB_BAR_HOTKEY: hotkey,
+        MAX_TAB_NUM: notZero,
+        DRAG_NEW_WINDOW_THRESHOLD: notZero,
+        CLOSE_HOTKEY: hotkeys,
+        SWITCH_PREVIOUS_TAB_HOTKEY: hotkeys,
+        SWITCH_NEXT_TAB_HOTKEY: hotkeys,
+        SWITCH_LAST_ACTIVE_TAB_HOTKEY: hotkeys,
+        SORT_TABS_HOTKEY: hotkeys,
+        COPY_PATH_HOTKEY: hotkeys,
+        TOGGLE_TAB_BAR_HOTKEY: hotkeys,
     },
     search_multi: {
-        ALLOW_EXT: fileExt,
-        HIGHLIGHT_COLORS: [required, hexColor],
-        TIMEOUT: notEqualZero,
-        MAX_STATS: notEqualZero,
-        MAX_DEPTH: notEqualZero,
+        ALLOW_EXT: each(fileExt),
+        IGNORE_FOLDERS: each(required),
+        TIMEOUT: notZero,
+        MAX_STATS: notZero,
+        MAX_DEPTH: notZero,
     },
     md_padding: {
-        IGNORE_WORDS: required,
-        IGNORE_PATTERNS: [required, regex],
+        IGNORE_WORDS: each(required),
+        IGNORE_PATTERNS: each([required, regex]),
     },
     markmap: {
-        NODE_BORDER_WHEN_HOVER: required,
-        "DEFAULT_TOC_OPTIONS.color": [required, hexColor],
-        CANDIDATE_COLOR_SCHEMES: [required, hexColor2DArray],
+        CANDIDATE_COLOR_SCHEMES: each([required, array]),
+        "DOWNLOAD_OPTIONS.FOLDER": path,
         "DOWNLOAD_OPTIONS.FILENAME": required,
         "DOWNLOAD_OPTIONS.BACKGROUND_COLOR": [required, hexColor],
         "DOWNLOAD_OPTIONS.TEXT_COLOR": [required, hexColor],
@@ -67,7 +59,6 @@ module.exports = {
         DEFAULT_FENCE_BACKGROUND_COLOR: [required, hexColor],
         "DEFAULT_FENCE_OPTIONS.height": required,
         "DEFAULT_FENCE_OPTIONS.backgroundColor": [required, hexColor],
-        "DEFAULT_FENCE_OPTIONS.color": [required, hexColor],
         FENCE_TEMPLATE: required,
     },
     auto_number: {
@@ -76,29 +67,36 @@ module.exports = {
     fence_enhance: {
         BUTTON_SIZE: required,
         BUTTON_COLOR: required,
-        BUTTON_MARGIN: required,
+        BUTTON_PADDING: required,
         BUTTON_TOP: required,
         BUTTON_RIGHT: required,
-        HIGHLIGHT_LINE_COLOR: required,
+        EXCLUDE_LANGUAGE_ON_INDENT: each(codingLang),
+        HIGHLIGHT_PATTERN: [required, regex],
+        HIGHLIGHT_LINE_COLOR_BY_LANGUAGE: required,
+        HIGHLIGHT_LINE_COLOR_ON_HOVER: required,
+        HIGHLIGHT_LINE_COLOR_ON_FOCUS: required,
+    },
+    sidebar_enhance: {
+        HIDDEN_NODE_PATTERNS: each([required, regex]),
+        COUNT_EXT: each(fileExt),
+        IGNORE_FOLDERS: each(required),
     },
     text_stylize: {
         "DEFAULT_COLORS.FOREGROUND": [required, hexColor],
         "DEFAULT_COLORS.BACKGROUND": [required, hexColor],
         "DEFAULT_COLORS.BORDER": [required, hexColor],
-        COLOR_TABLE: [required, hexColor2DArray],
+        COLOR_TABLE: each([required, array]),
     },
     slash_commands: {
         TRIGGER_REGEXP: [required, regex]
     },
-    file_counter: {
-        ALLOW_EXT: fileExt,
-    },
     resource_manager: {
-        MAX_STATS: notEqualZero,
-        MAX_DEPTH: notEqualZero,
+        MAX_STATS: notZero,
+        MAX_DEPTH: notZero,
+        IGNORE_FOLDERS: each(required),
     },
     editor_width_slider: {
-        WIDTH_RATIO: notEqualZero,
+        WIDTH_RATIO: notZero,
     },
     article_uploader: {
         "upload.wordpress.hostname": required,
@@ -114,13 +112,11 @@ module.exports = {
         "SERVER_OPTIONS.path": required,
     },
     updater: {
-        UPDATE_LOOP_INTERVAL: notEqualZero,
-        START_UPDATE_INTERVAL: notEqualZero,
+        UPDATE_LOOP_INTERVAL: notZero,
+        START_UPDATE_INTERVAL: notZero,
     },
     kanban: {
-        KANBAN_TASK_DESC_MAX_HEIGHT: notEqualZero,
-        KANBAN_COLOR: required,
-        TASK_COLOR: required,
+        KANBAN_TASK_DESC_MAX_HEIGHT: notZero,
         TEMPLATE: required,
     },
     chat: {
@@ -143,27 +139,31 @@ module.exports = {
     },
     echarts: chartStyles,
     chart: chartStyles,
-    wavedrom: chartStyles,
+    wavedrom: {
+        ...chartStyles,
+        SKIN_FILES: each([required, path]),
+    },
     calendar: chartStyles,
     abc: chartStyles,
     drawIO: {
         ...chartStyles,
-        RESOURCE_URI: url,
+        RESOURCE_URI: [required, url],
+    },
+    plantUML: {
+        ...chartStyles,
+        SERVER_URL: [required, url],
     },
     marp: chartStyles,
     callouts: {
         font_family: required,
-        network_icon_url: url,
+        network_icon_url: [required, url],
         default_background_color: required,
         default_left_line_color: required,
         default_icon: required,
         template: required,
     },
     templater: {
-        template_folders: [required, path],
-    },
-    toc: {
-        toc_font_size: required,
+        template_folders: each([required, path]),
     },
     imageReviewer: {
         thumbnail_height: required,
@@ -171,9 +171,11 @@ module.exports = {
     markdownLint: {
         button_width: required,
         button_height: required,
+        button_right: required,
+        button_border_radius: required,
         pass_color: required,
         error_color: required,
-        custom_rules_files: [required, path],
+        custom_rule_files: each([required, path]),
     },
     quickButton: {
         button_size: required,
@@ -185,5 +187,6 @@ module.exports = {
     },
     redirectLocalRootUrl: {
         root: required,
+        filter_regexp: regex,
     },
 }

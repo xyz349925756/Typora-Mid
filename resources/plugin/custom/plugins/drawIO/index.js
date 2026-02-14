@@ -1,7 +1,13 @@
-class drawIOPlugin extends BaseCustomPlugin {
+class DrawIOPlugin extends BaseCustomPlugin {
     styleTemplate = () => true
 
-    init = () => this.defaultConfig = this._getDefaultConfig()
+    init = () => {
+        this.defaultConfig = this._getDefaultConfig()
+        this._memorizedFetch = this.utils.memoizeLimited(async url => {
+            const resp = await this.utils.fetch(url, { timeout: this.config.SERVER_TIMEOUT, proxy: this.config.PROXY })
+            return resp.text()
+        }, this.config.MEMORIZED_URL_COUNT)
+    }
 
     callback = anchorNode => this.utils.insertText(anchorNode, this.config.TEMPLATE)
 
@@ -25,8 +31,8 @@ class drawIOPlugin extends BaseCustomPlugin {
             destroyFunc: null,
             beforeExportToNative: null,
             beforeExportToHTML: this.beforeExportToHTML,
-            extraStyleGetter: null,
-            versionGetter: this.getVersion,
+            extraStyleGetter: this.getStyleContent,
+            versionGetter: null,
         })
     }
 
@@ -36,7 +42,7 @@ class drawIOPlugin extends BaseCustomPlugin {
             throw new Error(this.i18n.t("error.messingSource"))
         }
         await this._setXML(graphConfig)
-        $wrap[0].innerHTML = await this._toElement(graphConfig)
+        $wrap[0].innerHTML = this._toElement(graphConfig)
         this._refresh()
         return $wrap[0]
     }
@@ -50,9 +56,9 @@ class drawIOPlugin extends BaseCustomPlugin {
             if (isNetwork) {
                 graphConfig.xml = await this._memorizedFetch(source)
             } else {
-                const dir = this.utils.getCurrentDirPath()
+                const dir = this.utils.getLocalRootUrl()
                 source = this.utils.Package.Path.resolve(dir, source)
-                graphConfig.xml = await this.utils.Package.Fs.promises.readFile(source, "utf-8")
+                graphConfig.xml = await this.utils.Package.FsExtra.readFile(source, "utf-8")
             }
         } catch (e) {
             const msg = this.i18n.t(isNetwork ? "error.getFileFailedFromNetwork" : "error.getFileFailedFromLocal")
@@ -68,12 +74,6 @@ class drawIOPlugin extends BaseCustomPlugin {
     }
 
     _refresh = this.utils.debounce(() => window.GraphViewer.processElements(), 100)
-
-    _memorizedFetch = this.utils.memorize(async url => {
-        console.debug(`memorized fetch url: ${url}`)
-        const resp = await this.utils.fetch(url, { timeout: 30 * 1000 })
-        return resp.text()
-    })
 
     _getDefaultConfig = (type = "showOnly") => {
         const config = {
@@ -104,15 +104,95 @@ class drawIOPlugin extends BaseCustomPlugin {
 
     beforeExportToHTML = (preview, instance) => {
         const graph = preview.querySelector(".mxgraph")
+        this._fixDiagramForExport(graph, graph.querySelector("svg"))
         if (graph) {
             graph.removeAttribute("data-mxgraph")
             graph.querySelectorAll(":scope > *:not(svg)").forEach(this.utils.removeElement)
         }
     }
 
-    getVersion = () => "24.8.9"
+    /**
+     * TODO: Ugly Code.
+     * Fixes Draw.io SVG truncation, scaling, and whitespace issues for PDF export.
+     *
+     * Logic:
+     * 1. **Unlock Containers**: Recursively removes fixed width/height constraints from parent containers to enable responsive resizing.
+     * 2. **Filter Content**: Iterates through SVG elements, strictly ignoring invisible items and transparent placeholders (ghost elements).
+     * 3. **Coordinate Projection**: Calculates the precise bounding box by projecting screen coordinates (getBoundingClientRect) back to the SVG coordinate system using the Inverse Screen CTM.
+     * 4. **Apply ViewBox**: Sets a tight-fitting `viewBox` based on the calculated boundaries, ensuring the diagram is fully visible and centered.
+     */
+    _fixDiagramForExport = (mxGraphEl, svgEl) => {
+        if (!mxGraphEl || !svgEl) return
+
+        let parent = mxGraphEl
+        while (parent && !parent.classList.contains("md-diagram-panel")) {
+            parent.style.cssText = ""
+            parent.removeAttribute("width")
+            parent.classList.add("fix-drawio-unlocked")
+            parent = parent.parentElement
+        }
+
+        const screenCTM = svgEl.getScreenCTM()
+        if (!screenCTM) return
+
+        const matrix = screenCTM.inverse()
+        const pt = svgEl.createSVGPoint()
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+        let hasContent = false
+
+        const elements = svgEl.querySelectorAll("path, rect, circle, ellipse, text, image, polygon, polyline")
+        for (let i = 0; i < elements.length; i++) {
+            const el = elements[i]
+            const style = window.getComputedStyle(el)
+
+            if (style.display === "none" || style.visibility === "hidden" || style.opacity === "0") continue
+
+            const noFill = !style.fill || style.fill === "none" || style.fill === "transparent" || style.fill.includes("rgba(0, 0, 0, 0)")
+            const noStroke = !style.stroke || style.stroke === "none" || style.stroke === "transparent" || parseFloat(style.strokeWidth) === 0
+            if (noFill && noStroke) continue
+
+            const rect = el.getBoundingClientRect()
+            if (rect.width === 0 || rect.height === 0) continue
+
+            hasContent = true
+            const corners = [
+                { x: rect.left, y: rect.top },
+                { x: rect.right, y: rect.top },
+                { x: rect.right, y: rect.bottom },
+                { x: rect.left, y: rect.bottom },
+            ]
+            for (const corner of corners) {
+                pt.x = corner.x
+                pt.y = corner.y
+                const sp = pt.matrixTransform(matrix)
+                minX = Math.min(minX, sp.x)
+                minY = Math.min(minY, sp.y)
+                maxX = Math.max(maxX, sp.x)
+                maxY = Math.max(maxY, sp.y)
+            }
+        }
+
+        if (hasContent) {
+            const padding = 10
+            const viewBox = [
+                Math.floor(minX - padding),
+                Math.floor(minY - padding),
+                Math.ceil(maxX - minX + padding * 2),
+                Math.ceil(maxY - minY + padding * 2),
+            ].join(" ")
+
+            svgEl.setAttribute("viewBox", viewBox)
+            svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet")
+            svgEl.classList.add("fix-drawio-svg")
+            svgEl.removeAttribute("width")
+            svgEl.removeAttribute("height")
+            svgEl.removeAttribute("style")
+        }
+    }
+
+    getStyleContent = () => this.utils.styleTemplater.getStyleContent(this.fixedName)
 }
 
 module.exports = {
-    plugin: drawIOPlugin,
+    plugin: DrawIOPlugin
 }

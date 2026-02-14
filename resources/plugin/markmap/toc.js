@@ -1,4 +1,4 @@
-class tocMarkmap {
+class TOCMarkmap {
     constructor(plugin) {
         this.plugin = plugin
         this.utils = plugin.utils
@@ -7,23 +7,24 @@ class tocMarkmap {
         this.Lib = plugin.Lib
     }
 
-    html = () => `
-        <div id="plugin-markmap" class="plugin-common-modal plugin-common-hidden">
-            <div class="plugin-markmap-header">
-                <div class="plugin-markmap-icon ion-close" action="close" ty-hint="${this.i18n.t('func.close')}"></div>
-                <div class="plugin-markmap-icon ion-qr-scanner" action="expand" ty-hint="${this.i18n.t('func.expand')}"></div>
-                <div class="plugin-markmap-icon ion-chevron-up" action="pinTop" ty-hint="${this.i18n.t('func.pinTop')}"></div>
-                <div class="plugin-markmap-icon ion-chevron-right" action="pinRight" ty-hint="${this.i18n.t('func.pinRight')}"></div>
-                <div class="plugin-markmap-icon ion-cube" action="fit" ty-hint="${this.i18n.t('func.fit')}"></div>
-                <div class="plugin-markmap-icon ion-android-settings" action="settings" ty-hint="${this.i18n.t('func.settings')}"></div>
-                <div class="plugin-markmap-icon ion-archive" action="download" ty-hint="${this.i18n.t('func.download')}"></div>
-                <div class="plugin-markmap-icon" action="resize"><svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M14.228 16.227a1 1 0 0 1-.707-1.707l1-1a1 1 0 0 1 1.416 1.414l-1 1a1 1 0 0 1-.707.293zm-5.638 0a1 1 0 0 1-.707-1.707l6.638-6.638a1 1 0 0 1 1.416 1.414l-6.638 6.638a1 1 0 0 1-.707.293zm-5.84 0a1 1 0 0 1-.707-1.707L14.52 2.043a1 1 0 1 1 1.415 1.414L3.457 15.934a1 1 0 0 1-.707.293z"></path></svg></div>
-            </div>
-            <svg id="plugin-markmap-svg"></svg>
-            <div class="plugin-markmap-grip-top plugin-common-hidden"></div>
-            <div class="plugin-markmap-grip-right plugin-common-hidden"></div>
-        </div>
-    `
+    html = () => {
+        const icons = {
+            download: "ion-archive", settings: "ion-android-settings", unfold: "ion-refresh", fit: "ion-cube",
+            pinRight: "ion-chevron-right", pinTop: "ion-chevron-up", expand: "ion-qr-scanner", close: "ion-close",
+        }
+        const buttons = this.config.TITLE_BAR_BUTTONS.map(name => {
+            const hint = this.i18n.t(`$option.TITLE_BAR_BUTTONS.${name}`)
+            return `<div class="plugin-markmap-icon" action="${name}" ty-hint="${hint}"><i class="${icons[name]}"></i></div>`
+        }).join("")
+        const resizeButton = '<div class="plugin-markmap-icon" action="resize"><svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M14.228 16.227a1 1 0 0 1-.707-1.707l1-1a1 1 0 0 1 1.416 1.414l-1 1a1 1 0 0 1-.707.293zm-5.638 0a1 1 0 0 1-.707-1.707l6.638-6.638a1 1 0 0 1 1.416 1.414l-6.638 6.638a1 1 0 0 1-.707.293zm-5.84 0a1 1 0 0 1-.707-1.707L14.52 2.043a1 1 0 1 1 1.415 1.414L3.457 15.934a1 1 0 0 1-.707.293z"></path></svg></div>'
+        return `
+            <div id="plugin-markmap" class="plugin-common-modal plugin-common-hidden">
+                <div class="plugin-markmap-header">${buttons}${resizeButton}</div>
+                <svg id="plugin-markmap-svg"></svg>
+                <div class="plugin-markmap-grip-top plugin-common-hidden"></div>
+                <div class="plugin-markmap-grip-right plugin-common-hidden"></div>
+            </div>`
+    }
 
     hotkey = () => [{ hotkey: this.config.TOC_HOTKEY, callback: this.callback }]
 
@@ -91,7 +92,7 @@ class tocMarkmap {
             eventHub.addEventListener(eventHub.eventType.afterSetSidebarWidth, repositioning)
             eventHub.addEventListener(eventHub.eventType.toggleSettingPage, hide => hide && this.mm && this.close())
             eventHub.addEventListener(eventHub.eventType.outlineUpdated, () => {
-                if (!this.utils.isShow(modal)) return
+                if (!this.utils.isShown(modal)) return
                 this.draw()
                 if (this.config.AUTO_FIT_WHEN_UPDATE) {
                     this.fit()
@@ -100,11 +101,8 @@ class tocMarkmap {
 
             modal.addEventListener("transitionend", () => this.fit())
             header.addEventListener("click", ev => {
-                const button = ev.target.closest(".plugin-markmap-icon")
-                if (button) {
-                    const action = button.getAttribute("action")
-                    this.doAction(action)
-                }
+                const action = ev.target.closest(".plugin-markmap-icon")?.getAttribute("action")
+                if (action) this.doAction(action)
             })
 
             this.toggleContextMenu()
@@ -233,8 +231,7 @@ class tocMarkmap {
                 if (this.mm.state.data.content === "" && headers[0].getText() !== "") {
                     tocIdx-- // If the first(root) node of the markmap is an empty node, subtract 1 again.
                 }
-                const header = headers[tocIdx]
-                return header && header.attributes.id
+                return headers[tocIdx]?.attributes.id
             }
             this.entities.svg.addEventListener("click", ev => {
                 const node = ev.target.closest(".markmap-node")
@@ -269,7 +266,7 @@ class tocMarkmap {
     }
 
     callback = async () => {
-        if (this.utils.isShow(this.entities.modal)) {
+        if (this.utils.isShown(this.entities.modal)) {
             this.close()
         } else {
             await this.plugin.lazyLoad()
@@ -297,9 +294,17 @@ class tocMarkmap {
     fit = (notify = false) => {
         if (!this.mm) return
         this.mm.fit()
-        if (notify) {
-            this.utils.notification.show(this.i18n.t("func.fit.ok"))
-        }
+        if (notify) this.utils.notification.show(this.i18n.t("success.fit"))
+    }
+
+    unfold = () => {
+        const { root } = this.transformContext
+        this._preorder(root, node => {
+            if (node.payload) node.payload.fold = 0
+        })
+        this.mm.setData(root)
+        this.fit()
+        this.utils.notification.show(this.i18n.t("success.unfold"))
     }
 
     settings = async () => {
@@ -335,24 +340,22 @@ class tocMarkmap {
 
             return [
                 titledBox(
-                    "settingGroup.color",
+                    "title.color",
                     field("DEFAULT_TOC_OPTIONS.color", "radio", { options: colorOptions }),
                 ),
                 titledBox(
-                    "settingGroup.chart",
+                    "title.chart",
                     field("DEFAULT_TOC_OPTIONS.spacingHorizontal", "range", { min: 0, max: 200, step: 1 }),
                     field("DEFAULT_TOC_OPTIONS.spacingVertical", "range", { min: 0, max: 100, step: 1 }),
                     field("DEFAULT_TOC_OPTIONS.paddingX", "range", { min: 0, max: 100, step: 1 }),
                     field("DEFAULT_TOC_OPTIONS.maxWidth", "range", "zero", { min: 0, max: 1000, step: 10 }),
-                    field("DEFAULT_TOC_OPTIONS.nodeMinHeight", "range", { min: 5, max: 50, step: 1 })
-                ),
-                untitledBox(
+                    field("DEFAULT_TOC_OPTIONS.nodeMinHeight", "range", { min: 5, max: 50, step: 1 }),
                     field("DEFAULT_TOC_OPTIONS.colorFreezeLevel", "range", { min: 1, max: 7, step: 1 }),
                     field("DEFAULT_TOC_OPTIONS.initialExpandLevel", "range", { min: 1, max: 7, step: 1 }),
                     field("DEFAULT_TOC_OPTIONS.duration", "range", { min: 0, max: 1000, step: 10 }),
                 ),
                 titledBox(
-                    "settingGroup.window",
+                    "title.window",
                     field("DEFAULT_TOC_OPTIONS.fitRatio", "range", { min: 0.5, max: 1, step: 0.01 }),
                     field("DEFAULT_TOC_OPTIONS.maxInitialScale", "range", { min: 0.5, max: 5, step: 0.25 }),
                     field("WIDTH_PERCENT_WHEN_INIT", "range", { min: 20, max: 95, step: 1 }),
@@ -361,7 +364,7 @@ class tocMarkmap {
                     field("WIDTH_PERCENT_WHEN_PIN_RIGHT", "range", { min: 20, max: 95, step: 1 }),
                 ),
                 titledBox(
-                    "settingGroup.interactive",
+                    "title.interactive",
                     field("USE_CONTEXT_MENU", "switch"),
                     field("DEFAULT_TOC_OPTIONS.zoom", "switch"),
                     field("DEFAULT_TOC_OPTIONS.pan", "switch"),
@@ -372,7 +375,7 @@ class tocMarkmap {
                     }),
                 ),
                 titledBox(
-                    "settingGroup.behavior",
+                    "title.behavior",
                     field("FIX_SKIPPED_LEVEL_HEADERS", "switch"),
                     field("REMOVE_HEADER_STYLES", "switch"),
                     field("KEEP_FOLD_STATE_WHEN_UPDATE", "switch"),
@@ -381,22 +384,18 @@ class tocMarkmap {
                     field("AUTO_COLLAPSE_PARAGRAPH_WHEN_FOLD", "switch", { tooltip: "experimental", disabled: !pluginEnabled, readonly: pluginEnabled }),
                 ),
                 titledBox(
-                    "settingGroup.download",
+                    "title.download",
                     field("DOWNLOAD_OPTIONS.SHOW_PATH_INQUIRY_DIALOG", "switch"),
                     field("DOWNLOAD_OPTIONS.SHOW_IN_FINDER", "switch"),
                     field("DOWNLOAD_OPTIONS.FOLDER", "text", { tooltip: "tempDir", placeholder: this.utils.tempFolder }),
                     field("DOWNLOAD_OPTIONS.FILENAME", "text"),
-                ),
-                untitledBox(
                     field("DOWNLOAD_OPTIONS.IMAGE_SCALE", "number", { min: 0.1, step: 0.1 }),
-                    field("DOWNLOAD_OPTIONS.PADDING_HORIZONTAL", "number", { min: 1, step: 1, unit: this.i18n._t("settings", "$unit.pixel") }),
-                    field("DOWNLOAD_OPTIONS.PADDING_VERTICAL", "number", { min: 1, step: 1, unit: this.i18n._t("settings", "$unit.pixel") }),
+                    field("DOWNLOAD_OPTIONS.PADDING_HORIZONTAL", "unit", { min: 1, step: 1, unit: this.i18n._t("settings", "$unit.pixel") }),
+                    field("DOWNLOAD_OPTIONS.PADDING_VERTICAL", "unit", { min: 1, step: 1, unit: this.i18n._t("settings", "$unit.pixel") }),
                     field("DOWNLOAD_OPTIONS.TEXT_COLOR", "color"),
                     field("DOWNLOAD_OPTIONS.OPEN_CIRCLE_COLOR", "color"),
                     field("DOWNLOAD_OPTIONS.BACKGROUND_COLOR", "color", { tooltip: "jpgFormatOnly" }),
                     field("DOWNLOAD_OPTIONS.IMAGE_QUALITY", "range", { tooltip: "pixelImagesOnly", min: 0.01, max: 1, step: 0.01 }),
-                ),
-                untitledBox(
                     field("DOWNLOAD_OPTIONS.KEEP_ALPHA_CHANNEL", "switch"),
                     field("DOWNLOAD_OPTIONS.REMOVE_USELESS_CLASSES", "switch"),
                     field("DOWNLOAD_OPTIONS.REMOVE_FOREIGN_OBJECT", "switch", { tooltip: "removeForeignObj" }),
@@ -417,12 +416,12 @@ class tocMarkmap {
         const save = async (result) => {
             result.DEFAULT_TOC_OPTIONS.color = str2Arr(result.DEFAULT_TOC_OPTIONS.color)
             Object.assign(this.config, result)
-            await this.utils.settings.saveSettings(this.plugin.fixedName, result)
+            await this.utils.settings.save(this.plugin.fixedName, result)
         }
 
         let _edited = false
         const op = {
-            title: this.i18n.t("func.settings"),
+            title: this.i18n.t("$option.TITLE_BAR_BUTTONS.settings"),
             schema: getSchema(),
             data: getData(),
             actions: {
@@ -431,12 +430,12 @@ class tocMarkmap {
                     timeWindow: 3000,
                     onConfirmed: async () => {
                         const fixedName = this.plugin.fixedName
-                        await this.utils.settings.handleSettings(fixedName, (pluginSettings, allSettings) => {
+                        await this.utils.settings.handle(fixedName, (pluginSettings, allSettings) => {
                             allSettings[fixedName] = this.utils.pickBy(pluginSettings, (_, k) => !attrsToSave.includes(k))
                         })
-                        const settings = await this.utils.settings.readBasePluginSettings()
+                        const settings = await this.utils.settings.readBase()
                         this.config = settings[fixedName]
-                        this.utils.notification.show(this.i18n._t("global", "success.restore"))
+                        this.utils.notification.show(this.i18n.t("success.restore"))
                         await this.utils.formDialog.updateModal(op => {
                             op.schema = getSchema()
                             op.data = getData()
@@ -447,6 +446,7 @@ class tocMarkmap {
             },
             rules: {
                 "DOWNLOAD_OPTIONS.FOLDER": "path",
+                "DOWNLOAD_OPTIONS.FILENAME": "required",
             },
             hooks: {
                 onCommit: () => _edited = true,
@@ -457,12 +457,12 @@ class tocMarkmap {
             await save(data)
             await this.draw()
             this.toggleContextMenu()
-            this.utils.notification.show(this.i18n._t("global", "success.edit"))
+            this.utils.notification.show(this.i18n.t("success.edit"))
         }
     }
 
     download = async () => {
-        const { downloader } = require("./downloader.js")
+        const Downloader = require("./downloader.js")
 
         let {
             SHOW_PATH_INQUIRY_DIALOG,
@@ -471,13 +471,15 @@ class tocMarkmap {
             FILENAME: file = "{{filename}}.svg",
         } = this.config.DOWNLOAD_OPTIONS
         const getDownloadPath = async () => {
+            if (folder) {
+                folder = this.utils.resolvePath(folder)
+            }
             if (!folder || !(await this.utils.existPath(folder))) {
                 folder = this.utils.tempFolder
             }
             const tpl = {
-                uuid: this.utils.getUUID(),
+                timestamp: Date.now(),
                 random: this.utils.randomString(),
-                timestamp: new Date().getTime(),
                 filename: this.utils.getFileName() || "MARKMAP",
             }
             const name = file.replace(/\{\{([\S\s]+?)\}\}/g, (origin, arg) => tpl[arg.trim().toLowerCase()] || origin)
@@ -487,21 +489,21 @@ class tocMarkmap {
         let downloadPath = await getDownloadPath()
         if (SHOW_PATH_INQUIRY_DIALOG) {
             const op = {
-                title: this.i18n.t("func.download"),
+                title: this.i18n.t("$option.TITLE_BAR_BUTTONS.download"),
                 properties: ["saveFile", "showOverwriteConfirmation"],
                 defaultPath: downloadPath,
-                filters: downloader.getFormats(),
+                filters: Downloader.getFormats(),
             }
             const { canceled, filePath } = await JSBridge.invoke("dialog.showSaveDialog", op)
             if (canceled) return
             downloadPath = filePath
         }
-        const ok = await downloader.download(this, downloadPath)
+        const ok = await Downloader.download(this, downloadPath)
         if (!ok) return
         if (SHOW_IN_FINDER) {
             this.utils.showInFinder(downloadPath)
         }
-        this.utils.notification.show(this.i18n.t("func.download.ok"))
+        this.utils.notification.show(this.i18n.t("success.download"))
     }
 
     toggleContextMenu = (register = this.config.USE_CONTEXT_MENU) => {
@@ -511,11 +513,11 @@ class tocMarkmap {
             this.utils.contextMenu.register(
                 this.entities.svg,
                 () => {
-                    const all = ["expand", "shrink", "hideToolbar", "showToolbar", "fit", "pinTop", "pinRight", "settings", "download", "close"]
-                    const menuItems = this.i18n.entries(all, "func.")
+                    const all = ["expand", "shrink", "hideToolbar", "showToolbar", "fit", "unfold", "pinTop", "pinRight", "settings", "download", "close"]
+                    const menuItems = this.i18n.entries(all, "$option.TITLE_BAR_BUTTONS.")
                     const fullScreen = this.entities.fullScreen.getAttribute("action")
                     const toolbarVisibility = this.utils.isHidden(this.entities.header) ? "showToolbar" : "hideToolbar"
-                    const attrs = [toolbarVisibility, fullScreen, "fit", "pinTop", "pinRight", "settings", "download", "close"]
+                    const attrs = [toolbarVisibility, fullScreen, "fit", "unfold", "pinTop", "pinRight", "settings", "download", "close"]
                     return this.utils.pick(menuItems, attrs)
                 },
                 (ev, key) => this.doAction(key),
@@ -547,9 +549,7 @@ class tocMarkmap {
         this._setModalRect(modalRect)
         this._setPinStyles(true)
         this.entities.content.style.top = contentTop + "px"
-        if (fit) {
-            this.fit()
-        }
+        if (fit) this.fit()
     }
 
     pinRight = (fit = true) => {
@@ -582,9 +582,7 @@ class tocMarkmap {
         this.entities.content.style.right = contentRight
         this.entities.content.style.width = contentWidth
         this.utils.entities.eWrite.style.width = writeWidth
-        if (fit) {
-            this.fit()
-        }
+        if (fit) this.fit()
     }
 
     showToolbar = () => this._toggleToolbar(true)
@@ -596,7 +594,7 @@ class tocMarkmap {
         const md = this.plugin.getToc()
         if (md === undefined) return
 
-        const options = this.plugin.assignOptions(this.config.DEFAULT_TOC_OPTIONS, this.mm && this.mm.options)
+        const options = this.plugin.assignOptions(this.config.DEFAULT_TOC_OPTIONS, this.mm?.options)
         this.transformContext = this.Lib.transformer.transform(md)
         const { root } = this.transformContext
 
@@ -619,27 +617,27 @@ class tocMarkmap {
     _setFoldNode = newRoot => {
         if (!this.config.KEEP_FOLD_STATE_WHEN_UPDATE) return
 
-        const preorder = (node, fn, parent) => {
-            const parentPath = (parent && parent.__path) || ""
-            node.__path = `${parentPath}\n${node.content}`
-            fn(node)
-            for (const child of node.children) {
-                preorder(child, fn, node)
-            }
-        }
-
         const needFold = new Set()
         const { data: oldRoot } = this.mm.state || {}
-        preorder(oldRoot, node => {
-            if (node.payload && node.payload.fold) {
+        this._preorder(oldRoot, node => {
+            if (node.payload?.fold) {
                 needFold.add(node.__path)
             }
         })
-        preorder(newRoot, node => {
+        this._preorder(newRoot, node => {
             if (node.payload && needFold.has(node.__path)) {
                 node.payload.fold = 1
             }
         })
+    }
+
+    _preorder = (node, fn, parent) => {
+        const parentPath = parent?.__path || ""
+        node.__path = `${parentPath}\n${node.content}`
+        fn(node)
+        for (const child of node.children) {
+            this._preorder(child, fn, node)
+        }
     }
 
     _fixConfig = () => {
@@ -671,8 +669,8 @@ class tocMarkmap {
 
     _setPinStyles = (isTop = true) => {
         const [pinned, gripEl, act, hint, icon] = (isTop === true)
-            ? [this.pinUtils.isPinTop, this.entities.gripTop, "pinTop", "func.pinTop", "ion-chevron-up"]
-            : [this.pinUtils.isPinRight, this.entities.gripRight, "pinRight", "func.pinRight", "ion-chevron-right"]
+            ? [this.pinUtils.isPinTop, this.entities.gripTop, "pinTop", "$option.TITLE_BAR_BUTTONS.pinTop", "ion-chevron-up"]
+            : [this.pinUtils.isPinRight, this.entities.gripRight, "pinRight", "$option.TITLE_BAR_BUTTONS.pinRight", "ion-chevron-right"]
 
         this.entities.modal.classList.toggle("pinned-window", pinned)
         this.utils.toggleInvisible(gripEl, !pinned)
@@ -680,17 +678,20 @@ class tocMarkmap {
         this._setFullScreenStyles(false)
 
         const btn = this.entities.header.querySelector(`[action="${act}"]`)
-        btn.classList.toggle(icon, !pinned)
-        btn.classList.toggle("ion-ios7-undo", pinned)
-        btn.setAttribute("ty-hint", this.i18n.t(pinned ? "func.pinRecover" : hint))
+        const iconEl = btn.firstElementChild
+        iconEl.classList.toggle(icon, !pinned)
+        iconEl.classList.toggle("ion-ios7-undo", pinned)
+        btn.setAttribute("ty-hint", this.i18n.t(pinned ? "$option.TITLE_BAR_BUTTONS.pinRecover" : hint))
     }
 
     _setFullScreenStyles = (expand = true) => {
         const btn = this.entities.fullScreen
+        if (!btn) return
         btn.setAttribute("action", expand ? "shrink" : "expand")
-        btn.setAttribute("ty-hint", this.i18n.t(expand ? "func.shrink" : "func.expand"))
-        btn.classList.toggle("ion-qr-scanner", !expand)
-        btn.classList.toggle("ion-ios7-undo", expand)
+        btn.setAttribute("ty-hint", this.i18n.t(expand ? "$option.TITLE_BAR_BUTTONS.shrink" : "$option.TITLE_BAR_BUTTONS.expand"))
+        const iconEl = btn.firstElementChild
+        iconEl.classList.toggle("ion-qr-scanner", !expand)
+        iconEl.classList.toggle("ion-ios7-undo", expand)
     }
 
     _toggleFullscreen = (expand = true) => {
@@ -717,6 +718,4 @@ class tocMarkmap {
     _rollbackTransition = () => this.entities.modal.style.transition = ""
 }
 
-module.exports = {
-    tocMarkmap
-}
+module.exports = TOCMarkmap

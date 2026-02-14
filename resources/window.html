@@ -10,7 +10,7 @@
 	<link rel="stylesheet" href="typora://app/typemark/lib.asar/bootstrape/css/bootstrap.css" crossorigin="anonymous">
 	<link rel="stylesheet" css-include href="typora://app/typemark/lib.asar/diagram/css/mermaid.css"
 		crossorigin="anonymous">
-	<link rel="stylesheet" href="./style/font-awesome-4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
+	<link rel="stylesheet" href="./style/font-awesome-4.7.0/css/font-awesome.min.css" crossorigin="anonymous" />
 	<link rel="stylesheet" href="./style/ionicons-2.0.1/css/ionicons.min.css" crossorigin="anonymous">
 	<link rel="stylesheet" href="./style/typora-icon/style.css" crossorigin="anonymous">
 	<link rel="stylesheet" href="./style/typora-file-icon/style.css" crossorigin="anonymous">
@@ -923,7 +923,8 @@
 					class="ion-minus-round"></i></span> <span id="zoom-hint-out" role="button" class="zoom-hint-button"
 				aria-label="zoom in"><i class="ion-plus-round"></i></span> <span id="zoom-hint-reset" role="button"
 				class="zoom-hint-button" aria-label="reset zoom factor">Reset</span></div>
-		<div id="write" class="write ty-before-first-render" contenteditable="false" spellcheck="true" tabindex="-1">
+		<div id="write" class="write ty-before-first-render" role="textbox" aria-placeholder="Start writing..."
+			aria-multiline="true" contenteditable="false" spellcheck="true" tabindex="-1">
 			<div style="opacity: 0">
 				<h1>ABCDEFG</h1>
 				<p>abcdefg</p>
@@ -1687,7 +1688,7 @@
 	<script src="./plugin/index.js" defer="defer"></script>
 	<script>
 		var mode = "release";
-		window._releaseNo = "82811521";
+		window._releaseNo = "36f3d131";
 		window.debugMode = (mode != "release");
 
 		window.isOnWindowHtml = true;
@@ -1704,7 +1705,7 @@
 			}
 		}
 
-		(function() {
+		(function () {
 			if (!window.reqnode) return;
 			var Module = reqnode("module");
 			var path = reqnode("path");
@@ -1712,7 +1713,7 @@
 			Module.globalPaths.push(node_modules_asar);
 
 			var _old_require = Module.prototype.require;
-			Module.prototype.require = function(id) {
+			Module.prototype.require = function (id) {
 				if (this.paths.indexOf(node_modules_asar) == -1) {
 					this.paths.push(node_modules_asar);
 				}

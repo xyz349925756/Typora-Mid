@@ -1,6 +1,6 @@
 const generalRulesMap = require("./general-rules.json")
 const rulesDefaultValues = require("./rules-default-values.json")
-const { i18n } = require("../../../global/core/i18n.js")
+const i18n = require("../../../global/core/i18n.js")
 
 const OPTIONS = {
     "MD003.style": ["consistent", "atx", "atx_closed", "setext", "setext_with_atx", "setext_with_atx_closed"],
@@ -11,6 +11,8 @@ const OPTIONS = {
     "MD049.style": ["consistent", "asterisk", "underscore"],
     "MD050.style": ["consistent", "asterisk", "underscore"],
     "MD055.style": ["consistent", "leading_only", "trailing_only", "leading_and_trailing", "no_leading_or_trailing"],
+    "MD060.style": ["any", "aligned", "compact", "tight"],
+    "MD103.style": ["consistent", "single", "double"],
 }
 
 const buildGeneralRuleDependencies = () => {
@@ -60,7 +62,10 @@ const ConfigurableRule = (name, ...subFiled) => ({
     subSchema: [UntitledBox(...subFiled)],
 })
 
-const MD001 = SimpleRule("MD001")
+const MD001 = ConfigurableRule(
+    "MD001",
+    Text("MD001.front_matter_title"),
+)
 const MD003 = ConfigurableRule(
     "MD003",
     Select("MD003.style"),
@@ -79,6 +84,7 @@ const MD007 = ConfigurableRule(
 const MD009 = ConfigurableRule(
     "MD009",
     Number("MD009.br_spaces", { min: 0 }),
+    Switch("MD009.code_blocks"),
     Switch("MD009.list_item_empty_lines"),
     Switch("MD009.strict"),
 )
@@ -152,6 +158,7 @@ const MD032 = SimpleRule("MD032")
 const MD033 = ConfigurableRule(
     "MD033",
     Array_Inline("MD033.allowed_elements"),
+    Array_Inline("MD033.table_allowed_elements"),
 )
 const MD034 = SimpleRule("MD034")
 const MD035 = ConfigurableRule(
@@ -239,11 +246,19 @@ const MD059 = ConfigurableRule(
     "MD059",
     Array_Inline("MD059.prohibited_texts"),
 )
+const MD060 = ConfigurableRule(
+    "MD060",
+    Select("MD060.style"),
+)
 const MD101 = ConfigurableRule(
     "MD101",
     Switch("MD101.list_items"),
 )
 const MD102 = SimpleRule("MD102")
+const MD103 = ConfigurableRule(
+    "MD103",
+    Select("MD103.style"),
+)
 
 const globalConfigs = [
     Switch("default", { disabled: true }),
@@ -256,13 +271,13 @@ const specificRules = [
     MD027, MD028, MD029, MD030, MD031, MD032, MD033, MD034, MD035, MD036,
     MD037, MD038, MD039, MD040, MD041, MD042, MD043, MD044, MD045, MD046,
     MD047, MD048, MD049, MD050, MD051, MD052, MD053, MD054, MD055, MD056,
-    MD058, MD059, MD101, MD102,
+    MD058, MD059, MD060, MD101, MD102, MD103,
 ]
 
 const generalRules = Object.entries(generalRulesMap).map(([name, rules]) => Switch(name, { explain: rules.join("、") }))
 
 const actions = [
-    Action("viewRules", _t("$label.viewMarkdownlintRules")),
+    Action("viewRules", _t("$tooltip.viewMarkdownlintRules")),
     Action("restoreRules", i18n.t("settings", "$label.restoreSettings")),
 ]
 

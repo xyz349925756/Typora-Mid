@@ -1,15 +1,12 @@
-class updaterPlugin extends BasePlugin {
+class UpdaterPlugin extends BasePlugin {
     hotkey = () => [this.config.HOTKEY]
 
     process = () => {
-        const { AUTO_UPDATE, START_UPDATE_INTERVAL, UPDATE_LOOP_INTERVAL } = this.config
-        if (!AUTO_UPDATE) return
-        if (START_UPDATE_INTERVAL > 0) {
-            setTimeout(this.silentUpdate, Math.min(START_UPDATE_INTERVAL, 1000 * 60))
-        }
-        if (UPDATE_LOOP_INTERVAL > 0) {
-            setInterval(this.silentUpdate, Math.min(UPDATE_LOOP_INTERVAL, 1000 * 60 * 60))
-        }
+        if (!this.config.AUTO_UPDATE) return
+        const start = Math.min(this.config.START_UPDATE_INTERVAL, 1000 * 60)
+        const loop = Math.min(this.config.UPDATE_LOOP_INTERVAL, 1000 * 60 * 60)
+        if (start > 0) setTimeout(this.silentUpdate, start)
+        if (loop > 0) setInterval(this.silentUpdate, loop)
     }
 
     call = async (action, meta) => {
@@ -17,7 +14,7 @@ class updaterPlugin extends BasePlugin {
             await this.manualUpdate()
             return
         }
-        const proxy = await this.getDefaultProxy()
+        const proxy = await this.getProxy()
         const label = this.i18n.t("$label.PROXY")
         const hintHeader = this.i18n.t("hintHeader.PROXY")
         const hintDetail = this.i18n.t("hintDetail.PROXY")
@@ -36,9 +33,9 @@ class updaterPlugin extends BasePlugin {
     }
 
     silentUpdate = async proxy => {
-        console.log("start silent update...");
-        const updater = await this.getUpdater(proxy);
-        await updater.run();
+        console.log("Start silent update...")
+        const updater = await this.getUpdater(proxy)
+        await updater.run()
     }
 
     manualUpdate = async proxy => {
@@ -48,12 +45,12 @@ class updaterPlugin extends BasePlugin {
             success: this.i18n.t("update.success"),
             noNeed: this.i18n.t("update.noNeed"),
             failed: this.i18n.t("update.failed"),
-            unknownError: this.i18n._t("global", "error.unknown"),
+            unknownError: this.i18n.t("error.unknown"),
         }
 
         const close = this.utils.notification.show(I18N.pleaseWait)
         const updater = await this.getUpdater(proxy, timeout)
-        const { state, info } = await updater.runWithProgressBar(timeout)
+        const { state, info } = await updater.runWithProgressBar()
         close()
 
         let msg, msgType, detail
@@ -84,232 +81,286 @@ class updaterPlugin extends BasePlugin {
         await this.utils.formDialog.modal(op)
     }
 
-    getDefaultProxy = async () => {
-        const p = this.config.PROXY || await new ProxyGetter(this).getProxy() || ""
-        return p.trim()
-    }
-
-    getUpdater = async (proxy, timeout) => {
-        if (proxy == null) {
-            proxy = await this.getDefaultProxy()
-        }
-        proxy = proxy.trim()
-        if (proxy && !/^https?:\/\//.test(proxy)) {
+    getProxy = async (userProxy) => {
+        let proxy = (userProxy || this.config.PROXY || await getSysProxy() || "").trim()
+        if (proxy && !/^https?:\/\//i.test(proxy)) {
             proxy = "http://" + proxy
         }
+        return proxy
+    }
+
+    getUpdater = async (userProxy, timeout) => {
         const url = "https://api.github.com/repos/obgnail/typora_plugin/releases/latest"
-        return new updater(this, url, proxy, timeout)
+        const proxy = await this.getProxy(userProxy)
+        return new Updater(this, url, proxy, timeout)
     }
 }
 
-class updater {
+class Updater {
     constructor(plugin, latestReleaseUrl, proxy, timeout) {
-        this.utils = plugin.utils;
-        this.latestReleaseUrl = latestReleaseUrl;
-        this.requestOption = { proxy, timeout };
+        this.utils = plugin.utils
+        this.latestReleaseUrl = latestReleaseUrl
+        this.requestOption = { proxy, timeout }
 
-        this.pkgFsExtra = this.utils.Package.FsExtra;
-        this.pkgPath = this.utils.Package.Path;
+        this.fs = this.utils.Package.FsExtra
+        this.path = this.utils.Package.Path
 
-        this.unzipDir = "";
-        this.pluginDir = "./plugin";
-        this.customPluginDir = "./plugin/custom/plugins";
-        this.versionFile = this.utils.joinPath("./plugin/bin/version.json");
-        this.workDir = this.pkgPath.join(this.utils.tempFolder, "typora-plugin-updater");
-        this.exclude = [
+        this.paths = {
+            stagingDir: "",
+            versionFile: this.utils.joinPath("./plugin/bin/version.json"),
+            workDir: this.path.join(this.utils.tempFolder, "typora-plugin-updater"),
+            backupDir: this.path.join(this.utils.tempFolder, "typora-plugin-updater-backup"),
+        }
+        this.relpaths = {
+            rootDir: "./plugin",
+            customPluginDir: "./plugin/custom/plugins",
+        }
+        this.userFiles = [
             "./plugin/global/user_space",
             "./plugin/global/user_styles",
             "./plugin/global/settings/settings.user.toml",
             "./plugin/global/settings/custom_plugin.user.toml",
         ]
 
-        this.latestVersionInfo = null;
-        this.currentVersionInfo = null;
+        this.latestVersionInfo = null
+        this.currentVersionInfo = null
     }
 
-    run = async () => {
-        await this.prepare();
-        const need = await this.checkNeedUpdate();
-        if (!need) return "NO_NEED";
-        const buffer = await this.downloadLatestVersion();
-        await this.unzip(buffer);
-        await this.excludeFiles();
-        await this.syncDir();
-        await this.utils.migrate.run();
-        console.log(`updated! current plugin version: ${this.latestVersionInfo.tag_name}`);
-        return "UPDATED";
+    async run() {
+        try {
+            await this.prepare()
+            const need = await this.checkNeedUpdate()
+            if (!need) return "NO_NEED"
+            const buffer = await this.downloadLatestVersion()
+            await this.unzip(buffer)
+            await this.migrateUserFiles()
+            await this.atomicSync()
+            await this.utils.migrate.run()
+            console.log(`Updated successfully! Version: ${this.latestVersionInfo.tag_name}`)
+            return "UPDATED"
+        } catch (error) {
+            console.error("Update failed:", error)
+            return error
+        } finally {
+            await this.cleanup()
+        }
     }
 
-    /** Force update: skip the check and directly update using the URL. */
-    force = async url => {
-        await this.prepare();
-        const buffer = await this.downloadLatestVersion(url);
-        await this.unzip(buffer);
-        await this.excludeFiles();
-        await this.syncDir();
-        await this.utils.migrate.run();
-        console.log(`force updated!`);
-        return "UPDATED";
+    async force(url) {
+        try {
+            await this.prepare()
+            const buffer = await this.downloadLatestVersion(url)
+            await this.unzip(buffer)
+            await this.migrateUserFiles()
+            await this.atomicSync()
+            await this.utils.migrate.run()
+            console.log(`Force updated successfully!`)
+            return "UPDATED"
+        } catch (error) {
+            console.error("Force update failed:", error)
+            throw error
+        } finally {
+            await this.cleanup()
+        }
     }
 
-    runWithProgressBar = async (timeout) => {
-        const op = { task: this.run, timeout }
+    async runWithProgressBar() {
+        const op = { task: this.run.bind(this), timeout: this.requestOption.timeout }
         const result = await this.utils.progressBar.fake(op)
         return { state: result, info: this.latestVersionInfo }
     }
 
-    prepare = async () => {
-        console.log("[1/6] prepare: ensure work dir");
-        this.pkgFsExtra.ensureDir(this.workDir);
-        await this.chmod();
+    async prepare() {
+        console.log("[1/6] Prepare: cleaning workspace")
+        await Promise.all([this.fs.emptyDir(this.paths.workDir), this.fs.remove(this.paths.backupDir)])
+        await this.chmod(this.utils.joinPath(this.relpaths.rootDir))
     }
 
-    chmod = async () => {
-        const dir = this.utils.joinPath(this.pluginDir);
+    async cleanup() {
         try {
-            await this.pkgFsExtra.chmod(dir, 0o777);
+            await this.fs.remove(this.paths.workDir)
+            await this.fs.remove(this.paths.backupDir)
         } catch (e) {
-            console.debug(`cant chmod ${dir}`);
+            console.warn("Cleanup warning:", e.message)
         }
     }
 
-    checkNeedUpdate = async (url = this.latestReleaseUrl) => {
-        console.log("[2/6] check if update is needed");
-        const _getLatestVersion = async () => {
-            const resp = await this.utils.fetch(url, this.requestOption);
+    async chmod(dir) {
+        try {
+            await this.fs.chmod(dir, 0o777)
+        } catch (e) {
+            console.debug(`Cannot chmod ${dir}:`, e.message)
+        }
+    }
+
+    async checkNeedUpdate(url = this.latestReleaseUrl) {
+        console.log("[2/6] Checking for updates...")
+        const [latest, current] = await Promise.all([this._fetchJson(url), this._readLocalVersion()])
+        this.latestVersionInfo = latest
+        this.currentVersionInfo = current
+        if (!latest) throw new Error("Fetch latest version failed")
+        if (!current) return true
+        return this.utils.compareVersion(latest.tag_name, current.tag_name) !== 0
+    }
+
+    async _fetchJson(url) {
+        try {
+            const resp = await this.utils.fetch(url, this.requestOption)
             return resp.json()
+        } catch (e) {
+            console.error("Fetch version failed:", e)
+            return null
         }
-        const _getCurrentVersion = async () => {
-            try {
-                const exist = await this.utils.existPath(this.versionFile)
-                if (exist) {
-                    return this.pkgFsExtra.readJson(this.versionFile);
-                }
-            } catch (e) {
-                console.debug("not exist version.json");
-            }
-        }
-
-        this.latestVersionInfo = await _getLatestVersion();
-        this.currentVersionInfo = await _getCurrentVersion();
-        if (!this.currentVersionInfo) return true;
-
-        const result = this.utils.compareVersion(this.latestVersionInfo.tag_name, this.currentVersionInfo.tag_name);
-        return result !== 0
     }
 
-    getDownloadURL = () => {
-        const { assets = [] } = this.latestVersionInfo
-        return assets[0] ? assets[0].browser_download_url : this.latestVersionInfo.zipball_url
+    async _readLocalVersion() {
+        return this.fs.readJson(this.paths.versionFile).catch(() => null)
     }
 
-    downloadLatestVersion = async (url = this.getDownloadURL()) => {
-        console.log("[3/6] download latest version plugin");
-        const resp = await this.utils.fetch(url, this.requestOption);
+    getDownloadURL() {
+        if (!this.latestVersionInfo) return null
+        return this.latestVersionInfo.assets?.[0]?.browser_download_url || this.latestVersionInfo.zipball_url
+    }
+
+    async downloadLatestVersion(url) {
+        const downloadUrl = url || this.getDownloadURL()
+        if (!downloadUrl) throw new Error("No download URL found")
+        console.log(`[3/6] Downloading: ${downloadUrl}`)
+        const resp = await this.utils.fetch(downloadUrl, this.requestOption)
+        if (!resp.ok) throw new Error(`Download failed: HTTP ${resp.status}`)
         return resp.buffer()
     }
 
-    unzip = async buffer => {
-        console.log("[4/6] unzip files")
-        const zipFiles = await this.utils.unzip(buffer, this.workDir)
-        const pluginDir = zipFiles.find(f => this.pkgPath.basename(f) === "plugin")
-        this.unzipDir = this.pkgPath.dirname(pluginDir)
+    async unzip(buffer) {
+        console.log("[4/6] Unzipping...")
+        const targetDirName = this.path.basename(this.relpaths.rootDir)
+        const zipFiles = await this.utils.unzip(buffer, this.paths.workDir)
+        const pluginDir = zipFiles.find(f => this.path.basename(f) === targetDirName)
+        if (!pluginDir) throw new Error(`Invalid zip structure: '${targetDirName}' folder not found`)
+        this.paths.stagingDir = this.path.dirname(pluginDir)
     }
 
-    excludeFiles = async () => {
-        console.log("[5/6] exclude files");
-        const oldDir = this.utils.joinPath(this.customPluginDir);
-        const newDir = this.pkgPath.join(this.unzipDir, this.customPluginDir);
-
-        const oldFds = await this.pkgFsExtra.readdir(oldDir);
-        const newFds = await this.pkgFsExtra.readdir(newDir);
-
-        const excludeFds = new Set([...newFds])
-        oldFds.forEach(name => {
-            const exclude = excludeFds.has(name) || (this.pkgPath.extname(name) === ".js") && excludeFds.has(name.substring(0, name.lastIndexOf(".")))
-            if (!exclude) {
-                const path = this.pkgPath.join(this.customPluginDir, name)
-                this.exclude.push(path)
-            }
-        })
-
-        for (const file of this.exclude) {
-            const oldPath = this.utils.joinPath(file);
-            const newPath = this.pkgPath.join(this.unzipDir, file);
-            const exists = await this.utils.existPath(oldPath);
-            if (exists) {
-                await this.pkgFsExtra.copy(oldPath, newPath);
+    async migrateUserFiles() {
+        console.log("[5/6] Migrating user settings...")
+        const filesToMigrate = [...this.userFiles]
+        const oldCustomDir = this.utils.joinPath(this.relpaths.customPluginDir)
+        const newCustomDir = this.path.join(this.paths.stagingDir, this.relpaths.customPluginDir)
+        const normalizeName = (dirent) => {
+            const name = dirent.name
+            return (dirent.isFile() && this.path.extname(name) === ".js")
+                ? this.path.basename(name, ".js")
+                : name
+        }
+        if (await this.utils.existPath(oldCustomDir) && await this.utils.existPath(newCustomDir)) {
+            const [oldDirents, newDirents] = await Promise.all([
+                this.fs.readdir(oldCustomDir, { withFileTypes: true }),
+                this.fs.readdir(newCustomDir, { withFileTypes: true }),
+            ])
+            const newVersionKeys = new Set(newDirents.map(normalizeName))
+            for (const oldEnt of oldDirents) {
+                const oldKey = normalizeName(oldEnt)
+                if (!newVersionKeys.has(oldKey)) {
+                    const fileRelPath = this.path.join(this.relpaths.customPluginDir, oldEnt.name)
+                    filesToMigrate.push(fileRelPath)
+                }
             }
         }
+        await Promise.all(filesToMigrate.map(async fileRelPath => {
+            const oldPath = this.utils.joinPath(fileRelPath)
+            const newPath = this.path.join(this.paths.stagingDir, fileRelPath)
+            if (await this.utils.existPath(oldPath)) {
+                await this.fs.copy(oldPath, newPath, { overwrite: true })
+            }
+        }))
     }
 
-    syncDir = async () => {
-        console.log("[6/6] sync dir");
-        const src = this.pkgPath.join(this.unzipDir, this.pluginDir);
-        const dst = this.utils.joinPath(this.pluginDir);
-        await this.pkgFsExtra.emptyDir(dst);
-        await this.pkgFsExtra.copy(src, dst);
-        await this.pkgFsExtra.emptyDir(this.workDir);
+    async atomicSync() {
+        console.log("[6/6] Syncing directories (Atomic Mode)...")
+        const src = this.path.join(this.paths.stagingDir, this.relpaths.rootDir)
+        const dst = this.utils.joinPath(this.relpaths.rootDir)
+        const backup = this.paths.backupDir
         if (this.latestVersionInfo) {
-            await this.pkgFsExtra.writeJson(this.versionFile, this.latestVersionInfo);
+            await this.fs.writeJson(this.path.join(src, "bin/version.json"), this.latestVersionInfo)
+        }
+        if (!(await this.utils.existPath(dst))) {
+            throw new Error("Target plugin directory does not exist")
+        }
+
+        const moveContent = async (fromDir, toDir) => {
+            await this.fs.ensureDir(toDir)
+            const items = await this.fs.readdir(fromDir)
+            for (const item of items) {
+                const srcPath = this.path.join(fromDir, item)
+                const destPath = this.path.join(toDir, item)
+                await this.fs.move(srcPath, destPath, { overwrite: true })
+            }
+        }
+
+        await this.fs.emptyDir(backup)
+        try {
+            await moveContent(dst, backup)
+        } catch (err) {
+            console.error("Backup failed", err)
+            try {
+                await moveContent(backup, dst)
+            } catch (restoreErr) {
+                console.error("Failed to restore partial backup", restoreErr)
+            }
+            throw err
+        }
+
+        try {
+            await this.fs.copy(src, dst, { overwrite: true, preserveTimestamps: true })
+        } catch (error) {
+            console.error("Critical Error during sync! Rolling back...", error)
+            try {
+                await this.fs.emptyDir(dst)
+                await moveContent(backup, dst)
+                console.log("Rollback successful.")
+            } catch (rollbackError) {
+                console.error("FATAL: Rollback failed!", rollbackError)
+                throw rollbackError
+            }
+            throw error
         }
     }
 }
 
-class ProxyGetter {
-    constructor(controller) {
-        this.utils = controller.utils
+const getSysProxy = () => {
+    const envProxy = process.env.http_proxy || process.env.HTTP_PROXY || process.env.https_proxy || process.env.HTTPS_PROXY
+    if (envProxy) return envProxy
+    if (File.isLinux) {
+        return new Promise(resolve => {
+            require("fs").readFile("/etc/environment", "utf8", (err, data) => {
+                const result = err ? null : data.match(/http_proxy=(.+)/i)?.[1]
+                resolve(result || null)
+            })
+        })
     }
-
-    getProxy = () => {
-        if (File.isLinux) {
-            return this.getLinuxProxy()
-        } else if (File.isWin) {
-            return this.getWindowsProxy()
-        } else if (File.isMac) {
-            return this.getMacProxy()
-        } else {
-            return ""
-        }
-    }
-
-    _getProxy = (cmd, func) => new Promise(resolve => {
+    const _get = (cmd, func) => new Promise(resolve => {
         require("child_process").exec(cmd, (err, stdout, stderr) => {
-            const result = (err || stderr) ? null : func(stdout);
-            resolve(result);
+            const result = (err || stderr) ? null : func(stdout)
+            resolve(result)
         })
     })
-
-    getWindowsProxy = () => this._getProxy(
-        `reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" | findstr /i "ProxyEnable proxyserver"`,
-        stdout => {
-            const match = stdout.match(/ProxyEnable.+?0x(?<enable>\d)\r\n.+?ProxyServer\s+REG_SZ\s+(?<proxy>.*)/i)
-            return (match && match.groups && match.groups.enable === "1")
-                ? match.groups.proxy
-                : null
-        }
-    )
-
-    getMacProxy = () => this._getProxy('networksetup -getwebproxy "Wi-Fi"', stdout => {
-        const match = stdout.match(/Enabled: (.+)\nServer: (.+)\nPort: (.+)\n/i);
-        return (match && match[1] === 'Yes' && match[2] && match[3])
-            ? `${match[2]}:${match[3]}`
-            : null
-    })
-
-    getLinuxProxy = () => new Promise(resolve => {
-        this.utils.Package.Fs.readFile('/etc/environment', 'utf8', (err, data) => {
-            if (err) {
-                resolve(null);
-            } else {
-                const match = data.match(/http_proxy=(.+)/i);
-                const result = (match && match[1]) ? match[1] : null;
-                resolve(result);
+    if (File.isWin) {
+        return _get(
+            `reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" | findstr /i "ProxyEnable proxyserver"`,
+            stdout => {
+                const groups = stdout.match(/ProxyEnable.+?0x(?<enable>\d)\r\n.+?ProxyServer\s+REG_SZ\s+(?<proxy>.*)/i)?.groups
+                return (groups?.enable === "1") ? groups.proxy : null
             }
-        });
-    });
+        )
+    }
+    if (File.isMac) {
+        return _get('networksetup -getwebproxy "Wi-Fi"', stdout => {
+            const [_, enable, server, port] = stdout.match(/Enabled: (.+)\nServer: (.+)\nPort: (.+)\n/i) || []
+            return (enable === "Yes" && server && port) ? `${server}:${port}` : null
+        })
+    }
+    return null
 }
 
 module.exports = {
-    plugin: updaterPlugin
+    plugin: UpdaterPlugin
 }

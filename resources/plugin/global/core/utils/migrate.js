@@ -1,34 +1,22 @@
 /**
  * Handles migration operations during the upgrade process.
  */
-class migrate {
+class Migrate {
     constructor(utils) {
         this.utils = utils
     }
 
     deleteUselessPlugins = async () => {
-        const custom = [
+        const dirs = ["scrollBookmarker"]
+        const files = [
             "fullPathCopy", "extractRangeToNewFile", "bingSpeech", "autoTrailingWhiteSpace", "darkMode",
             "noImageMode", "hotkeyHub", "pluginUpdater", "openInTotalCommander", "resourceOperation",
-            "reopenClosedFiles", "__modal_example",
+            "reopenClosedFiles", "sortableOutline", "blockSideBySide", "__modal_example",
         ]
-        const promises = custom
-            .flatMap(plugin => [
-                this.utils.joinPath("./plugin/custom/plugins", `${plugin}.js`),
-                this.utils.joinPath("./plugin/custom/plugins", plugin),
-            ])
-            .map(async path => this.utils.Package.FsExtra.remove(path))
+        const toDir = name => this.utils.joinPath("./plugin/custom/plugins", name)
+        const toFile = name => this.utils.joinPath("./plugin/custom/plugins", `${name}.js`)
+        const promises = [...files.map(toFile), ...dirs.map(toDir)].map(path => this.utils.Package.FsExtra.remove(path))
         await Promise.all(promises)
-    }
-
-    fixCustomPluginConfigs = (files) => {
-        const config = files.find(e => e.file === "custom_plugin.user.toml")
-        Object.values(config.configUser).forEach(plugin => {
-            if (plugin.config) {
-                Object.assign(plugin, plugin.config)
-                delete plugin.config
-            }
-        })
     }
 
     cleanInvalidPlugins = async (files) => {
@@ -61,7 +49,7 @@ class migrate {
                 .map(fixedName => {
                     const pluginUser = configUser[fixedName]
                     const pluginDefault = configDefault[fixedName]
-                    const toDeleteKeys = Object.keys(pluginUser).filter(key => !pluginDefault.hasOwnProperty(key) || pluginDefault[key] === pluginUser[key])
+                    const toDeleteKeys = Object.keys(pluginUser).filter(key => !pluginDefault.hasOwnProperty(key) || this.utils.deepEqual(pluginDefault[key], pluginUser[key]))
                     return [pluginUser, toDeleteKeys]
                 })
                 .forEach(([plugin, toDeleteKeys]) => toDeleteKeys.forEach(key => delete plugin[key]))
@@ -72,8 +60,8 @@ class migrate {
     }
 
     getConfigs = async () => {
-        const [baseDefault, baseUser, baseHome] = await this.utils.settings.getSettingObjects("settings.default.toml", "settings.user.toml")
-        const [customDefault, customUser, customHome] = await this.utils.settings.getSettingObjects("custom_plugin.default.toml", "custom_plugin.user.toml")
+        const [baseDefault, baseUser, baseHome] = await this.utils.settings.getObjects("settings.default.toml", "settings.user.toml")
+        const [customDefault, customUser, customHome] = await this.utils.settings.getObjects("custom_plugin.default.toml", "custom_plugin.user.toml")
         return [
             { file: "settings.user.toml", configDefault: baseDefault, configUser: this.utils.merge(baseUser, baseHome) },
             { file: "custom_plugin.user.toml", configDefault: customDefault, configUser: this.utils.merge(customUser, customHome) },
@@ -82,7 +70,7 @@ class migrate {
 
     saveFiles = async (files) => {
         const promises = files.map(async ({ file, configUser }) => {
-            const path = await this.utils.settings.getActualSettingPath(file)
+            const path = await this.utils.settings.getActualPath(file)
             const content = this.utils.stringifyToml(configUser)
             return this.utils.writeFile(path, content)
         })
@@ -92,18 +80,15 @@ class migrate {
     run = async () => {
         const files = await this.getConfigs()
         await this.deleteUselessPlugins()
-        await this.fixCustomPluginConfigs(files)
         await this.cleanInvalidPlugins(files)
         await this.cleanPluginsAndKeys(files)
         await this.saveFiles(files)
+        console.log("[Migrate] Migrated Typora Plugin settings file")
     }
 
-    // Run migrate after Typora starts and check the permission to write to the settings files
     afterProcess = () => {
         setTimeout(this.run, 5 * 1000)
     }
 }
 
-module.exports = {
-    migrate
-}
+module.exports = Migrate

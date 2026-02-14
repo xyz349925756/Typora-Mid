@@ -8,17 +8,19 @@
     z-index: 9991;
     font-size: 17px;
     text-align: center;
+    pointer-events: none;
     grid-template-columns: repeat(${colCount}, 1fr);
     grid-template-rows: repeat(${rowCount}, 1fr);
     gap: ${this.config.button_gap};
     right: ${this.config.position_right};
     bottom: ${this.config.position_bottom};
-    color: var(--active-file-border-color);
+    color: var(--text-color);
 }
 
 #plugin-quick-button .action-item {
     cursor: pointer;
     transition: all 50ms ease-in 0s;
+    pointer-events: auto;
     width: ${this.config.button_size};
     height: ${this.config.button_size};
     line-height: ${this.config.button_size};
@@ -31,8 +33,12 @@
     box-shadow: 0 2px 10px 3px rgba(0, 0, 0, .15);
 }
 
-#plugin-quick-button .action-item.plu-click {
+#plugin-quick-button .action-item:active {
     transform: scale(0.95);
+}
+
+#plugin-quick-button .action-item i {
+    opacity: 0.8;
 }
 
 #plugin-quick-button .plu-hidden,

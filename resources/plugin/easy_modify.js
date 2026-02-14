@@ -1,4 +1,4 @@
-class easyModifyPlugin extends BasePlugin {
+class EasyModifyPlugin extends BasePlugin {
     hotkey = () => [
         { hotkey: this.config.HOTKEY_COPY_FULL_PATH, callback: () => this.call("copy_full_path") },
         { hotkey: this.config.HOTKEY_INCREASE_HEADERS_LEVEL, callback: () => this.call("increase_headers_level") },
@@ -10,6 +10,8 @@ class easyModifyPlugin extends BasePlugin {
         { hotkey: this.config.HOTKEY_EXTRACT_RANGE_TO_NEW_FILE, callback: () => this.dynamicCall("extract_rang_to_new_file") },
         { hotkey: this.config.HOTKEY_INSERT_MERMAID_MINDMAP, callback: () => this.dynamicCall("insert_mermaid_mindmap") },
         { hotkey: this.config.HOTKEY_INSERT_MERMAID_GRAPH, callback: () => this.dynamicCall("insert_mermaid_graph") },
+        { hotkey: this.config.HOTKEY_CONVERT_IMAGE_TO_BASE64, callback: () => this.dynamicCall("convert_image_to_base64") },
+        { hotkey: this.config.HOTKEY_CONVERT_ALL_IMAGES_TO_BASE64, callback: () => this.dynamicCall("convert_all_images_to_base64") },
         { hotkey: this.config.HOTKEY_UNWRAP_OUTERMOST_BLOCK, callback: () => this.dynamicCall("unwrap_outermost_block") },
     ]
 
@@ -18,17 +20,19 @@ class easyModifyPlugin extends BasePlugin {
         const defaultDoc = this.i18n.t("actHint.defaultDoc")
 
         this._showWarnDialog = true
-        this.staticActions = this.i18n.fillActions([
-            { act_value: "copy_full_path", act_hotkey: this.config.HOTKEY_COPY_FULL_PATH },
-            { act_value: "increase_headers_level", act_hotkey: this.config.HOTKEY_INCREASE_HEADERS_LEVEL, act_hint: defaultDoc },
-            { act_value: "decrease_headers_level", act_hotkey: this.config.HOTKEY_DECREASE_HEADERS_LEVEL, act_hint: defaultDoc },
-            { act_value: "unwrap_outermost_block", act_hotkey: this.config.HOTKEY_UNWRAP_OUTERMOST_BLOCK },
-            { act_value: "convert_crlf_to_lf", act_hotkey: this.config.HOTKEY_CONVERT_CRLF_TO_LF, act_hint: notRecommended },
-            { act_value: "convert_lf_to_crlf", act_hotkey: this.config.HOTKEY_CONVERT_LF_TO_CRLF, act_hint: notRecommended },
-            { act_value: "filter_invisible_characters", act_hotkey: this.config.HOTKEY_FILTER_INVISIBLE_CHARACTERS, act_hint: notRecommended },
-            { act_value: "trailing_white_space", act_hotkey: this.config.HOTKEY_TRAILING_WHITE_SPACE, act_hint: notRecommended },
-        ])
+        this.staticActions = [
+            { act_value: "copy_full_path", ...this._getActionParts("HOTKEY_COPY_FULL_PATH") },
+            { act_value: "increase_headers_level", ...this._getActionParts("HOTKEY_INCREASE_HEADERS_LEVEL"), act_hint: defaultDoc },
+            { act_value: "decrease_headers_level", ...this._getActionParts("HOTKEY_DECREASE_HEADERS_LEVEL"), act_hint: defaultDoc },
+            { act_value: "unwrap_outermost_block", ...this._getActionParts("HOTKEY_UNWRAP_OUTERMOST_BLOCK") },
+            { act_value: "convert_crlf_to_lf", ...this._getActionParts("HOTKEY_CONVERT_CRLF_TO_LF"), act_hint: notRecommended },
+            { act_value: "convert_lf_to_crlf", ...this._getActionParts("HOTKEY_CONVERT_LF_TO_CRLF"), act_hint: notRecommended },
+            { act_value: "filter_invisible_characters", ...this._getActionParts("HOTKEY_FILTER_INVISIBLE_CHARACTERS"), act_hint: notRecommended },
+            { act_value: "trailing_white_space", ...this._getActionParts("HOTKEY_TRAILING_WHITE_SPACE"), act_hint: notRecommended },
+        ]
     }
+
+    _getActionParts = (label) => ({ act_hotkey: this.config[label], act_name: this.i18n.t(`$label.${label}`) })
 
     getDynamicActions = (anchorNode, meta) => {
         const I18N = {
@@ -40,7 +44,7 @@ class easyModifyPlugin extends BasePlugin {
         const extract = {
             act_value: "extract_rang_to_new_file",
             act_disabled: meta.range.collapsed,
-            act_hotkey: this.config.HOTKEY_EXTRACT_RANGE_TO_NEW_FILE
+            ...this._getActionParts("HOTKEY_EXTRACT_RANGE_TO_NEW_FILE"),
         }
         if (extract.act_disabled) {
             extract.act_hint = I18N.noSelection
@@ -49,14 +53,18 @@ class easyModifyPlugin extends BasePlugin {
         meta.innermostAnchor = anchorNode.closest("#write [cid]")
         meta.outermostAnchor = anchorNode.closest("#write > [cid]")
         meta.insertAnchor = anchorNode.closest('#write > p[mdtype="paragraph"]')
+        meta.imageAnchor = anchorNode.closest("#write .md-image.md-img-loaded")
         const act_disabled = !meta.insertAnchor || meta.insertAnchor.querySelector("p > span")
         const act_hint = act_disabled ? I18N.positionEmptyLine : ""
         const insert = [
-            { act_value: "insert_mermaid_mindmap", act_hotkey: this.config.HOTKEY_INSERT_MERMAID_MINDMAP, act_disabled, act_hint },
-            { act_value: "insert_mermaid_graph", act_hotkey: this.config.HOTKEY_INSERT_MERMAID_GRAPH, act_disabled, act_hint },
+            { act_value: "insert_mermaid_mindmap", ...this._getActionParts("HOTKEY_INSERT_MERMAID_MINDMAP"), act_disabled, act_hint },
+            { act_value: "insert_mermaid_graph", ...this._getActionParts("HOTKEY_INSERT_MERMAID_GRAPH"), act_disabled, act_hint },
         ]
-
-        return this.i18n.fillActions([...insert, extract])
+        const convert = [
+            { act_value: "convert_image_to_base64", ...this._getActionParts("HOTKEY_CONVERT_IMAGE_TO_BASE64"), act_disabled: !meta.imageAnchor },
+            { act_value: "convert_all_images_to_base64", ...this._getActionParts("HOTKEY_CONVERT_ALL_IMAGES_TO_BASE64") },
+        ]
+        return [...insert, ...convert, extract]
     }
 
     dynamicCall = action => this.utils.updateAndCallPluginDynamicAction(this.fixedName, action)
@@ -73,6 +81,8 @@ class easyModifyPlugin extends BasePlugin {
             trailing_white_space: this.trailingWhiteSpace,
             convert_crlf_to_lf: this.convertCRLF2LF,
             convert_lf_to_crlf: this.convertLF2CRLF,
+            convert_image_to_base64: async () => this.convertImageToBase64(meta.imageAnchor),
+            convert_all_images_to_base64: this.convertAllImagesToBase64,
             filter_invisible_characters: this.filterInvisibleCharacters,
         }
         const func = funcMap[action]
@@ -80,7 +90,7 @@ class easyModifyPlugin extends BasePlugin {
 
         const success = await func()
         if (success !== false) {
-            const msg = this.i18n._t("global", "success")
+            const msg = this.i18n.t("success")
             this.utils.notification.show(msg)
         }
     }
@@ -116,46 +126,36 @@ class easyModifyPlugin extends BasePlugin {
         _getTargetHeaders().forEach(_changeHeaderLevel)
     }
 
-    copyFullPath = async anchorNode => {
-        let ele = anchorNode || this.utils.getAnchorNode().closest("#write > [cid]")[0]
-        if (!ele) return
+    copyFullPath = async (anchorNode) => {
+        const root = anchorNode ?? this.utils.getAnchorNode("#write > [cid]")?.[0]
+        if (!root) return
 
-        const paragraphs = ["H1", "H2", "H3", "H4", "H5", "H6"]
-        const headers = []
-        while (ele) {
-            const idx = paragraphs.indexOf(ele.tagName)
-            if (idx !== -1 && (headers.length === 0 || (headers[headers.length - 1].idx > idx))) {
-                headers.push({ idx, tagName: ele.tagName, textContent: ele.textContent })
-                if (idx === 0) {
-                    break
+        const getHeaders = (startNode) => {
+            const HEADING_TAGS = ["H1", "H2", "H3", "H4", "H5", "H6"]
+            const i18nSuffixes = this.i18n.array(HEADING_TAGS, "act.copy_full_path.")
+            const i18nNoHeader = this.i18n.t("act.copy_full_path.NoHeader")
+            const headerMap = new Map()
+            let minLevel = Infinity
+            let curNode = startNode
+            while (curNode && minLevel > 0) {
+                const level = HEADING_TAGS.indexOf(curNode.tagName)
+                if (level !== -1 && level < minLevel) {
+                    headerMap.set(level, curNode.textContent)
+                    minLevel = level
                 }
+                curNode = curNode.previousElementSibling
             }
-            ele = ele.previousElementSibling
+            const maxDepth = (headerMap.size === 0) ? 0 : Math.max(...headerMap.keys()) + 1
+            return Array.from({ length: maxDepth }, (_, level) => {
+                const title = headerMap.get(level) || i18nNoHeader
+                const suffix = i18nSuffixes[level]
+                return `${title} ${suffix}`
+            })
         }
-
-        headers.reverse()
-
-        const names = this.i18n.array(paragraphs, "act.copy_full_path.")
-        const noHeader = this.i18n.t("act.copy_full_path.NoHeader")
-
-        const getHeaderName = (title, idx) => `${title} ${names[idx]}`
 
         const filePath = this.utils.getFilePath() || "Untitled"
-        const result = [filePath]
-
-        let idx = 0
-        for (const { tagName, textContent } of headers) {
-            while (idx < 6 && tagName !== paragraphs[idx]) {
-                result.push(getHeaderName(noHeader, idx))
-                idx++
-            }
-            if (tagName === paragraphs[idx]) {
-                result.push(getHeaderName(textContent, idx))
-                idx++
-            }
-        }
-
-        const fullPath = this.utils.Package.Path.join(...result)
+        const pathSegments = getHeaders(root)
+        const fullPath = this.utils.Package.Path.join(filePath, ...pathSegments)
         await navigator.clipboard.writeText(fullPath)
     }
 
@@ -170,13 +170,12 @@ class easyModifyPlugin extends BasePlugin {
             return false
         }
 
-        const fields = [
-            { key: "filename", type: "text", label: this.i18n.t("act.extract_rang_to_new_file.filename"), placeholder: this.i18n.t("act.extract_rang_to_new_file.filenameHint") },
-            { key: "autoOpen", type: "switch", label: this.i18n.t("act.extract_rang_to_new_file.autoOpenFile") },
-        ]
         const op = {
-            title: this.i18n.t("act.extract_rang_to_new_file"),
-            schema: [{ title: undefined, fields }],
+            title: this.i18n.t("$label.HOTKEY_EXTRACT_RANGE_TO_NEW_FILE"),
+            schema: ({ Group, Controls }) => Group(
+                Controls.Text("filename").Label(this.i18n.t("act.extract_rang_to_new_file.filename")).Placeholder(this.i18n.t("act.extract_rang_to_new_file.filenameHint")),
+                Controls.Switch("autoOpen").Label(this.i18n.t("act.extract_rang_to_new_file.autoOpenFile")),
+            ),
             data: { filename: "", autoOpen: true },
         }
         const { response, data } = await this.utils.formDialog.modal(op)
@@ -214,7 +213,7 @@ class easyModifyPlugin extends BasePlugin {
     trailingWhiteSpace = async () => {
         if (this._showWarnDialog) {
             const message = this.i18n.t("act.trailing_white_space.hint")
-            const checkboxLabel = this.i18n._t("global", "disableReminder")
+            const checkboxLabel = this.i18n.t("disableReminder")
             const op = { type: "warning", message, checkboxLabel }
             const { response, checkboxChecked } = await this.utils.showMessageBox(op)
             if (response === 1) {
@@ -247,7 +246,7 @@ class easyModifyPlugin extends BasePlugin {
         if (!target) return
 
         const errorMsg = this.i18n.t("act.insert_mermaid_mindmap.incompatible")
-        const clean = title => `("${title.replace(/"/g, "")}")`
+        const clean = title => `("${title.replace(/"/g, "#quot;")}")`
         const getComment = type => (type === "mindmap" && !window.mermaidAPI.defaultConfig.mindmap) ? `%%${errorMsg}\n` : ""
         const mermaidFunc = {
             mindmap: tree => {
@@ -317,8 +316,44 @@ class easyModifyPlugin extends BasePlugin {
         const type = Object.keys(handlers).find(selector => outermostAnchor.matches(selector))
         if (type) handlers[type]()
     }
+
+    convertImageToBase64 = async (imageElem) => {
+        if (!imageElem) return
+        let src = File.editor.imgEdit.getSrcFromDom(imageElem, true)
+        if (!src) return
+
+        if (this.utils.isSpecialImage(src)) return
+        if (this.utils.isNetworkImage(src)) {
+            try {
+                const { ok, filepath } = await this.utils.downloadImage(src)
+                if (!ok) {
+                    this.utils.notification.show(this.i18n.t("error.timeout"))
+                    return
+                }
+                src = filepath
+            } catch (e) {
+                this.utils.notification.show(e.toString(), "error")
+                return
+            }
+        }
+
+        const bin = await this.utils.Package.FsExtra.readFile(src)
+        const base64 = this.utils.convertImageToBase64(bin)
+
+        const { range } = this.utils.getRangy()
+        const bookmark = range.getBookmark(imageElem)
+        range.moveToBookmark(bookmark)
+        range.select()
+        File.editor.imgEdit.insertImageFromURL(base64)
+    }
+
+    convertAllImagesToBase64 = async () => {
+        const images = [...document.querySelectorAll("#write .md-image.md-img-loaded")]
+        const promises = images.map(async image => this.convertImageToBase64(image))
+        return Promise.all(promises)
+    }
 }
 
 module.exports = {
-    plugin: easyModifyPlugin,
+    plugin: EasyModifyPlugin
 }

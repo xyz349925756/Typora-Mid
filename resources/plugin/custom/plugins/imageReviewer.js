@@ -1,4 +1,4 @@
-class imageReviewerPlugin extends BaseCustomPlugin {
+class ImageReviewerPlugin extends BaseCustomPlugin {
     styleTemplate = () => ({
         imageMaxWidth: this.config.image_max_width + "%",
         imageMaxHeight: this.config.image_max_height + "%",
@@ -10,7 +10,7 @@ class imageReviewerPlugin extends BaseCustomPlugin {
     html = () => {
         const { tool_function, show_message, hotkey_function } = this.config
         const keyTranslate = { arrowup: "↑", arrowdown: "↓", arrowleft: "←", arrowright: "→", " ": "space" }
-        const funcTranslate = {
+        const opIcons = {
             dummy: "",
             info: "fa fa-info-circle",
             thumbnailNav: "fa fa-caret-square-o-down",
@@ -43,9 +43,10 @@ class imageReviewerPlugin extends BaseCustomPlugin {
             autoSize: "fa fa-search-plus",
             restore: "fa fa-history",
         }
-        Object.entries(funcTranslate).forEach(([k, v]) => {
-            funcTranslate[k] = [this.i18n.t(`$option.operations.${k}`), v]
-        })
+        const opEntities = Object.fromEntries(Array.from(
+            Object.entries(opIcons),
+            ([op, icon]) => [op, { hint: this.i18n.t(`$option.operations.${op}`), icon }]
+        ))
 
         const getInfoHint = () => {
             const dummy = this.i18n.t("$option.operations.dummy")
@@ -54,14 +55,14 @@ class imageReviewerPlugin extends BaseCustomPlugin {
             const mouseClicks = this.i18n.array(["leftClick", "middleClick", "rightClick"], "mouse.")
             const mouseWheels = this.i18n.array(["wheelUp", "wheelDown"], "mouse.")
 
-            const modifierKey = ["", "ctrl", "shift", "alt"]
-            const mouseEvent = ["mousedown_function", "wheel_function"]
-            mouseEvent.forEach(event => modifierKey.forEach(modifier => {
+            const modifierKeys = ["", "ctrl", "shift", "alt"]
+            const mouseEvents = ["mousedown_function", "wheel_function"]
+            mouseEvents.forEach(event => modifierKeys.forEach(modifier => {
                 const cfg = modifier ? `${modifier}_${event}` : event
                 const config = this.config[cfg]
                 const events = (event === "mousedown_function") ? mouseClicks : mouseWheels
                 events.forEach((ev, idx) => {
-                    const [hint, _] = funcTranslate[config[idx]]
+                    const { hint } = opEntities[config[idx]]
                     if (hint && hint !== dummy) {
                         const m = modifier ? `${modifier}+` : ""
                         result.push(m + ev + "\t" + hint)
@@ -70,24 +71,24 @@ class imageReviewerPlugin extends BaseCustomPlugin {
             }))
             hotkey_function.forEach(item => {
                 const [key, func] = item
-                const [hint, _] = funcTranslate[func]
+                const { hint } = opEntities[func]
                 if (hint && hint !== dummy) {
-                    const translateKey = keyTranslate[key.toLowerCase()] || key
-                    result.push(translateKey + "\t" + hint)
+                    const translated = keyTranslate[key.toLowerCase()] || key
+                    result.push(translated + "\t" + hint)
                 }
             })
 
             return result.join("\n")
         }
 
-        funcTranslate.info[0] = getInfoHint()
+        opEntities.info.hint = getInfoHint()
 
         const columns = '<div class="review-water-fall-col"></div>'.repeat(this.config.water_fall_columns)
         const messageList = show_message.map(m => `<div class="review-${m}"></div>`)
         const operationList = tool_function
-            .filter(option => funcTranslate.hasOwnProperty(option))
+            .filter(option => opEntities.hasOwnProperty(option))
             .map(option => {
-                const [hint, icon] = funcTranslate[option]
+                const { hint, icon } = opEntities[option]
                 return `<i class="${icon}" option="${option}" title="${hint}"></i>`
             })
         const class_ = this.config.show_thumbnail_nav ? "" : "plugin-common-hidden"
@@ -103,8 +104,7 @@ class imageReviewerPlugin extends BaseCustomPlugin {
                 <div class="review-item" action="previousImage"><i class="fa fa-angle-left"></i></div>
                 <div class="review-item" action="nextImage"><i class="fa fa-angle-right"></i></div>
                 <div class="plugin-cover-content review-mask"></div>
-            </div>
-        `
+            </div>`
     }
 
     hotkey = () => [this.config.hotkey]
@@ -137,31 +137,30 @@ class imageReviewerPlugin extends BaseCustomPlugin {
             this.entities.mask.addEventListener("click", this.callback)
         }
         this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.toggleSettingPage, hide => hide && this.close())
-        this.entities.reviewer.querySelectorAll(".review-item").forEach(ele => {
-            ele.addEventListener("click", ev => this[ev.target.closest(".review-item").getAttribute("action")]())
+        this.entities.reviewer.querySelectorAll(".review-item").forEach(el => {
+            el.addEventListener("click", ev => {
+                const act = ev.target.closest(".review-item").getAttribute("action")
+                this[act]?.()
+            })
         })
         this.entities.reviewer.addEventListener("wheel", ev => {
-            if (this.utils.isShow(this.entities.waterFall)) return
-
+            if (this.utils.isShown(this.entities.waterFall)) return
             ev.preventDefault()
             const list = this.getFuncList(ev, "wheel")
             const func = list[ev.deltaY > 0 ? 1 : 0]
-            const isFunc = func instanceof Function
-            isFunc && func()
+            if (typeof func === "function") func()
         }, { passive: false })
         this.entities.image.addEventListener("mousedown", ev => {
             const list = this.getFuncList(ev, "mousedown")
             const func = list[ev.button]
-            const isFunc = func instanceof Function
-            isFunc && func()
+            if (typeof func === "function") func()
         })
         this.entities.ops.addEventListener("click", ev => {
             const target = ev.target.closest("[option]")
             if (!target) return
             const option = target.getAttribute("option")
             const arg = option.indexOf("rotate") !== -1 ? 90 : undefined
-            const isFunc = this[option] instanceof Function
-            isFunc && this[option](arg)
+            if (typeof this[option] === "function") this[option](arg)
         })
         this.entities.nav.addEventListener("click", ev => {
             const target = ev.target.closest(".review-thumbnail")
@@ -190,12 +189,12 @@ class imageReviewerPlugin extends BaseCustomPlugin {
         else if (this.utils.altKeyPressed(ev)) arg.push("alt")
         arg.push(method, "function")
         const config = this.config[arg.join("_")]
-        return config.map(ele => this[ele])
+        return config.map(el => this[el])
     }
 
     replaceImageTransform = (regex, func, moveCenter = true) => {
         this.entities.image.style.transform = this.entities.image.style.transform.replace(regex, func)
-        moveCenter && this.moveImageCenter()
+        if (moveCenter) this.moveImageCenter()
     }
 
     rotate = (dec, newRotate, rotateScale) => this.replaceImageTransform(/rotate\((.*?)deg\)/, (_, curRotate) => {
@@ -250,10 +249,10 @@ class imageReviewerPlugin extends BaseCustomPlugin {
     }
 
     moveImageCenter = () => {
-        const { width, height } = this.entities.mask.getBoundingClientRect()
+        const { width: maskWidth, height: maskHeight } = this.entities.mask.getBoundingClientRect()
         const { width: imageWidth, height: imageHeight } = this.entities.image
-        this.entities.image.style.left = (width - imageWidth) / 2 + "px"
-        this.entities.image.style.top = (height - imageHeight) / 2 + "px"
+        this.entities.image.style.left = (maskWidth - imageWidth) / 2 + "px"
+        this.entities.image.style.top = (maskHeight - imageHeight) / 2 + "px"
     }
 
     dumpImage = (direction = "next", condition = () => true) => {
@@ -273,10 +272,10 @@ class imageReviewerPlugin extends BaseCustomPlugin {
     }
 
     waterFall = () => {
-        const columns = Array.from(this.entities.waterFall.querySelectorAll(".review-water-fall-col"))
+        const columns = [...this.entities.waterFall.querySelectorAll(".review-water-fall-col")]
 
         const toggleComponent = hide => {
-            Array.from(this.entities.reviewer.children)
+            [...this.entities.reviewer.children]
                 .filter(el => !el.classList.contains("review-water-fall") && !el.classList.contains("review-mask"))
                 .forEach(el => this.utils.toggleInvisible(el, hide))
         }
@@ -287,7 +286,7 @@ class imageReviewerPlugin extends BaseCustomPlugin {
         }
 
         const nav2WaterFall = () => {
-            Array.from(this.entities.nav.children)
+            [...this.entities.nav.children]
                 .map(img => {
                     img.classList.remove("review-thumbnail")
                     img.classList.add("review-water-fall-item")
@@ -300,8 +299,7 @@ class imageReviewerPlugin extends BaseCustomPlugin {
         }
 
         const waterFall2Nav = () => {
-            const items = this.entities.waterFall.querySelectorAll(".review-water-fall-item")
-            const fallChildren = Array.from(items)
+            const fallChildren = [...this.entities.waterFall.querySelectorAll(".review-water-fall-item")]
                 .sort((a, b) => parseInt(a.dataset.idx) - parseInt(b.dataset.idx))
                 .map(img => {
                     img.classList.remove("review-water-fall-item")
@@ -316,13 +314,10 @@ class imageReviewerPlugin extends BaseCustomPlugin {
             waterFall2Nav()
             toggleComponent(false)
         } else {
-            columns.forEach(e => (e.innerHTML = ""))
+            columns.forEach(e => e.innerHTML = "")
             toggleComponent(true)
             nav2WaterFall()
-            const select = this.entities.waterFall.querySelector(".review-water-fall-item.select")
-            if (select) {
-                select.scrollIntoView()
-            }
+            this.entities.waterFall.querySelector(".review-water-fall-item.select")?.scrollIntoView()
         }
     }
 
@@ -334,21 +329,20 @@ class imageReviewerPlugin extends BaseCustomPlugin {
             const index = this.entities.msg.querySelector(".review-index")
             const title = this.entities.msg.querySelector(".review-title")
             const size = this.entities.msg.querySelector(".review-size")
-            index && (index.textContent = `[ ${showIdx} / ${total} ]`)
-            title && (title.textContent = alt)
-            size && (size.textContent = `${naturalWidth} × ${naturalHeight}`)
+            if (index) (index.textContent = `[ ${showIdx} / ${total} ]`)
+            if (title) (title.textContent = alt)
+            if (size) (size.textContent = `${naturalWidth} × ${naturalHeight}`)
         }
 
         const handleToolIcon = src => {
             const autoSize = this.entities.ops.querySelector(`[option="autoSize"]`)
             const download = this.entities.ops.querySelector(`[option="download"]`)
-            autoSize && (autoSize.className = "fa fa-search-plus")
-            download && this.utils.toggleInvisible(download, !this.utils.isNetworkImage(src))
+            if (autoSize) (autoSize.className = "fa fa-search-plus")
+            if (download) this.utils.toggleInvisible(download, !this.utils.isNetworkImage(src))
         }
 
         const handleThumbnail = showIdx => {
-            const s = this.entities.nav.querySelector(".select")
-            s && s.classList.remove("select")
+            this.entities.nav.querySelector(".select")?.classList.remove("select")
             const active = this.entities.nav.querySelector(`.review-thumbnail[data-idx="${showIdx - 1}"]`)
             if (active) {
                 active.classList.add("select")
@@ -363,7 +357,7 @@ class imageReviewerPlugin extends BaseCustomPlugin {
     }
 
     _collectImage = () => {
-        let images = Array.from(this.utils.entities.querySelectorAllInWrite("img"))
+        let images = [...this.utils.entities.querySelectorAllInWrite("img")]
         if (this.config.filter_error_image) {
             images = images.filter(this.utils.isImgEmbed)
         }
@@ -403,16 +397,15 @@ class imageReviewerPlugin extends BaseCustomPlugin {
             } else if (idx < 0) {
                 idx = maxIdx
             }
-            const showIdx = (images.length === 0) ? 0 : idx + 1
             const img = images[idx]
             return {
                 img,
                 idx,
-                showIdx,
-                src: img && img.getAttribute("src") || "",
-                alt: img && img.getAttribute("alt") || "",
-                naturalWidth: img && img.naturalWidth || 0,
-                naturalHeight: img && img.naturalHeight || 0,
+                showIdx: (images.length === 0) ? 0 : idx + 1,
+                src: img?.getAttribute("src") ?? "",
+                alt: img?.getAttribute("alt") ?? "",
+                naturalWidth: img?.naturalWidth ?? 0,
+                naturalHeight: img?.naturalHeight ?? 0,
                 total: images.length || 0,
                 all: images,
             }
@@ -480,11 +473,8 @@ class imageReviewerPlugin extends BaseCustomPlugin {
     }
     play = () => this.handlePlayTimer(!!this.playTimer)
     restore = () => {
-        Object.assign(this.entities.image.style, {
-            maxWidth: "",
-            maxHeight: "",
-            transform: "scale(1) rotate(0deg) scaleX(1) scaleY(1) skewX(0deg) skewY(0deg) translateX(0px) translateY(0px)",
-        })
+        const transform = "scale(1) rotate(0deg) scaleX(1) scaleY(1) skewX(0deg) skewY(0deg) translateX(0px) translateY(0px)"
+        Object.assign(this.entities.image.style, { maxWidth: "", maxHeight: "", transform })
         this.moveImageCenter()
     }
     location = () => {
@@ -495,8 +485,8 @@ class imageReviewerPlugin extends BaseCustomPlugin {
             alert("this image cannot locate")
         } else {
             // src = src.replace(/^file:\/[2-3]/, "")
-            src = decodeURI(src).substring(0, src.indexOf("?"))
-            src && this.utils.showInFinder(src)
+            src = decodeURI(window.removeLastModifyQuery(src))
+            if (src) this.utils.showInFinder(src)
         }
     }
     download = async () => {
@@ -513,7 +503,7 @@ class imageReviewerPlugin extends BaseCustomPlugin {
         const idx = parseInt(this.entities.image.dataset.idx)
         const image = this._collectImage()[idx]
         this.close()
-        image && this.utils.scroll(image, 30)
+        if (image) this.utils.scroll(image, 30)
     }
     show = () => {
         document.activeElement.blur()
@@ -554,5 +544,5 @@ class imageReviewerPlugin extends BaseCustomPlugin {
 }
 
 module.exports = {
-    plugin: imageReviewerPlugin,
+    plugin: ImageReviewerPlugin
 }

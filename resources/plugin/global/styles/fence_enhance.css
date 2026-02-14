@@ -1,3 +1,11 @@
+#write .CodeMirror-scroll {
+    cursor: default;
+}
+
+#write .CodeMirror-lines {
+    cursor: text;
+}
+
 #write .fence-enhance {
     display: inline-flex;
     flex-direction: row-reverse;
@@ -10,23 +18,18 @@
 }
 
 .fence-enhance .enhance-btn {
-    opacity: ${this.config.BUTTON_OPACITY};
     cursor: pointer;
-    margin-left: ${this.config.BUTTON_MARGIN};
-}
-
-.fence-enhance .enhance-btn:last-child {
-    margin-left: 0;
+    opacity: ${this.config.BUTTON_OPACITY};
+    padding: 0 ${this.config.BUTTON_PADDING};
 }
 
 .fence-enhance .enhance-btn:hover {
     opacity: ${this.config.BUTTON_OPACITY_HOVER};
 }
 
-.CodeMirror-line:hover {
-    background-color: ${bgColorWhenHover};
+.plugin-fence-enhance-highlight {
+    background-color: ${this.config.HIGHLIGHT_LINE_COLOR_BY_LANGUAGE} !important;
 }
 
-.plugin-fence-enhance-highlight {
-    background-color: ${this.config.HIGHLIGHT_LINE_COLOR} !important;
-}
+${bgColorOnHover}
+${bgColorOnFocus}

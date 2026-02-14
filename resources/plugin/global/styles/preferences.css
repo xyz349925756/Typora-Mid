@@ -1,17 +1,10 @@
 /***** dialog *****/
-@media (prefers-color-scheme: dark) {
-    .plugin-preferences-dialog {
-        filter: invert(.9) hue-rotate(.5turn);
-    }
-}
-
 .plugin-preferences-dialog {
     display: flex;
     position: fixed;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 800px;
     height: calc(100vh - 150px);
     border-radius: 8px;
     box-shadow: 2px 2px 4px #dbdbdb, -2px -2px 4px #dbdbdb;
@@ -20,6 +13,12 @@
     font-size: 14px;
     font-family: "Open Sans", "Clear Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: rgb(65, 84, 98);
+}
+
+@media (prefers-color-scheme: dark) {
+    .plugin-preferences-dialog {
+        filter: invert(.9) hue-rotate(.5turn);
+    }
 }
 
 .plugin-preferences-dialog ::-webkit-scrollbar {
@@ -47,8 +46,12 @@
     display: flex;
     overflow: hidden;
     border-radius: 8px;
+    width: 800px;
+    min-width: 500px;
+    resize: horizontal;
 }
 
+/***** left *****/
 .plugin-preferences-left {
     width: 160px;
     display: flex;
@@ -57,7 +60,6 @@
     background: #eee;
 }
 
-/***** search *****/
 .plugin-preferences-search {
     height: 52px;
     padding: 8px 12px;
@@ -76,7 +78,6 @@
     width: 100%;
 }
 
-/***** menu *****/
 .plugin-preferences-menu {
     flex: 1;
     overflow: hidden auto;
@@ -126,27 +127,27 @@
     cursor: grab;
 }
 
-.plugin-preferences-title.dragging {
+.plugin-preferences-title:active {
     cursor: grabbing;
 }
 
 .plugin-preferences-close {
     position: absolute;
     right: 0;
-    margin: 8px 8px 0 0;
-    background: #fe6059;
-    height: 18px;
-    width: 18px;
-    line-height: 18px;
+    margin: 15px 18px 0 0;
+    background: #eaeaea;
+    height: 22px;
+    width: 22px;
+    line-height: 22px;
     border-radius: 6px;
-    color: #fff;
+    color: #7d7d7d;
     font-size: 12px;
     cursor: default;
     text-align: center;
 }
 
 .plugin-preferences-close:hover {
-    background: #d70015;
+    background: #fe6059;
     color: #fff;
 }
 

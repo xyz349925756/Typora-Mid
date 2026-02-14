@@ -1,4 +1,4 @@
-class fileCounterPlugin extends BasePlugin {
+class FileCounterPlugin extends BasePlugin {
     styleTemplate = () => ({
         font_weight: this.config.FONT_WEIGHT,
         color: this.config.COLOR || "var(--active-file-text-color)",
@@ -6,126 +6,87 @@ class fileCounterPlugin extends BasePlugin {
     })
 
     init = () => {
-        this.controller = new AbortController()
+        this.entities = {
+            fileTree: document.querySelector("#file-library-tree"),
+            get fileTreeRoot() {
+                return document.querySelector("#file-library-tree > .file-library-root")  // rootNode may be dynamic
+            },
+        }
 
-        this.className = "plugin-file-counter"
-        this.libraryTreeEl = document.getElementById("file-library-tree")
-        this.allowedExtensions = new Set(this.config.ALLOW_EXT.map(ext => {
-            const prefix = (ext !== "" && !ext.startsWith(".")) ? "." : ""
-            return prefix + ext.toLowerCase()
-        }))
+        this.walkOptions = this._getWalkOptions()
+        this.observer = new MutationObserver(mutations => {
+            if (mutations.length === 1) {
+                const added = mutations[0].addedNodes[0]
+                if (added?.classList?.contains("file-library-node")) {
+                    this.countDir(added)
+                    return
+                }
+            }
+            this.countAllDirs()
+        })
     }
 
     process = () => {
-        this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.allPluginsHadInjected, () => {
+        this.utils.eventHub.once(this.utils.eventHub.eventType.fileOpened, () => {
             File.editor.library.refreshPanelCommand()
             this.countAllDirs()
         })
 
-        if (this.config.CTRL_WHEEL_TO_SCROLL_SIDEBAR_MENU) {
-            document.querySelector("#file-library").addEventListener("wheel", ev => {
-                const target = ev.target.closest("#file-library")
-                if (target && this.utils.metaKeyPressed(ev)) {
-                    target.scrollLeft += ev.deltaY * 0.2
-                    ev.stopPropagation()
-                    ev.preventDefault()
-                }
-            }, { passive: false, capture: true })
-        }
-
-        this.observer = new MutationObserver(mutationList => {
-            if (mutationList.length === 1) {
-                const add = mutationList[0].addedNodes[0]
-                if (add && add.classList && add.classList.contains("file-library-node")) {
-                    this.countDir(add)
-                    return
-                }
-            }
-            const needCountAllDirs = mutationList.some(mutation => {
-                const { target } = mutation
-                const add = mutation.addedNodes[0]
-                const t = target && target.classList && target.classList.contains(this.className)
-                const a = add && add.classList && add.classList.contains(this.className)
-                return !(t || a)
-            })
-            if (needCountAllDirs) {
-                this.countAllDirs()
-            }
-        })
-        this.observer.observe(this.libraryTreeEl, { subtree: true, childList: true })
+        this.observer.observe(this.entities.fileTree, { subtree: true, childList: true })
     }
 
-    _verifyExt = name => this.allowedExtensions.has(this.utils.Package.Path.extname(name).toLowerCase())
-    _verifySize = stat => 0 > this.config.MAX_SIZE || stat.size < this.config.MAX_SIZE
-    _fileFilter = (name, filepath, stat) => this._verifySize(stat) && this._verifyExt(name)
-    _dirFilter = name => !this.config.IGNORE_FOLDERS.includes(name)
-
-    _onFinished = (err) => {
-        if (!err) return
-        if (err.name === "QuotaExceededError") {
-            this.stopPlugin()
-        } else if (err.name === "AbortError") {
-            console.warn("file_counter aborted")
-        }
-    }
-
-    _countFiles = async (dir) => {
-        let count = 0
-        await this.utils.walkDir({
-            dir,
-            fileFilter: this._fileFilter,
-            dirFilter: this._dirFilter,
+    _getWalkOptions = () => {
+        const abortController = new AbortController()
+        const allowedExt = new Set(this.config.ALLOW_EXT.map(ext => {
+            const prefix = (ext !== "" && !ext.startsWith(".")) ? "." : ""
+            return prefix + ext.toLowerCase()
+        }))
+        const verifyExt = name => allowedExt.has(this.utils.Package.Path.extname(name).toLowerCase())
+        const verifySize = stat => 0 > this.config.MAX_SIZE || stat.size < this.config.MAX_SIZE
+        return {
+            fileFilter: (name, filepath, stat) => verifySize(stat) && verifyExt(name),
+            dirFilter: name => !this.config.IGNORE_FOLDERS.includes(name),
             fileParamsGetter: this.utils.identity,
-            onFile: () => count++,
             maxStats: this.config.MAX_STATS,
             semaphore: this.config.CONCURRENCY_LIMIT,
             followSymlinks: this.config.FOLLOW_SYMBOLIC_LINKS,
-            signal: this.controller.signal,
-            onFinished: this._onFinished,
-        })
-        return count
+            signal: abortController.signal,
+            onFinished: (err) => {
+                if (!err) return
+                if (err.name === "AbortError") {
+                    console.warn("File-Counter Aborted")
+                } else if (err.name === "QuotaExceededError") {
+                    this.observer.disconnect()
+                    abortController.abort(new DOMException("Stop File-Counter", "AbortError"))
+                    document.querySelectorAll(".file-node-content[data-count]").forEach(el => el.removeAttribute("data-count"))
+                    const msg = this.i18n.t("error.tooManyFiles", { pluginName: this.pluginName })
+                    this.utils.notification.show(msg, "warning", 7000)
+                }
+            },
+        }
     }
 
-    _countDir = async (node) => {
-        const dir = node.dataset.path
-        const fileCount = await this._countFiles(dir)
-        let countDiv = node.querySelector(`:scope > .${this.className}`)
+    _setCount = async (node) => {
+        let fileCount = 0
+        await this.utils.walkDir({ ...this.walkOptions, dir: node.dataset.path, onFile: () => fileCount++ })
+
+        const displayEl = node.querySelector(":scope > .file-node-content")
         if (fileCount <= this.config.IGNORE_MIN_NUM) {
-            this.utils.removeElement(countDiv)
-            return
-        }
-        if (!countDiv) {
-            countDiv = document.createElement("div")
-            countDiv.classList.add(this.className)
-            const background = node.querySelector(".file-node-background")
-            node.insertBefore(countDiv, background.nextElementSibling)
-        }
-        countDiv.innerText = this.config.BEFORE_TEXT + fileCount
-    }
-
-    countDir = (tree) => {
-        this._countDir(tree)
-        const children = tree.querySelectorAll(':scope > .file-node-children > [data-has-sub="true"]')
-        children.forEach(this.countDir)
-    }
-
-    countAllDirs = () => {
-        const root = this.libraryTreeEl.querySelector(":scope > .file-library-node")
-        if (root) {
-            this.countDir(root)
+            displayEl.removeAttribute("data-count")
+        } else {
+            displayEl.setAttribute("data-count", fileCount)
         }
     }
 
-    stopPlugin = () => {
-        document.querySelectorAll(".plugin-file-counter").forEach(this.utils.removeElement)
-        const msg = this.i18n.t("error.tooManyFiles", { pluginName: this.pluginName })
-        this.utils.notification.show(msg, "warning", 7000)
-        this.observer.disconnect()
-        this.controller.abort(new DOMException("Stop Plugin", "AbortError"))
-        this.controller = null
+    countDir = (node) => {
+        if (!node) return
+        this._setCount(node)
+        node.querySelectorAll(':scope > .file-node-children > .file-library-node[data-has-sub="true"]').forEach(this.countDir)
     }
+
+    countAllDirs = () => this.countDir(this.entities.fileTreeRoot)
 }
 
 module.exports = {
-    plugin: fileCounterPlugin
+    plugin: FileCounterPlugin
 }

@@ -1,148 +1,3 @@
-[file_counter]
-ENABLE = false
-ALLOW_EXT = [ "", "md", "markdown", "mdown", "mmd", "text", "txt", "rmarkdown", "mkd", "mdwn", "mdtxt", "rmd", "mdtext", "apib" ]
-IGNORE_FOLDERS = [ ".git", ".idea", "node_modules" ]
-
-[auto_number]
-ENABLE = false
-ENABLE_OUTLINE = false
-ENABLE_CONTENT = false
-
-[[auto_number.LAYOUTS]]
-name = "Layout::Decimal-H1"
-selected = false
-
-[auto_number.LAYOUTS.layout]
-content-h1 = "{c1}. "
-content-h2 = "{c1}.{c2} "
-content-h3 = "{c1}.{c2}.{c3} "
-content-h4 = "{c1}.{c2}.{c3}.{c4} "
-content-h5 = "{c1}.{c2}.{c3}.{c4}.{c5} "
-content-h6 = "{c1}.{c2}.{c3}.{c4}.{c5}.{c6} "
-outline-h1 = "{o1}. "
-outline-h2 = "{o1}.{o2} "
-outline-h3 = "{o1}.{o2}.{o3} "
-outline-h4 = "{o1}.{o2}.{o3}.{o4} "
-outline-h5 = "{o1}.{o2}.{o3}.{o4}.{o5} "
-outline-h6 = "{o1}.{o2}.{o3}.{o4}.{o5}.{o6} "
-toc-h1 = "{t1}. "
-toc-h2 = "{t1}.{t2} "
-toc-h3 = "{t1}.{t2}.{t3} "
-toc-h4 = "{t1}.{t2}.{t3}.{t4} "
-toc-h5 = "{t1}.{t2}.{t3}.{t4}.{t5} "
-toc-h6 = "{t1}.{t2}.{t3}.{t4}.{t5}.{t6} "
-table = "Table {t}"
-image = "Image {i}"
-fence = "Fence {f}"
-
-[[auto_number.LAYOUTS]]
-name = "Layout::Decimal-H2"
-selected = true
-
-[auto_number.LAYOUTS.layout]
-content-h1 = ""
-content-h2 = "{c2}. "
-content-h3 = "{c2}.{c3} "
-content-h4 = "{c2}.{c3}.{c4} "
-content-h5 = "{c2}.{c3}.{c4}.{c5} "
-content-h6 = "{c2}.{c3}.{c4}.{c5}.{c6} "
-outline-h1 = ""
-outline-h2 = "{o2}. "
-outline-h3 = "{o2}.{o3} "
-outline-h4 = "{o2}.{o3}.{o4} "
-outline-h5 = "{o2}.{o3}.{o4}.{o5} "
-outline-h6 = "{o2}.{o3}.{o4}.{o5}.{o6} "
-toc-h1 = ""
-toc-h2 = "{t2}. "
-toc-h3 = "{t2}.{t3} "
-toc-h4 = "{t2}.{t3}.{t4} "
-toc-h5 = "{t2}.{t3}.{t4}.{t5} "
-toc-h6 = "{t2}.{t3}.{t4}.{t5}.{t6} "
-table = "Table {t}"
-image = "Image {i}"
-fence = "Fence {f}"
-
-[[auto_number.LAYOUTS]]
-name = "Layout::RomanNumeral"
-selected = false
-
-[auto_number.LAYOUTS.layout]
-content-h1 = "{c1:ur}. "
-content-h2 = "{c2:ua}. "
-content-h3 = "{c3}. "
-content-h4 = "{c4:la}. "
-content-h5 = "({c5}). "
-content-h6 = "({c6:la}). "
-outline-h1 = "{o1:ur}. "
-outline-h2 = "{o2:ua}. "
-outline-h3 = "{o3}. "
-outline-h4 = "{o4:la}. "
-outline-h5 = "({o5}). "
-outline-h6 = "({o6:la}). "
-toc-h1 = "{t1:ur}. "
-toc-h2 = "{t2:ua}. "
-toc-h3 = "{t3}. "
-toc-h4 = "{t4:la}. "
-toc-h5 = "({t5}). "
-toc-h6 = "({t6:la}). "
-table = "Table {t}"
-image = "Image {i}"
-fence = "Fence {f}"
-
-[[auto_number.LAYOUTS]]
-name = "Layout::ChineseThesis"
-selected = false
-
-[auto_number.LAYOUTS.layout]
-content-h1 = "{c1:cjk}、"
-content-h2 = "（{c2:cjk}）"
-content-h3 = "{c3}. "
-content-h4 = "（{c4}）"
-content-h5 = "{c5}）"
-content-h6 = "{c6:ua}. "
-outline-h1 = "{o1:cjk}、"
-outline-h2 = "（{o2:cjk}）"
-outline-h3 = "{o3}. "
-outline-h4 = "（{o4}）"
-outline-h5 = "{o5}）"
-outline-h6 = "{o6:ua}. "
-toc-h1 = "{t1:cjk}、"
-toc-h2 = "（{t2:cjk}）"
-toc-h3 = "{t3}. "
-toc-h4 = "（{t4}）"
-toc-h5 = "{t5}）"
-toc-h6 = "{t6:ua}. "
-table = "表 {t}"
-image = "图 {i}"
-fence = "代码 {f}"
-
-[[auto_number.LAYOUTS]]
-name = "Layout::None"
-selected = false
-
-[auto_number.LAYOUTS.layout]
-content-h1 = ""
-content-h2 = ""
-content-h3 = ""
-content-h4 = ""
-content-h5 = ""
-content-h6 = ""
-outline-h1 = ""
-outline-h2 = ""
-outline-h3 = ""
-outline-h4 = ""
-outline-h5 = ""
-outline-h6 = ""
-toc-h1 = ""
-toc-h2 = ""
-toc-h3 = ""
-toc-h4 = ""
-toc-h5 = ""
-toc-h6 = ""
-table = ""
-image = ""
-fence = ""
-
 [window_tab]
 ENABLE = false
 TRIM_FILE_EXT = false
@@ -152,107 +7,36 @@ SHOW_TAB_CLOSE_BUTTON = false
 CTRL_CLICK_TO_NEW_WINDOW = false
 WHEEL_TO_SCROLL_TAB_BAR = false
 MIDDLE_CLICK_TO_CLOSE = false
-CLOSE_HOTKEY = [ "ctrl+w" ]
-SWITCH_NEXT_TAB_HOTKEY = [ "ctrl+PageDown", "ctrl+Tab" ]
-SWITCH_PREVIOUS_TAB_HOTKEY = [ "ctrl+PageUp", "ctrl+shift+Tab" ]
-SORT_TABS_HOTKEY = []
-TOGGLE_TAB_BAR_HOTKEY = []
-COPY_PATH_HOTKEY = []
-USE_CONTEXT_MENU = false
-CONTEXT_MENU = [ "closeTab", "closeOtherTabs", "closeLeftTabs", "closeRightTabs", "sortTabs", "copyPath", "showInFinder", "openInNewWindow" ]
 
 [search_multi]
 ENABLE = false
-STOP_SEARCHING_ON_HIDING = false
-ALLOW_EXT = [ "", "md", "markdown", "mdown", "mmd", "text", "txt", "rmarkdown", "mkd", "mdwn", "mdtxt", "rmd", "mdtext", "apib" ]
-IGNORE_FOLDERS = [ ".git", ".idea", "node_modules" ]
-RELATIVE_PATH = false
-SHOW_EXT = false
-HIGHLIGHT_COLORS = [ "#BBEEFF", "#FFBBCC", "#88EE88", "#CCBBFF", "#FFEE88", "#FFFFA0", "#88CCCC", "#FFBB88", "#CCCCCC", "#FFAABB", "#99CCFF", "#FF99CC", "#66CC66", "#CC99FF", "#FFCC66", "#FFFF80", "#DD9966", "#AAAAAA", "#66AAAA", "#DD6699" ]
-
-[commander]
-ENABLE = false
-
-[[commander.BUILTIN]]
-name = "Default"
-disable = false
-shell = "cmd/bash"
-cmd = ""
-
-[[commander.BUILTIN]]
-name = "Explorer"
-disable = false
-shell = "powershell"
-cmd = "explorer $d"
-
-[[commander.BUILTIN]]
-name = "VScode"
-disable = false
-shell = "cmd/bash"
-cmd = "code $f"
-
-[[commander.BUILTIN]]
-name = "Windows Terminal"
-disable = false
-shell = "cmd/bash"
-cmd = "cd $d && wt"
-
-[[commander.BUILTIN]]
-name = "Git Commit"
-disable = false
-shell = "cmd/bash"
-cmd = "cd $m && git add . && git commit -m \"update\""
-
-[[commander.BUILTIN]]
-name = "TotalCommander"
-disable = true
-shell = "cmd/bash"
-cmd = "D:\\software\\TotalCMD_64bit_11.03\\TOTALCMD64.EXE /O /T /P=L /L=$f"
 
 [md_padding]
 ENABLE = false
-IGNORE_WORDS = []
-IGNORE_PATTERNS = [ ":[0-9a-z_\\-]+?:", "<br\\s*?/?>", "<u>.+?</u>", "<span style=\".+?\">.+?</span>" ]
 
 [read_only]
 ENABLE = false
-REMAIN_AVAILABLE_MENU_KEY = [ "typora-plugin", "dev-tool", "copy-img" ]
 
 [blur]
 ENABLE = false
-RESTORE_WHEN_HOVER = false
 
 [dark]
 ENABLE = false
 
-[toolbar]
+[no_image]
 ENABLE = false
-BACKSPACE_TO_HIDE = false
-USE_NEGATIVE_SEARCH = false
+
+[resize_image]
+ENABLE = false
+
+[resize_table]
+ENABLE = false
+
+[auto_number]
+ENABLE = false
 
 [fence_enhance]
 ENABLE = false
-ENABLE_BUTTON = false
-CUSTOM_BUTTONS = []
-ENABLE_HOTKEY = false
-CUSTOM_HOTKEYS = []
-ENABLE_LANGUAGE_FOLD = false
-
-[collapse_paragraph]
-STRICT_MODE = false
-RECORD_COLLAPSE = false
-
-[collapse_paragraph.MODIFIER_KEY]
-COLLAPSE_SINGLE = "ctrl"
-COLLAPSE_SIBLINGS = "ctrl+alt"
-COLLAPSE_ALL_SIBLINGS = "ctrl+shift+alt"
-COLLAPSE_RECURSIVE = ""
-
-[collapse_list]
-RECORD_COLLAPSE = false
-
-[collapse_table]
-RECORD_COLLAPSE = false
 
 [slash_commands]
 ENABLE = false
@@ -713,7 +497,7 @@ enable = true
 type = "gen-snp"
 icon = "🧩"
 keyword = "Timestamp"
-callback = "() => new Date().getTime().toString()"
+callback = "() => Date.now().toString()"
 
 [[slash_commands.COMMANDS]]
 enable = true
@@ -779,44 +563,16 @@ icon = "🌟"
 keyword = "TableGenerator"
 callback = "(col, row) => { col = parseInt(col); row = parseInt(row); const c = ['      ', ' ---- ', ...Array(row - 1).fill('      ')].map(e => `|${Array(col).fill(e).join('|')}|`).join('\\n'); this.utils.insertText(null, c, false) }"
 
+[file_counter]
+ENABLE = false
+ALLOW_EXT = [ "", "md", "markdown", "mdown", "mmd", "text", "txt", "rmarkdown", "mkd", "mdwn", "mdtxt", "rmd", "mdtext", "apib" ]
+IGNORE_FOLDERS = [ ".git", ".idea", "node_modules" ]
+
 [hotkeys]
 ENABLE = false
 
-[[hotkeys.CUSTOM_HOTKEYS]]
-enable = false
-hotkey = "ctrl+shift+e"
-desc = "Insert JavaScript BlockCode"
-evil = "() => this.utils.insertFence('javascript')"
+[editor_width_slider]
+ENABLE = false
 
-[[hotkeys.CUSTOM_HOTKEYS]]
-enable = false
-hotkey = "ctrl+shift+e"
-desc = "Open Windows Calculator"
-evil = "() => require('child_process').exec('cmd /C calc')"
-
-[[hotkeys.CUSTOM_HOTKEYS]]
-enable = false
-hotkey = "ctrl+shift+e"
-desc = "Switch to the first window tab"
-evil = "() => this.utils.getBasePlugin('window_tab').switchTab(0)"
-
-[[hotkeys.CUSTOM_HOTKEYS]]
-enable = false
-hotkey = "-"
-desc = "Pop up a prompt window"
-evil = "this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.fileOpened, filepath => window.confirm(`You opened the file: ${filepath}`))"
-
-[[hotkeys.CUSTOM_HOTKEYS]]
-enable = false
-hotkey = "ctrl+shift+e"
-desc = "Insert Kanban BlockCode"
-plugin = "kanban"
-function = "callback"
-
-[[hotkeys.CUSTOM_HOTKEYS]]
-enable = false
-hotkey = "ctrl+["
-desc = "Folding/unfolding BlockCode"
-plugin = "fence_enhance"
-function = "foldFence"
-closestSelector = "#write .md-fences"
+[sidebar_enhance]
+ENABLE = false
