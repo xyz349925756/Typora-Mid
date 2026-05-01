@@ -1,182 +1,241 @@
-class CollapseParagraphPlugin extends BasePlugin {
-    styleTemplate = () => true
+class DOMNavigator {
+    HEADERS = ["H1", "H2", "H3", "H4", "H5", "H6"]
 
-    init = () => {
-        this.className = "plugin-collapsed-paragraph"
-        this.selector = `#write > [mdtype="heading"]`
-        this.HEADERS = ["H1", "H2", "H3", "H4", "H5", "H6"]
-        this.staticActions = this.i18n.fillActions([{ act_value: "collapse_all" }, { act_value: "expand_all" }])
+    constructor(plugin) {
+        this.plugin = plugin
     }
 
-    process = () => {
-        this.utils.settings.autoSave(this)
-        this.disableExpandSimpleBlock()
-        this.recordCollapseState(false)
+    getHeaderLevel = (node) => node ? this.HEADERS.indexOf(node.tagName) : -1
 
-        const collapseFns = this.getCollapseFns()
-        const write = this.utils.entities.eWrite
-        write.addEventListener("click", ev => {
-            const header = this.getTargetHeader(ev.target)
-            if (!header) return
-            const collapseFn = collapseFns.find(fn => fn.filter(ev))
-            if (!collapseFn) return
-            if (ev.target.closest(".md-link")) return
-
-            document.activeElement.blur()
-            const collapsed = header.classList.contains(this.className)
-            collapseFn.callback(header).forEach(el => this.trigger(el, collapsed))
-            this.callbackOtherPlugin()
-        })
-
-        document.querySelector(".sidebar-menu").addEventListener("click", ev => {
-            const ref = ev.target.closest(".outline-item")?.querySelector(".outline-label")?.dataset.ref
-            if (!ref) return
-            let el = write.querySelector(`[cid=${ref}]`)
-            if (!el || el.style.display !== "none") return
-            this.expandCollapsedParent(el)
-        })
-    }
-
-    // The option `expandSimpleBlock` will affect this plugin, disable it
-    disableExpandSimpleBlock = () => File.option.expandSimpleBlock = false
-
-    getTargetHeader = (target, forceLoose = false) => {
-        if (this.config.STRICT_MODE && !forceLoose) {
-            return target.closest(this.selector)
+    getTargetHeader = (target, strictMode, forceLoose = false) => {
+        if (strictMode && !forceLoose) {
+            return target.closest(this.plugin.selector)
         }
         let el = target.closest("#write > [cid]")
-        while (el) {
-            if (el.getAttribute("mdtype") === "heading") {
-                return el
-            }
+        while (el && el.getAttribute("mdtype") !== "heading") {
             el = el.previousElementSibling
         }
+        return el
     }
 
-    getCollapseFns = () => {
-        const fns = {
-            COLLAPSE_SINGLE: el => [el],
-            COLLAPSE_SIBLINGS: this.findSiblings,
-            COLLAPSE_ALL_SIBLINGS: this.findAllSiblings,
-            COLLAPSE_RECURSIVE: this.findSubSiblings,
+    traverseSiblings = (node, fn) => {
+        for (let el = node.previousElementSibling; el; el = el.previousElementSibling) {
+            if (fn(el)) break
         }
-        return Object.entries(fns)
-            .filter(([key]) => this.config.MODIFIER_KEY[key])
-            .flatMap(([key, callback]) => {
-                const modifier = this.config.MODIFIER_KEY[key]
-                return { filter: this.utils.modifierKey(modifier), callback }
-            })
+        for (let el = node.nextElementSibling; el; el = el.nextElementSibling) {
+            if (fn(el)) break
+        }
     }
 
-    callbackOtherPlugin = () => this.utils.callPluginFunction("toc", "refresh")
+    findSiblings = (node) => {
+        const targetLevel = this.getHeaderLevel(node)
+        const result = [node]
 
-    trigger = (node, collapsed) => {
-        const _trigger = (node, display) => {
-            const idx = this.HEADERS.indexOf(node.tagName)
-            const stop = this.HEADERS.slice(0, idx + 1)
+        this.traverseSiblings(node, (el) => {
+            const level = this.getHeaderLevel(el)
+            if (level !== -1 && level < targetLevel) return true
+            if (level === targetLevel) result.push(el)
+        })
+        return result
+    }
 
-            let el = node.nextElementSibling
-            while (el && stop.indexOf(el.tagName) === -1) {
-                const need = this.HEADERS.indexOf(el.tagName) !== -1 && el.classList.contains(this.className) && display === ""
-                if (need) {
-                    el.style.display = ""
-                    el = _trigger(el, "none")
+    findSubSiblings = (node) => {
+        const targetLevel = this.getHeaderLevel(node)
+        const result = [node]
+
+        this.traverseSiblings(node, (el) => {
+            const level = this.getHeaderLevel(el)
+            if (level !== -1 && level <= targetLevel) return true
+            if (level > targetLevel) result.push(el)
+        })
+        return result
+    }
+
+    findAllSiblings = (node) => this.plugin.utils.entities.querySelectorAllInWrite(`:scope > ${node.tagName}`)
+
+    toggleCollapse = (node, shouldExpand) => {
+        node.classList.toggle(this.plugin.className, !shouldExpand)
+
+        const applyVisibility = (startNode, targetDisplay) => {
+            const startLevel = this.getHeaderLevel(startNode)
+            let current = startNode.nextElementSibling
+
+            while (current) {
+                const currentLevel = this.getHeaderLevel(current)
+                const isHeader = currentLevel !== -1
+
+                if (isHeader && currentLevel <= startLevel) break
+
+                const isNestedCollapsed = isHeader
+                    && current.classList.contains(this.plugin.className)
+                    && targetDisplay === ""
+
+                if (isNestedCollapsed) {
+                    current.style.display = ""
+                    current = applyVisibility(current, "none")
                     continue
                 }
 
-                el.style.display = display
-                el = el.nextElementSibling
+                current.style.display = targetDisplay
+                current = current.nextElementSibling
             }
-            return el
+            return current
         }
 
-        node.classList.toggle(this.className, !collapsed)
-        _trigger(node, collapsed ? "" : "none")
+        applyVisibility(node, shouldExpand ? "" : "none")
     }
 
-    expandCollapsedParent = node => {
-        let currentLevel = this.HEADERS.indexOf(node.tagName)
+    expandParent = (node) => {
+        let currentLevel = this.getHeaderLevel(node)
         while (node) {
-            if (node.getAttribute("mdtype") === "heading" && node.classList.contains(this.className)) {
-                const level = this.HEADERS.indexOf(node.tagName)
+            const isHeading = node.getAttribute?.("mdtype") === "heading"
+            if (isHeading && node.classList.contains(this.plugin.className)) {
+                const level = this.getHeaderLevel(node)
                 if (level < currentLevel) {
-                    this.trigger(node, true)
+                    this.toggleCollapse(node, true)
                     currentLevel = level
                 }
             }
             node = node.previousElementSibling
         }
     }
+}
 
-    collapseOther = node => {
-        let currentLevel = this.HEADERS.indexOf(node.tagName)
+class ActionDispatcher {
+    constructor(plugin, navigator) {
+        this.plugin = plugin
+        this.navigator = navigator
+    }
+
+    execute = (action, target) => {
+        const actionMap = {
+            collapse_all: this.collapseAll,
+            expand_all: this.expandAll,
+            collapse_others: () => this.collapseOthers(target),
+            toggle_current: () => this.applyToTargets(target, el => [el]),
+            toggle_siblings: () => this.applyToTargets(target, this.navigator.findSiblings),
+            toggle_all_siblings: () => this.applyToTargets(target, this.navigator.findAllSiblings),
+            toggle_recursive: () => this.applyToTargets(target, this.navigator.findSubSiblings),
+        }
+        actionMap[action]?.()
+    }
+
+    collapseAll = () => {
+        [...this.navigator.HEADERS].reverse().forEach(tag => {
+            this.plugin.utils.entities.querySelectorAllInWrite(`:scope > ${tag}`).forEach(el => this.navigator.toggleCollapse(el, false))
+        })
+    }
+
+    expandAll = () => {
+        this.navigator.HEADERS.forEach(tag => {
+            this.plugin.utils.entities.querySelectorAllInWrite(`:scope > ${tag}`).forEach(el => this.navigator.toggleCollapse(el, true))
+        })
+    }
+
+    collapseOthers = (target) => {
+        if (!target) return
+        let currentLevel = this.navigator.getHeaderLevel(target)
         if (currentLevel === -1) return
-        this.rangeSiblings(node, el => {
-            const level = this.HEADERS.indexOf(el.tagName)
-            if (level === -1) return
+
+        this.navigator.traverseSiblings(target, (el) => {
+            const level = this.navigator.getHeaderLevel(el)
+            if (level === -1) return false
+
             if (level < currentLevel) {
-                this.trigger(el, true)
+                this.navigator.toggleCollapse(el, true)
                 currentLevel = level
             } else {
-                this.trigger(el, false)
+                this.navigator.toggleCollapse(el, false)
             }
         })
     }
 
-    rollback = start => {
-        if (!this.utils.entities.querySelectorInWrite(`:scope > .${this.className}`)) return
+    applyToTargets = (target, findFn) => {
+        if (!target) return
+        const shouldExpand = target.classList.contains(this.plugin.className)
+        findFn(target).forEach(el => this.navigator.toggleCollapse(el, shouldExpand))
+    }
 
-        const headers = []
-        let el = start.closest("#write > [cid]")
+    rollback = (startNode) => {
+        if (!this.plugin.utils.entities.querySelectorInWrite(`:scope > .${this.plugin.className}`)) return
+
+        const headersToExpand = []
+        let el = startNode.closest("#write > [cid]")
+
         while (el) {
-            const idx = this.HEADERS.indexOf(el.tagName)
-            if (idx !== -1) {
-                if (headers.length === 0 || (headers.at(-1).idx > idx && el.classList.contains(this.className))) {
-                    headers.push({ el, idx })
-                    if (headers.at(-1).idx === 0) break
+            const level = this.navigator.getHeaderLevel(el)
+            if (level !== -1) {
+                const isFirstNode = headersToExpand.length === 0
+                const lastHeader = headersToExpand.at(-1)
+                const isValidHigherLevel = lastHeader && lastHeader.level > level && el.classList.contains(this.plugin.className)
+                if (isFirstNode || isValidHigherLevel) {
+                    headersToExpand.push({ el, level })
+                    if (level === 0) break
                 }
             }
             el = el.previousElementSibling
         }
-        if (headers.length > 0) {
-            for (let i = headers.length - 1; i >= 0; i--) {
-                this.trigger(headers[i].el, true)
-            }
+
+        headersToExpand.reverse().forEach(header => this.navigator.toggleCollapse(header.el, true))
+    }
+}
+
+class CollapseParagraphPlugin extends BasePlugin {
+    className = "plugin-collapsed-paragraph"
+    selector = `#write > [mdtype="heading"]`
+    navigator = new DOMNavigator(this)
+    dispatcher = new ActionDispatcher(this, this.navigator)
+    staticActions = this.i18n.fillActions([{ act_value: "collapse_all" }, { act_value: "expand_all" }])
+
+    styleTemplate = () => true
+
+    process = () => {
+        File.option.expandSimpleBlock = false  // This config option interferes with the plugin, disable it.
+        this.utils.settings.autoSave(this)
+        this.recordCollapseState(false)
+
+        this.collapseFns = this.initCollapseFns()
+        this.utils.entities.eWrite.addEventListener("click", this.onEditorClick)
+        document.querySelector(".sidebar-menu").addEventListener("click", this.onSidebarClick)
+    }
+
+    initCollapseFns = () => {
+        const fns = {
+            COLLAPSE_SINGLE: el => [el],
+            COLLAPSE_SIBLINGS: this.navigator.findSiblings,
+            COLLAPSE_ALL_SIBLINGS: this.navigator.findAllSiblings,
+            COLLAPSE_RECURSIVE: this.navigator.findSubSiblings,
+        }
+        return Object.keys(fns)
+            .filter(key => this.config.MODIFIER_KEY[key])
+            .map(key => ({
+                filter: this.utils.modifierKey(this.config.MODIFIER_KEY[key]),
+                callback: fns[key],
+            }))
+    }
+
+    onEditorClick = (ev) => {
+        const header = this.navigator.getTargetHeader(ev.target, this.config.STRICT_MODE)
+        if (!header || ev.target.closest(".md-link")) return
+
+        const collapseFn = this.collapseFns.find(fn => fn.filter(ev))
+        if (!collapseFn) return
+
+        document.activeElement.blur()
+        const shouldExpand = header.classList.contains(this.className)
+        collapseFn.callback(header).forEach(el => this.navigator.toggleCollapse(el, shouldExpand))
+        this.callbackOtherPlugin()
+    }
+
+    onSidebarClick = (ev) => {
+        const ref = ev.target.closest(".outline-item")?.querySelector(".outline-label")?.dataset.ref
+        if (!ref) return
+
+        const el = this.utils.entities.eWrite.querySelector(`[cid="${ref}"]`)
+        if (el && el.style.display === "none") {
+            this.navigator.expandParent(el)
         }
     }
-
-    rangeSiblings = (node, rangeFunc) => {
-        ["previousElementSibling", "nextElementSibling"].forEach(direction => {
-            for (let el = node[direction]; !!el; el = el[direction]) {
-                const stop = rangeFunc(el)
-                if (stop) return
-            }
-        })
-    }
-
-    findSiblings = node => {
-        const idx = this.HEADERS.indexOf(node.tagName)
-        const stop = this.HEADERS.slice(0, idx)
-        const result = [node]
-        this.rangeSiblings(node, el => {
-            if (stop.indexOf(el.tagName) !== -1) return true
-            if (el.tagName === node.tagName) result.push(el)
-        })
-        return result
-    }
-
-    findSubSiblings = node => {
-        const idx = this.HEADERS.indexOf(node.tagName)
-        const stop = this.HEADERS.slice(0, idx + 1)
-        const result = [node]
-        this.rangeSiblings(node, el => {
-            if (stop.indexOf(el.tagName) !== -1) return true
-            if (idx < this.HEADERS.indexOf(el.tagName)) result.push(el)
-        })
-        return result
-    }
-
-    findAllSiblings = node => this.utils.entities.querySelectorAllInWrite(`:scope > ${node.tagName}`)
 
     recordCollapseState = (needChange = true) => {
         if (needChange) {
@@ -187,73 +246,45 @@ class CollapseParagraphPlugin extends BasePlugin {
                 name: this.fixedName,
                 selector: this.selector,
                 stateGetter: el => el.classList.contains(this.className),
-                stateRestorer: el => this.trigger(el, false),
+                stateRestorer: el => this.navigator.toggleCollapse(el, false),
             })
         } else {
             this.utils.stateRecorder.unregister(this.fixedName)
         }
     }
 
-    collapseAll = () => {
-        for (let i = this.HEADERS.length - 1; i >= 0; i--) {
-            document.getElementsByTagName(this.HEADERS[i]).forEach(el => this.trigger(el, false))
-        }
-    }
-    expandAll = () => {
-        this.HEADERS.forEach(tag => document.getElementsByTagName(tag).forEach(el => this.trigger(el, true)))
-    }
+    callbackOtherPlugin = () => this.utils.callPluginFunction("right_outline", "refresh")
+
+    rollback = (startNode) => this.dispatcher.rollback(startNode)
 
     getDynamicActions = (anchorNode, meta) => {
-        const getHotkey = key => {
+        const getHotkey = (key) => {
             const modifier = this.config.MODIFIER_KEY[key]
             return modifier ? `${modifier}+click` : undefined
         }
-        const target = this.getTargetHeader(anchorNode, !this.config.STRICT_MODE_IN_CONTEXT_MENU)
-        const act_disabled = !target
+        const target = this.navigator.getTargetHeader(anchorNode, this.config.STRICT_MODE, !this.config.STRICT_MODE_IN_CONTEXT_MENU)
         meta.target = target
+        const act_disabled = !target
         return this.i18n.fillActions([
-            { act_value: "collapse_other", act_disabled },
-            { act_value: "call_current", act_disabled, act_hotkey: getHotkey("COLLAPSE_SINGLE") },
-            { act_value: "call_recursive", act_disabled, act_hotkey: getHotkey("COLLAPSE_RECURSIVE") },
-            { act_value: "call_siblings", act_disabled, act_hotkey: getHotkey("COLLAPSE_SIBLINGS") },
-            { act_value: "call_all_siblings", act_disabled, act_hotkey: getHotkey("COLLAPSE_ALL_SIBLINGS") },
-            { act_value: "record_collapse_state", act_state: this.config.RECORD_COLLAPSE },
+            { act_value: "collapse_others", act_disabled },
+            { act_value: "toggle_current", act_disabled, act_hotkey: getHotkey("COLLAPSE_SINGLE") },
+            { act_value: "toggle_recursive", act_disabled, act_hotkey: getHotkey("COLLAPSE_RECURSIVE") },
+            { act_value: "toggle_siblings", act_disabled, act_hotkey: getHotkey("COLLAPSE_SIBLINGS") },
+            { act_value: "toggle_all_siblings", act_disabled, act_hotkey: getHotkey("COLLAPSE_ALL_SIBLINGS") },
+            { act_value: "record_collapse_state", act_state: !!this.config.RECORD_COLLAPSE },
         ])
     }
 
-    dynamicCall = (type, meta) => {
-        const { target } = meta
-        if (!target) return
-        if (type === "collapse_other") {
-            this.collapseOther(target)
-            return
-        }
-        const finders = {
-            call_current: el => [el],
-            call_siblings: this.findSiblings,
-            call_all_siblings: this.findAllSiblings,
-            call_recursive: this.findSubSiblings,
-        }
-        const finder = finders[type]
-        if (!finder) return
-        const collapsed = target.classList.contains(this.className)
-        finder(target)?.forEach(el => this.trigger(el, collapsed))
-    }
-
     call = (action, meta) => {
-        if (action === "collapse_all") {
-            this.collapseAll()
-        } else if (action === "expand_all") {
-            this.expandAll()
-        } else if (action === "record_collapse_state") {
+        if (action === "record_collapse_state") {
             this.recordCollapseState()
         } else {
-            this.dynamicCall(action, meta)
+            this.dispatcher.execute(action, meta?.target)
         }
         this.callbackOtherPlugin()
     }
 }
 
 module.exports = {
-    plugin: CollapseParagraphPlugin
+    plugin: CollapseParagraphPlugin,
 }

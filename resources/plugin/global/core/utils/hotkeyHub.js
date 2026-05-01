@@ -1,24 +1,14 @@
-/**
- * Dynamically register and unregister hotkeys.
- */
 class HotkeyHub {
-    constructor(utils) {
-        this.utils = utils;
-        this.map = new Map();
-    }
+    map = new Map()
 
     normalize = hotkeyString => {
-        const modifier = ["ctrl", "shift", "alt"];
-        const keyList = hotkeyString.toLowerCase().split("+").map(k => k.trim());
-        const modifierKeys = modifier.filter(k => keyList.includes(k));
-        const mainKey = keyList.find(k => !modifier.includes(k)) || (hotkeyString.includes("++") ? "+" : " ");
-        return [...modifierKeys, mainKey].join("+");
+        const modifier = ["ctrl", "shift", "alt"]
+        const keyList = hotkeyString.toLowerCase().split("+").map(k => k.trim())
+        const modifierKeys = modifier.filter(k => keyList.includes(k))
+        const mainKey = keyList.find(k => !modifier.includes(k)) || (hotkeyString.includes("++") ? "+" : " ")
+        return [...modifierKeys, mainKey].join("+")
     }
 
-    /**
-     * @param {string} hotkey: e.g. "ctrl+shift+c"
-     * @param {function} callback: callback function on hotkey
-     */
     registerSingle = (hotkey, callback) => {
         if (typeof hotkey === "string" && hotkey.length) {
             this.map.set(this.normalize(hotkey), callback)
@@ -29,9 +19,6 @@ class HotkeyHub {
         }
     }
 
-    /**
-     * @param {[{string, function}]} hotkeys
-     */
     register = hotkeys => {
         if (!hotkeys) return
 
@@ -44,28 +31,26 @@ class HotkeyHub {
         }
     }
 
-    /**
-     * @param {string} hotkey: e.g. "ctrl+shift+c"
-     */
     unregister = hotkey => this.map.delete(this.normalize(hotkey))
 
     process = () => {
         window.addEventListener("keydown", ev => {
-            if (ev.key === undefined) return;
-            const arr = [];
-            if (this.utils.metaKeyPressed(ev)) arr.push("ctrl")
-            if (this.utils.shiftKeyPressed(ev)) arr.push("shift")
-            if (this.utils.altKeyPressed(ev)) arr.push("alt")
-            arr.push(ev.key.toLowerCase());
-            const key = arr.join("+");
-            const callback = this.map.get(key);
+            if (ev.key === undefined) return
+            let combo = ""
+            if (ev.ctrlKey || ev.metaKey) combo += "ctrl+"
+            if (ev.shiftKey) combo += "shift+"
+            if (ev.altKey) combo += "alt+"
+            combo += ev.key.toLowerCase()
+            const callback = this.map.get(combo)
             if (callback) {
-                callback();
-                ev.preventDefault();
-                ev.stopPropagation();
+                callback()
+                ev.preventDefault()
+                ev.stopPropagation()
             }
         }, true)
     }
+
+    capitalize = (hotkeyString) => hotkeyString.toLowerCase().split("+").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join("+")
 }
 
 module.exports = HotkeyHub

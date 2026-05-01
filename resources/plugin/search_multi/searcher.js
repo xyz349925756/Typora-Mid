@@ -1,3 +1,4 @@
+const FsExtra = require("fs-extra")
 const Parser = require("./parser")
 
 class QualifierMixin {
@@ -57,6 +58,11 @@ class QualifierMixin {
             const replacement = predefined[operand.toLowerCase()]
             return replacement ? replacement.toISOString().slice(0, 10) : operand
         },
+    }
+
+    static PARAM_PROVIDER = {
+        basic: (path, file, dir, stats) => ({ path, file, dir, stats }),
+        withContent: async (path, file, dir, stats) => ({ path, file, dir, stats, content: await FsExtra.readFile(path, "utf-8") }),
     }
 
     static VALIDATE = {
@@ -166,24 +172,25 @@ class QualifierMixin {
  *   {string}   name:           A descriptive name for explanation purposes
  *   {string}   ancestor:       The ancestor Element in DOM. Only available when is_meta=false. Defaults to `QualifierMixin.ANCESTOR.none`
  *   {boolean}  is_meta:        Indicates if the qualifier scope is a metadata property
- *   {boolean}  need_read_file: Determines if the qualifier needs to read file content
  *   {number}   cost:           The performance cost associated with the `query` function. 1: Read file stats; 2: Read file content; 3: Parse file content; Plus 0.5 when the user input is a regex
  *   {function} preprocess:     Convert certain specific, predefined, and special meaning vocabulary from the user input. Defaults to `QualifierMixin.PREPROCESS.noop`
  *   {function} validate:       Checks user input and obtain `validateError`. Defaults to `QualifierMixin.VALIDATE.isStringOrRegexp`
  *   {function} cast:           Converts user input for easier matching and obtain `castResult`. Defaults to `QualifierMixin.CAST.toStringOrRegexp`
+ *   {function} param_provider: Retrieve the parameter object from source for `query` function. Defaults to `QualifierMixin.PARAM_PROVIDER.basic`
  *   {function} query:          Retrieves data from source and obtain `queryResult`
  *   {function} match_keyword:  Matches `castResult` with `queryResult` when the user input is a keyword. Defaults to `QualifierMixin.MATCH.compare`
  *   {function} match_phrase:   Matches `castResult` with `queryResult` when the user input is a phrase. Behaves the same as `match_keyword` by default
  *   {function} match_regexp:   Matches `castResult` with `queryResult` when the user input is a regexp. Defaults to `QualifierMixin.MATCH.regexp`
  */
 class Searcher {
+    MIXIN = QualifierMixin
+    parser = new Parser()
+    qualifiers = new Map()
+
     constructor(plugin) {
-        this.MIXIN = QualifierMixin
         this.config = plugin.config
         this.utils = plugin.utils
         this.i18n = plugin.i18n
-        this.parser = new Parser()
-        this.qualifiers = new Map()
     }
 
     process = () => {
@@ -214,6 +221,7 @@ class Searcher {
             MATCH: { arrayCompare, arrayRegexp },
             QUERY: { normalizeDate },
             ANCESTOR: { none, write },
+            PARAM_PROVIDER: { basic, withContent },
         } = this.MIXIN
         const { splitFrontMatter, Package: { Path } } = this.utils
         const getMatchCount = (content, regex) => {
@@ -226,16 +234,16 @@ class Searcher {
 
         const QUERY = {
             default: ({ path, file, stats, content }) => `${content}\n${path}`,
-            path: ({ path, file, stats, content }) => path,
-            dir: ({ path, file, stats, content }) => Path.dirname(path),
-            folder: ({ path, file, stats, content }) => Path.dirname(path),
-            file: ({ path, file, stats, content }) => file,
-            name: ({ path, file, stats, content }) => Path.parse(file).name,
-            ext: ({ path, file, stats, content }) => Path.extname(file),
-            size: ({ path, file, stats, content }) => stats.size,
-            atime: ({ path, file, stats, content }) => normalizeDate(stats.atime),
-            mtime: ({ path, file, stats, content }) => normalizeDate(stats.mtime),
-            birthtime: ({ path, file, stats, content }) => normalizeDate(stats.birthtime),
+            path: ({ path, file, stats }) => path,
+            dir: ({ path, file, stats }) => Path.dirname(path),
+            folder: ({ path, file, stats }) => Path.dirname(path),
+            file: ({ path, file, stats }) => file,
+            name: ({ path, file, stats }) => Path.parse(file).name,
+            ext: ({ path, file, stats }) => Path.extname(file),
+            size: ({ path, file, stats }) => stats.size,
+            atime: ({ path, file, stats }) => normalizeDate(stats.atime),
+            mtime: ({ path, file, stats }) => normalizeDate(stats.mtime),
+            birthtime: ({ path, file, stats }) => normalizeDate(stats.birthtime),
             content: ({ path, file, stats, content }) => content,
             isempty: ({ path, file, stats, content }) => content.trim() === "",
             crlf: ({ path, file, stats, content }) => content.includes("\r\n"),
@@ -276,7 +284,7 @@ class Searcher {
             readminutes: ({ path, file, stats, content }) => {
                 const wordsPerMinute = File.option.wordsPerMinute || 300
                 return QUERY.wordnum({ path, file, stats, content }) / wordsPerMinute
-            }
+            },
         }
         const PROCESS = {
             size: { validate: isSize, cast: toBytes },
@@ -285,38 +293,38 @@ class Searcher {
             boolean: { preprocess: resolveBoolean, validate: isBoolean, cast: toBoolean },
             stringArray: { match_keyword: arrayCompare, match_regexp: arrayRegexp },
         }
-        const buildQualifier = (scope, is_meta, need_read_file, cost, anchor, process) => ({
-            scope, name: this.i18n.t(`scope.${scope}`), is_meta, need_read_file, cost, anchor, query: QUERY[scope], ...process,
+        const buildQualifier = (scope, is_meta, cost, anchor, param_provider, process) => ({
+            scope, name: this.i18n.t(`scope.${scope}`), is_meta, cost, anchor, query: QUERY[scope], param_provider, ...process,
         })
         return [
-            buildQualifier("default", false, true, 2, write),
-            buildQualifier("path", true, false, 1, none),
-            buildQualifier("dir", true, false, 1, none),
-            buildQualifier("folder", true, false, 1, none),
-            buildQualifier("file", true, false, 1, none),
-            buildQualifier("name", true, false, 1, none),
-            buildQualifier("ext", true, false, 1, none),
-            buildQualifier("content", false, true, 2, write),
-            buildQualifier("frontmatter", false, true, 3, 'pre[mdtype="meta_block"]'),
-            buildQualifier("size", true, false, 1, none, PROCESS.size),
-            buildQualifier("birthtime", true, false, 1, none, PROCESS.date),
-            buildQualifier("mtime", true, false, 1, none, PROCESS.date),
-            buildQualifier("atime", true, false, 1, none, PROCESS.date),
-            buildQualifier("linenum", true, true, 2, none, PROCESS.number),
-            buildQualifier("charnum", true, true, 2, none, PROCESS.number),
-            buildQualifier("wordnum", true, true, 3, none, PROCESS.number),
-            buildQualifier("readminutes", true, true, 3, none, PROCESS.number),
-            buildQualifier("chinesenum", true, true, 2, none, PROCESS.number),
-            buildQualifier("imagenum", true, true, 2, none, PROCESS.number),
-            buildQualifier("imgtagnum", true, true, 2, none, PROCESS.number),
-            buildQualifier("hasimage", true, true, 2, none, PROCESS.boolean),
-            buildQualifier("hasimgtag", true, true, 2, none, PROCESS.boolean),
-            buildQualifier("haschinese", true, true, 2, none, PROCESS.boolean),
-            buildQualifier("hasemoji", true, true, 2, none, PROCESS.boolean),
-            buildQualifier("hasinvisiblechar", true, true, 2, none, PROCESS.boolean),
-            buildQualifier("isempty", true, true, 2, none, PROCESS.boolean),
-            buildQualifier("crlf", true, true, 2, none, PROCESS.boolean),
-            buildQualifier("line", false, true, 2, write, PROCESS.stringArray),
+            buildQualifier("default", false, 2, write, withContent),
+            buildQualifier("path", true, 1, none, basic),
+            buildQualifier("dir", true, 1, none, basic),
+            buildQualifier("folder", true, 1, none, basic),
+            buildQualifier("file", true, 1, none, basic),
+            buildQualifier("name", true, 1, none, basic),
+            buildQualifier("ext", true, 1, none, basic),
+            buildQualifier("content", false, 2, write, withContent),
+            buildQualifier("frontmatter", false, 3, 'pre[mdtype="meta_block"]', withContent),
+            buildQualifier("size", true, 1, none, basic, PROCESS.size),
+            buildQualifier("birthtime", true, 1, none, basic, PROCESS.date),
+            buildQualifier("mtime", true, 1, none, basic, PROCESS.date),
+            buildQualifier("atime", true, 1, none, basic, PROCESS.date),
+            buildQualifier("linenum", true, 2, none, withContent, PROCESS.number),
+            buildQualifier("charnum", true, 2, none, withContent, PROCESS.number),
+            buildQualifier("wordnum", true, 3, none, withContent, PROCESS.number),
+            buildQualifier("readminutes", true, 3, none, withContent, PROCESS.number),
+            buildQualifier("chinesenum", true, 2, none, withContent, PROCESS.number),
+            buildQualifier("imagenum", true, 2, none, withContent, PROCESS.number),
+            buildQualifier("imgtagnum", true, 2, none, withContent, PROCESS.number),
+            buildQualifier("hasimage", true, 2, none, withContent, PROCESS.boolean),
+            buildQualifier("hasimgtag", true, 2, none, withContent, PROCESS.boolean),
+            buildQualifier("haschinese", true, 2, none, withContent, PROCESS.boolean),
+            buildQualifier("hasemoji", true, 2, none, withContent, PROCESS.boolean),
+            buildQualifier("hasinvisiblechar", true, 2, none, withContent, PROCESS.boolean),
+            buildQualifier("isempty", true, 2, none, withContent, PROCESS.boolean),
+            buildQualifier("crlf", true, 2, none, withContent, PROCESS.boolean),
+            buildQualifier("line", false, 2, write, withContent, PROCESS.stringArray),
         ]
     }
 
@@ -373,7 +381,7 @@ class Searcher {
                     types.flatMap((type, idx) => [
                         [`${type}_open`, [idx, 1]],
                         [`${type}_close`, [idx, -1]],
-                    ])
+                    ]),
                 )
                 return node => {
                     const hit = flags.get(node.type)
@@ -385,7 +393,7 @@ class Searcher {
                     }
                     return wrapped
                 }
-            }
+            },
         }
 
         const TRANSFORMER = {
@@ -394,7 +402,7 @@ class Searcher {
             infoAndContent: node => `${node.info}\n${node.content}`,
             attrAndContent: node => {
                 const attrs = node.attrs || []
-                const attrContent = attrs.map(l => l[l.length - 1]).join(" ")
+                const attrContent = attrs.map(attr => attr.at(-1)).join(" ")
                 return `${attrContent}${node.content}`
             },
             regexpContent: regex => {
@@ -459,7 +467,6 @@ class Searcher {
             name: this.i18n.t(`scope.${scope}`),
             anchor,
             is_meta: false,
-            need_read_file: true,
             cost: 3,
             preprocess: this.MIXIN.PREPROCESS.noop,
             validate: this.MIXIN.VALIDATE.isStringOrRegexp,
@@ -467,6 +474,7 @@ class Searcher {
             match_keyword: this.MIXIN.MATCH.arrayCompare,
             match_phrase: this.MIXIN.MATCH.arrayCompare,
             match_regexp: this.MIXIN.MATCH.arrayRegexp,
+            param_provider: this.MIXIN.PARAM_PROVIDER.withContent,
             query: buildQuery(parser, filter, transformer),
         })
 
@@ -606,15 +614,15 @@ class Searcher {
         return match(scope, operator, castResult, queryResult)
     }
 
-    getReadFileScopes = (ast) => {
-        const scope = new Set()
-        const needRead = new Set([...this.qualifiers.values()].filter(q => q.need_read_file).map(q => q.scope))
+    getParamProvider = (ast) => {
+        const providers = new Set()
         this.parser.walkLeaves(ast, node => {
-            if (needRead.has(node.scope)) {
-                scope.add(node.scope)
-            }
+            const p = this.qualifiers.get(node.scope)?.param_provider
+            if (p) providers.add(p)
         })
-        return [...scope]
+        const { basic, withContent } = this.MIXIN.PARAM_PROVIDER
+        const needsContent = [...providers].some(provider => provider === withContent)
+        return needsContent ? withContent : basic
     }
 
     getPositiveContentTokens = (ast) => {
@@ -913,7 +921,7 @@ class Searcher {
         const _toGraph = async ({ expression, optimize, translate, textStyle, direction }) => {
             return _to(expression, optimize, async ast => {
                 const definition = this.toMermaid(ast, translate, textStyle, direction)
-                const svg = await this.utils.mermaid.render(definition)
+                const svg = await this.utils.renderMermaid(definition)
                 return `<div style="font-size:initial; line-height: initial; text-align:center;">${svg}</div>`
             })
         }
@@ -957,7 +965,7 @@ class Searcher {
             schema: getSchema(),
             data: {
                 grammar: grammar.trim(),
-                expression: '-file:baz  head:"foo bar"  ( linenum<200 | size>2kb | abc )',
+                expression: 'h2:"foo bar"  ( linenum<200 | blockcodelang=java | abc )  -file:baz',
                 presentation: "graph",
                 direction: "LR",
                 optimize: false,
@@ -987,7 +995,7 @@ class Searcher {
                         const direction = ctx.getValue("direction")
                         _toGraph({ expression, optimize, translate, textStyle, direction }).then(data => ctx.setValue("_displayGraph", { hintDetail: data }))
                     }
-                }
+                },
             }],
             collapsibleBox: false,
         }

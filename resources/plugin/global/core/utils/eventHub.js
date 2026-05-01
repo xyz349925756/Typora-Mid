@@ -2,27 +2,28 @@
  * Dynamically register, unregister, and publish lifecycle events.
  */
 class EventHub {
+    observer = null
+    eventMap = Object.create(null)  // { eventType: { order: [listener] } }
+    eventType = Object.freeze({
+        allPluginsHadInjected: "allPluginsHadInjected",        // All plugins loaded
+        beforeFileOpen: "beforeFileOpen",                      // Before opening a file
+        fileOpened: "fileOpened",                              // After opening a file
+        otherFileOpened: "otherFileOpened",                    // Different from fileOpened: reopening the current tab won't trigger otherFileOpened, but fileOpened will
+        fileContentLoaded: "fileContentLoaded",                // After file content is loaded
+        fileEdited: "fileEdited",                              // After file is edited
+        beforeToggleSourceMode: "beforeToggleSourceMode",      // Before entering source code mode
+        afterToggleSidebar: "afterToggleSidebar",              // After toggling the sidebar state
+        afterSetSidebarWidth: "afterSetSidebarWidth",          // After adjusting the sidebar width
+        // contentElementResized: "contentElementResized",        // content element resized
+        beforeAddCodeBlock: "beforeAddCodeBlock",              // Before adding a code block
+        afterAddCodeBlock: "afterAddCodeBlock",                // After adding a code block
+        afterUpdateCodeBlockLang: "afterUpdateCodeBlockLang",  // After modifying the code block language
+        outlineUpdated: "outlineUpdated",                      // When the outline is updated
+        toggleSettingPage: "toggleSettingPage",                // When toggling to/from the settings page
+    })
+
     constructor(utils) {
         this.utils = utils
-        this.observer = null
-        this.eventMap = Object.create(null)  // { eventType: { order: [listener] } }
-        this.eventType = Object.freeze({
-            allPluginsHadInjected: "allPluginsHadInjected",             // All plugins loaded
-            beforeFileOpen: "beforeFileOpen",                           // Before opening a file
-            fileOpened: "fileOpened",                                   // After opening a file
-            otherFileOpened: "otherFileOpened",                         // Different from fileOpened: reopening the current tab won't trigger otherFileOpened, but fileOpened will
-            fileContentLoaded: "fileContentLoaded",                     // After file content is loaded
-            fileEdited: "fileEdited",                                   // After file is edited
-            beforeToggleSourceMode: "beforeToggleSourceMode",           // Before entering source code mode
-            afterToggleSidebar: "afterToggleSidebar",                   // After toggling the sidebar state
-            afterSetSidebarWidth: "afterSetSidebarWidth",               // After adjusting the sidebar width
-            // contentElementResized: "contentElementResized",             // content element resized
-            beforeAddCodeBlock: "beforeAddCodeBlock",                   // Before adding a code block
-            afterAddCodeBlock: "afterAddCodeBlock",                     // After adding a code block
-            afterUpdateCodeBlockLang: "afterUpdateCodeBlockLang",       // After modifying the code block language
-            outlineUpdated: "outlineUpdated",                           // When the outline is updated
-            toggleSettingPage: "toggleSettingPage",                     // When toggling to/from the settings page
-        })
     }
 
     addEventListener = (type, listener, order = 0) => {
@@ -64,54 +65,48 @@ class EventHub {
     }
 
     _checkType = type => {
-        if (!this.eventType.hasOwnProperty(type)) {
-            throw new Error(`do not support event type: ${type}`)
+        if (!Object.hasOwn(this.eventType, type)) {
+            throw new Error(`Do not support event type: ${type}`)
         }
     }
 
     _checkListener = listener => {
         if (typeof listener !== "function") {
-            throw new Error(`listener is not function: ${listener}`)
+            throw new Error(`Listener is not function: ${listener}`)
         }
     }
 
     process = () => {
         let _filepath = ""
-        this.utils.decorate(() => File?.editor?.library, "openFile",
-            (toOpenFile) => {
+        this.utils.decorator.decorate(() => File?.editor?.library, "openFile", {
+            before: (toOpenFile) => {
                 _filepath = this.utils.getFilePath()
                 this.publishEvent(this.eventType.beforeFileOpen, toOpenFile)
             },
-            (result, ...args) => {
+            after: (result, ...args) => {
                 const filepath = args[0]
                 if (filepath) this.publishEvent(this.eventType.fileOpened, filepath)
                 if (_filepath !== filepath) this.publishEvent(this.eventType.otherFileOpened, filepath)
             }
-        )
+        })
 
         const onContentLoaded = () => this.publishEvent(this.eventType.fileContentLoaded, this.utils.getFilePath())
         if (this.utils.isBetaVersion || File.onSwitchDocumentTarget) {
-            this.utils.decorate(() => File, "onSwitchDocumentTarget", null, onContentLoaded)
+            this.utils.decorator.afterCall(() => File, "onSwitchDocumentTarget", onContentLoaded)
         } else {
-            this.utils.decorate(() => File.editor.library, "doSwitchByNode", null, ret => ret.then(onContentLoaded))
+            this.utils.decorator.afterCall(() => File.editor.library, "doSwitchByNode", ret => ret.then(onContentLoaded))
         }
 
-        this.utils.decorate(() => File?.editor?.fences, "addCodeBlock",
-            (cid) => cid && this.publishEvent(this.eventType.beforeAddCodeBlock, cid),
-            (cm, cid) => cid && this.publishEvent(this.eventType.afterAddCodeBlock, cid, cm),
-        )
+        this.utils.decorator.decorate(() => File?.editor?.fences, "addCodeBlock", {
+            before: (cid) => cid && this.publishEvent(this.eventType.beforeAddCodeBlock, cid),
+            after: (cm, cid) => cid && this.publishEvent(this.eventType.afterAddCodeBlock, cid, cm),
+        })
 
-        this.utils.decorate(
-            () => File?.editor?.fences, "tryAddLangUndo", null,
-            (result, ...args) => this.publishEvent(this.eventType.afterUpdateCodeBlockLang, args)
-        )
+        this.utils.decorator.afterCall(() => File?.editor?.fences, "tryAddLangUndo", (result, ...args) => this.publishEvent(this.eventType.afterUpdateCodeBlockLang, args))
 
-        this.utils.decorate(() => File, "toggleSourceMode", () => this.publishEvent(this.eventType.beforeToggleSourceMode))
+        this.utils.decorator.beforeCall(() => File, "toggleSourceMode", () => this.publishEvent(this.eventType.beforeToggleSourceMode))
 
-        this.utils.decorate(
-            () => File?.editor?.library?.outline, "updateOutlineHtml", null,
-            () => this.publishEvent(this.eventType.outlineUpdated)
-        )
+        this.utils.decorator.afterCall(() => File?.editor?.library?.outline, "updateOutlineHtml", () => this.publishEvent(this.eventType.outlineUpdated))
 
         const _afterToggleSidebar = () => {
             const sidebar = document.querySelector("#typora-sidebar")
@@ -122,10 +117,10 @@ class EventHub {
         const afterToggleSidebar = hasTransition
             ? () => content.addEventListener("transitionend", _afterToggleSidebar, { once: true })
             : this.utils.debounce(_afterToggleSidebar, 400)
-        this.utils.decorate(() => File?.editor?.library, "toggleSidebar", null, afterToggleSidebar)
+        this.utils.decorator.afterCall(() => File?.editor?.library, "toggleSidebar", afterToggleSidebar)
 
         const afterSetSidebarWidth = this.utils.debounce(() => this.publishEvent(this.eventType.afterSetSidebarWidth), 400)
-        this.utils.decorate(() => File?.editor?.library, "setSidebarWidth", null, afterSetSidebarWidth)
+        this.utils.decorator.afterCall(() => File?.editor?.library, "setSidebarWidth", afterSetSidebarWidth)
 
         // const resizeObserver = new ResizeObserver(entries => {
         //     for (const entry of entries) {
@@ -136,10 +131,10 @@ class EventHub {
         // })
         // resizeObserver.observe(content)
 
-        this.utils.decorate(() => File?.megaMenu, "showPreferencePanel", () => this.publishEvent(this.eventType.toggleSettingPage, true))
-        this.utils.decorate(() => File?.megaMenu, "closePreferencePanel", () => this.publishEvent(this.eventType.toggleSettingPage, false))
-        this.utils.decorate(() => File?.megaMenu, "show", () => this.publishEvent(this.eventType.toggleSettingPage, true))
-        this.utils.decorate(() => File?.megaMenu, "hide", () => this.publishEvent(this.eventType.toggleSettingPage, false))
+        this.utils.decorator.beforeCall(() => File?.megaMenu, "showPreferencePanel", () => this.publishEvent(this.eventType.toggleSettingPage, true))
+        this.utils.decorator.beforeCall(() => File?.megaMenu, "closePreferencePanel", () => this.publishEvent(this.eventType.toggleSettingPage, false))
+        this.utils.decorator.beforeCall(() => File?.megaMenu, "show", () => this.publishEvent(this.eventType.toggleSettingPage, true))
+        this.utils.decorator.beforeCall(() => File?.megaMenu, "hide", () => this.publishEvent(this.eventType.toggleSettingPage, false))
 
         const debouncePublish = this.utils.debounce(() => this.publishEvent(this.eventType.fileEdited), 400)
         this.observer = new MutationObserver(mutations => {

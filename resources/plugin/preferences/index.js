@@ -1,4 +1,7 @@
 class PreferencesPlugin extends BasePlugin {
+    FALLBACK_MENU = "global"
+    menuStorage = this.utils.getStorage(`${this.fixedName}.menu`)
+
     hotkey = () => [{ hotkey: this.config.HOTKEY, callback: this.call }]
 
     styleTemplate = () => true
@@ -7,7 +10,7 @@ class PreferencesPlugin extends BasePlugin {
         <div class="plugin-preferences-dialog plugin-common-hidden">
             <div class="plugin-preferences-content">
                 <div class="plugin-preferences-left">
-                    <div class="plugin-preferences-search"><input type="text" placeholder="${this.i18n.t("search")}"></div>
+                    <div class="plugin-preferences-search"><input type="text" placeholder="${this.i18n.t("search")}"><i class="ion-close-round"></i></div>
                     <div class="plugin-preferences-menu"></div>
                 </div>
                 <div class="plugin-preferences-right">
@@ -21,8 +24,6 @@ class PreferencesPlugin extends BasePlugin {
         </div>`
 
     init = () => {
-        this.fallbackMenu = "global"
-        this.menuStorage = this.utils.getStorage(`${this.fixedName}.menu`)
         this.entities = {
             dialog: document.querySelector(".plugin-preferences-dialog"),
             menu: document.querySelector(".plugin-preferences-menu"),
@@ -30,7 +31,8 @@ class PreferencesPlugin extends BasePlugin {
             form: document.querySelector(".plugin-preferences-form"),
             main: document.querySelector(".plugin-preferences-main"),
             searchInput: document.querySelector(".plugin-preferences-search input"),
-            closeButton: document.querySelector(".plugin-preferences-close"),
+            searchClose: document.querySelector(".plugin-preferences-search i"),
+            close: document.querySelector(".plugin-preferences-close"),
         }
         this.RULES = require("./rules.js")
         this.WATCHERS = require("./watchers.js")(this)
@@ -48,45 +50,56 @@ class PreferencesPlugin extends BasePlugin {
                 targetEle: title,
                 moveEle: dialog,
                 onMouseDown: () => {
-                    const { transform } = window.getComputedStyle(dialog)
-                    if (transform !== "none") {
-                        const { left, top } = dialog.getBoundingClientRect()
-                        dialog.style.left = `${left}px`
-                        dialog.style.top = `${top}px`
-                        dialog.style.transform = "none"
+                    if (!dialog.classList.contains("is-dragged")) {
+                        const rect = dialog.getBoundingClientRect()
+                        dialog.style.left = `${Math.round(rect.left)}px`
+                        dialog.style.top = `${Math.round(rect.top)}px`
+                        dialog.classList.add("is-dragged")
                     }
-                }
+                },
             })
         }
         const searchInDialog = () => {
-            let allow = true
-            const search = () => {
-                if (!allow) return
-                const query = this.entities.searchInput.value.trim().toLowerCase()
-                this.entities.menu.querySelectorAll(".plugin-preferences-menu-item").forEach((el) => {
-                    let fn = "show"
-                    if (query) {
-                        const hitShowName = el.textContent.toLowerCase().includes(query)
-                        const hitFixedName = this.config.SEARCH_PLUGIN_FIXEDNAME && el.dataset.plugin.toLowerCase().includes(query)
-                        if (!hitShowName && !hitFixedName) {
-                            fn = "hide"
+            const querySchemas = (query) => {
+                const hits = new Set()
+                if (!query) return hits
+                Object.entries(this.SCHEMAS).forEach(([pluginName, boxes]) => {
+                    boxes.forEach(box => {
+                        if (box.title?.toLowerCase().includes(query)) {
+                            hits.add(pluginName)
                         }
-                    }
-                    this.utils[fn](el)
+                        box.fields?.forEach(field => {
+                            if (field.label?.toLowerCase().includes(query)) {
+                                hits.add(pluginName)
+                            }
+                        })
+                    })
                 })
-                if (!query) {
-                    this.entities.menu.querySelector(".plugin-preferences-menu-item.active")?.scrollIntoView({ block: "center" })
-                }
+                return hits
             }
-            this.entities.searchInput.addEventListener("input", search)
-            this.entities.searchInput.addEventListener("compositionstart", () => allow = false)
-            this.entities.searchInput.addEventListener("compositionend", () => {
-                allow = true
-                search()
+            const toggleMenuItem = (query) => {
+                const hitSchemas = querySchemas(query)
+                this.entities.menu.querySelectorAll(".plugin-preferences-menu-item").forEach(el => {
+                    const hide = !!query && !hitSchemas.has(el.dataset.plugin) && !el.textContent.toLowerCase().includes(query)
+                    this.utils.toggleInvisible(el, hide)
+                })
+            }
+            const highlightForm = (query) => this.entities.form.getApi("highlight")?.highlight(query)
+            const scroll = () => this.entities.menu.querySelector(".plugin-preferences-menu-item.active")?.scrollIntoView({ block: "center" })
+            this.utils.createSmartInputHandler(this.entities.searchInput, (query) => {
+                toggleMenuItem(query)
+                highlightForm(query)
+                if (!query) scroll()
+            })
+            this.entities.searchClose.addEventListener("click", () => {
+                const inputEl = this.entities.searchInput
+                inputEl.value = ""
+                inputEl.dispatchEvent(new Event("input", { bubbles: true }))
+                inputEl.focus()
             })
         }
         const onEvents = () => {
-            this.entities.closeButton.addEventListener("click", () => this.call())
+            this.entities.close.addEventListener("click", () => this.call())
             this.entities.menu.addEventListener("click", async ev => {
                 const menu = ev.target.closest(".plugin-preferences-menu-item")?.dataset.plugin
                 if (menu) await this.switchMenu(menu)
@@ -127,13 +140,13 @@ class PreferencesPlugin extends BasePlugin {
     showDialog = async (fixedName) => {
         const plugins = this._getAllPlugins()
         this._fillMenu(plugins)
-        const menu = plugins.hasOwnProperty(fixedName) ? fixedName : this.fallbackMenu
+        const menu = Object.hasOwn(plugins, fixedName) ? fixedName : this.FALLBACK_MENU
         await this.switchMenu(menu, true)
     }
 
     switchMenu = async (fixedName, scrollMenuIntoView = false, scrollMainToTop = true) => {
         if (this.config.HIDE_MENUS.includes(fixedName)) {
-            fixedName = this.fallbackMenu
+            fixedName = this.FALLBACK_MENU
         }
 
         const options = await this._getFormOptions(fixedName)
@@ -189,6 +202,7 @@ class PreferencesPlugin extends BasePlugin {
             fieldDependencyUnmetAction: this.config.DEPENDENCIES_FAILURE_BEHAVIOR,
             boxDependencyUnmetAction: this.config.DEPENDENCIES_FAILURE_BEHAVIOR,
             collapsibleBox: this.config.COLLAPSIBLE_BOX,
+            highlight: this._getSearchValue(),
         }, fixedName)
     }
 
@@ -196,7 +210,7 @@ class PreferencesPlugin extends BasePlugin {
         const basePlugins = Object.keys(this.utils.getAllBasePluginSettings())
         const customPlugins = Object.keys(this.utils.getAllCustomPluginSettings())
         const plugins = ["global", ...basePlugins, ...customPlugins]
-            .filter(name => this.SCHEMAS.hasOwnProperty(name))
+            .filter(name => Object.hasOwn(this.SCHEMAS, name))
             .map(name => {
                 const pluginName = this.utils.tryGetPlugin(name)?.pluginName ?? this.i18n._t(name, "pluginName")
                 return [name, pluginName]
@@ -240,8 +254,9 @@ class PreferencesPlugin extends BasePlugin {
     _setDialogState = (changed = true) => this.entities.dialog.toggleAttribute("has-changed", changed)
     _hasDialogChanged = () => this.entities.dialog.hasAttribute("has-changed")
     _getCurrentPlugin = () => this.entities.form.dataset.plugin
+    _getSearchValue = () => this.entities.searchInput.value.trim()
 }
 
 module.exports = {
-    plugin: PreferencesPlugin
+    plugin: PreferencesPlugin,
 }

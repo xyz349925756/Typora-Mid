@@ -5,11 +5,13 @@
  * 3. Abstracting parameter differences, where cmd uses %VAR% and bash uses $VAR.
  */
 class CommanderPlugin extends BasePlugin {
+    ACT_VALUE_PREFIX = "call_builtin@"
+    DISPLAY_TYPE = { ALWAYS: "always", ERROR: "error", SILENT: "silent", ECHO: "echo" }
+    SHELL = { CMD_BASH: "cmd/bash", POWER_SHELL: "powershell", GIT_BASH: "gitbash", WSL: "wsl" }
+
     beforeProcess = () => {
-        this.DISPLAY_TYPE = { ALWAYS: "always", ERROR: "error", SILENT: "silent", ECHO: "echo" }
-        this.SHELL = { CMD_BASH: "cmd/bash", POWER_SHELL: "powershell", GIT_BASH: "gitbash", WSL: "wsl" }
-        const shellList = Object.values(this.SHELL)
-        this.builtins = this.config.BUILTIN.filter(e => !e.disable && e.shell && shellList.includes(e.shell))
+        const shells = Object.values(this.SHELL)
+        this.builtins = this.config.BUILTIN.filter(e => !e.disable && e.shell && shells.includes(e.shell))
         if (!File.isWin) {
             this.builtins = this.builtins.filter(e => e.shell !== this.SHELL.CMD_BASH)
         }
@@ -62,11 +64,10 @@ class CommanderPlugin extends BasePlugin {
             pre: document.querySelector(".plugin-commander-output pre"),
         }
 
-        this.act_value_prefix = "call_builtin@"
         const defaultAction = { act_name: this.i18n.t("act.toggle_modal"), act_value: "toggle_modal", act_hotkey: this.config.HOTKEY }
         const customActions = this.builtins
             .filter(a => a.name && a.cmd)
-            .map(a => ({ act_name: a.name, act_value: this.act_value_prefix + a.name, act_hotkey: a.hotkey }))
+            .map(a => ({ act_name: a.name, act_value: this.ACT_VALUE_PREFIX + a.name, act_hotkey: a.hotkey }))
         this.staticActions = [defaultAction, ...customActions]
     }
 
@@ -236,8 +237,8 @@ class CommanderPlugin extends BasePlugin {
     call = (action = "toggle_modal") => {
         if (action === "toggle_modal") {
             this.toggleModal()
-        } else if (action.startsWith(this.act_value_prefix)) {
-            const name = action.slice(this.act_value_prefix.length)
+        } else if (action.startsWith(this.ACT_VALUE_PREFIX)) {
+            const name = action.slice(this.ACT_VALUE_PREFIX.length)
             const builtin = this.builtins.find(c => c.name === name)
             if (builtin) {
                 this.quickExecute(builtin.cmd, builtin.shell)

@@ -19,7 +19,7 @@ module.exports = (plugin) => {
                 if (!data[field.key]) {
                     let version = "Unknown"
                     try {
-                        const file = utils.joinPath("./plugin/bin/version.json")
+                        const file = utils.joinPluginPath("./plugin/bin/version.json")
                         const json = await utils.Package.FsExtra.readJson(file)
                         version = json.tag_name
                     } catch (e) {
@@ -43,15 +43,16 @@ module.exports = (plugin) => {
         read_only: {
             REMAIN_AVAILABLE_MENU_KEY: (field) => {
                 if (!field.options) {
-                    const entries = [...document.querySelectorAll(".context-menu:not(.ext-context-menu) [data-key]")].map(op => {
-                        const key = op.dataset.key
+                    const toOptions = item => {
+                        const key = item.dataset.key
                         if (!key) return
-                        const hint = op.classList.contains("menu-style-btn")
-                            ? op.getAttribute("ty-hint")?.split("\t")[0]
-                            : op.querySelector('[data-lg="Menu"]')?.textContent.trim()
+                        const hint = item.classList.contains("menu-style-btn")
+                            ? item.getAttribute("ty-hint")?.split("\t")[0]
+                            : item.querySelector('[data-lg="Menu"]')?.textContent.trim()
                         return [key, hint || key]
-                    }).filter(Boolean)
-                    field.options = Object.fromEntries(entries)
+                    }
+                    const allItems = document.querySelectorAll(".context-menu:not(.ext-context-menu) [data-key]")
+                    field.options = Object.fromEntries([...allItems].map(toOptions).filter(Boolean))
                 }
             },
         },
@@ -62,7 +63,7 @@ module.exports = (plugin) => {
                 }
             },
             PRELOAD_ALL_FENCES: (field, data) => {
-                if (!File.hasOwnProperty("loadFile")) {
+                if (!Object.hasOwn(File, "loadFile")) {
                     _disableSwitch(field, data)
                 }
             },
@@ -88,7 +89,7 @@ module.exports = (plugin) => {
                 }
             },
             OUTLINE_FOLD_STATE: (field) => {
-                if (!File.option.hasOwnProperty("canCollapseOutlinePanel")) {
+                if (!Object.hasOwn(File.option, "canCollapseOutlinePanel")) {
                     _disableControl(field)
                 } else if (!File.option.canCollapseOutlinePanel) {
                     const text = i18n._t("sidebar_enhance", "$tooltip.canCollapseOutlinePanel")
@@ -100,7 +101,7 @@ module.exports = (plugin) => {
             },
         },
         markmap: {
-            AUTO_COLLAPSE_PARAGRAPH_WHEN_FOLD: (field, data) => {
+            AUTO_COLLAPSE_PARAGRAPH_ON_FOLD: (field, data) => {
                 if (!utils.getBasePlugin("collapse_paragraph")) {
                     _disableSwitch(field, data, i18n._t("markmap", "$tooltip.experimental"))
                 } else {
@@ -122,6 +123,11 @@ module.exports = (plugin) => {
                     subField.options = allBasePlugins
                 }
             },
+            SHOW_PLUGIN_HOTKEY: (field, data) => {
+                if (!document.querySelector(".ty-menu-shortcut")) {
+                    _disableSwitch(field, data)
+                }
+            },
         },
         preferences: {
             DEFAULT_MENU: (field) => {
@@ -136,22 +142,11 @@ module.exports = (plugin) => {
                 }
             },
         },
-        chineseSymbolAutoPairer: {
-            enable: (field, data) => {
-                if (File.option.noPairingMatch) {
-                    const text = i18n._t("chineseSymbolAutoPairer", "$tooltip.enablePairing")
-                    const tooltip = { action: "togglePreferencePanel", icon: "fa fa-gear", text }
-                    _disableSwitch(field, data, tooltip)
-                } else {
-                    _enableControl(field, true)
-                }
-            },
-        },
-        markdownLint: {
-            rule_config: (field, data, box) => {
-                if (utils.getCustomPlugin("markdownLint")) {
+        markdownlint: {
+            RULE_CONFIG: (field, data, box) => {
+                if (utils.getBasePlugin("markdownlint")) {
                     box.title = undefined
-                    box.fields[0] = { type: "action", key: "invokeMarkdownLintSettings", tooltip: box.tooltip, label: i18n._t("markdownLint", "$label.invokeMarkdownLintSettings") }
+                    box.fields[0] = { type: "action", key: "invokeMarkdownlintSettings", tooltip: box.tooltip, label: i18n._t("markdownlint", "$label.invokeMarkdownlintSettings") }
                 }
             },
         },

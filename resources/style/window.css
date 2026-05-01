@@ -14,7 +14,6 @@ body {
     overflow: hidden;
     cursor: default
 }
-
 /* 这里我复制了源文件中的样式目的是告诉应该从这复制*/
 
 /* 基础容器重置 */
@@ -1974,6 +1973,7 @@ footer.ty-footer {
     opacity: 1
 }
 
+.uni-license-panel,
 .uni-preference-panel {
     display: none;
     z-index: 1002;

@@ -12,12 +12,10 @@ const MIXINS = {
     styleTemplater: require("./styleTemplater"),
     contextMenu: require("./contextMenu"),
     notification: require("./notification"),
-    progressBar: require("./progressBar"),
     formDialog: require("./formDialog"),
     diagramParser: require("./diagramParser"),
     thirdPartyDiagramParser: require("./thirdPartyDiagramParser"),
-    mermaid: require("./mermaid"),
-    entities: require("./entities"),
+    decorator: require("./decorator"),
     unstableRequire: require("./unstableRequire"),
 }
 
@@ -29,24 +27,20 @@ class utils {
     static isBetaVersion = this.typoraVersion[0] === "0"
 
     static separator = File.isWin ? "\\" : "/"
-    static fileProtocolUrlBase = this.isBetaVersion ? "typora://typemark" : "typora://app/typemark"
+    static protocolRoot = this.isBetaVersion ? "typora://typemark" : "typora://app/typemark"
     static supportHasSelector = CSS.supports("selector(:has(*))")
     static tempFolder = window._options.tempPath || require("os").tmpdir()
     static Package = Object.freeze({ Path: PATH, FsExtra: FS_EXTRA })
 
-    static nonExistSelector = "__non_exist__"  // Plugin temporarily unavailable, return this.
-    static disableForeverSelector = "__disabled__"  // Plugin permanently unavailable, return this.
-    static stopLoadPluginError = Symbol("stop_loading")  // For plugin's beforeProcess method; return this to stop loading the plugin.
+    static PLUGIN_LOAD_ABORT = Symbol.for("plugin:load-abort")  // For plugin's beforeProcess method; return this to stop loading the plugin
 
     static mixins = Object.fromEntries(
-        Object.entries(MIXINS).map(([name, cls]) => [[name], new cls(this, i18n)])
+        Object.entries(MIXINS).map(([name, cls]) => [[name], new cls(this, i18n)]),
     )
 
-    // Do NOT manually call these variables
-    static _sentinel = Symbol()  // As a sentinel value
-    static _meta = {}            // Used to pass data in the context menu
+    static _meta = {}  // Used to pass data in the context menu
 
-    ////////////////////////////// plugin //////////////////////////////
+    // =========== Plugin ===========
     static container = null
     static registerContainer = container => {
         Object.entries(this.mixins).forEach(([name, instance]) => container.registerService(name, instance))
@@ -58,16 +52,16 @@ class utils {
     static getCustomPlugin = fixedName => this.container.getCustomPlugin(fixedName)
     static getAllBasePluginSettings = () => this.container.getAllBasePluginSettings()
     static getAllCustomPluginSettings = () => this.container.getAllCustomPluginSettings()
-    static getGlobalSetting = fixedName => this.container.getGlobalSetting(fixedName)
+    static getGlobalSetting = () => this.container.getGlobalSetting()
     static getBasePluginSetting = fixedName => this.container.getBasePluginSetting(fixedName)
     static getCustomPluginSetting = fixedName => this.container.getCustomPluginSetting(fixedName)
     static tryGetPlugin = fixedName => this.container.tryGetPlugin(fixedName)
     static tryGetPluginSetting = fixedName => this.container.tryGetPluginSetting(fixedName)
 
-    static getPluginFunction = (fixedName, funcName) => this.tryGetPlugin(fixedName)?.[funcName]
-    static callPluginFunction = (fixedName, funcName, ...args) => {
+    static getPluginFunction = (fixedName, fnName) => this.tryGetPlugin(fixedName)?.[fnName]
+    static callPluginFunction = (fixedName, fnName, ...args) => {
         const plugin = this.tryGetPlugin(fixedName)
-        return plugin?.[funcName]?.apply(plugin, args)
+        return plugin?.[fnName]?.apply(plugin, args)
     }
 
     static hasOverrideBasePluginFn = (plugin, fn) => plugin[fn] !== global.BasePlugin.prototype[fn]
@@ -79,6 +73,7 @@ class utils {
         return _path && mountFolder && _path.startsWith(mountFolder)
     }
     static openFile = filepath => {
+        if (!filepath) return
         if (!this.getMountFolder() || this.isUnderMountFolder(filepath)) {
             File.editor.restoreLastCursor()
             File.editor.focusAndRestorePos()
@@ -87,17 +82,13 @@ class utils {
             File.editor.library.openFileInNewWindow(filepath, false)
         }
     }
-    static openFolder = folder => File.editor.library.openFileInNewWindow(folder, true)
+    static openFolder = folder => {
+        if (folder) File.editor.library.openFileInNewWindow(folder, true)
+    }
     static reload = async () => {
         const content = await File.getContent()
         const arg = { fromDiskChange: false, skipChangeCount: true, skipUndo: true, skipStore: true }
         File.reloadContent(content, arg)
-    }
-
-    static showHiddenElementByPlugin = target => {
-        if (!target) return
-        const plugins = ["collapse_paragraph", "collapse_table", "collapse_list", "truncate_text"]
-        plugins.forEach(plu => this.callPluginFunction(plu, "rollback", target))
     }
 
     static getAnchorNode = (closest) => {
@@ -148,104 +139,109 @@ class utils {
     }
 
 
-    ////////////////////////////// event //////////////////////////////
+    // =========== Event ===========
     static metaKeyPressed = ev => File.isMac ? ev.metaKey : ev.ctrlKey
     static shiftKeyPressed = ev => ev.shiftKey
     static altKeyPressed = ev => ev.altKey
     static isIMEActivated = ev => ev.key === "Process"
     static modifierKey = keyString => {
         const keys = keyString.toLowerCase().split("+").map(k => k.trim())
-        const ctrl = keys.indexOf("ctrl") !== -1
-        const shift = keys.indexOf("shift") !== -1
-        const alt = keys.indexOf("alt") !== -1
-        return ev => this.metaKeyPressed(ev) === ctrl && this.shiftKeyPressed(ev) === shift && this.altKeyPressed(ev) === alt
+        const ctrl = keys.includes("ctrl")
+        const shift = keys.includes("shift")
+        const alt = keys.includes("alt")
+        return ev => ev.shiftKey === shift && ev.altKey === alt && this.metaKeyPressed(ev) === ctrl
     }
 
 
-    ////////////////////////////// pure function //////////////////////////////
+    // =========== Pure Function ===========
     static noop = () => undefined
     static identity = args => args
 
     static safeEval = x => new Function(`return (${x})`)()
     static unsafeEval = x => eval(`(${x})`)
 
-    /** @description param fn cannot be an ordinary function that returns promise-like objects */
+    /** @description NOT a foolproof solution. */
+    static isBase64 = str => str.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(str)
+    /** @description NOT a foolproof solution. The Promises/A+ specification is not a part of Node.js, so there is no foolproof solution at all */
+    static isPromise = obj => this.isObject(obj) && typeof obj.then === "function"
+    /** @description NOT a foolproof solution. Determine the "true" asynchronous functions */
+    static isAsyncFunction = fn => fn.constructor.name === "AsyncFunction"
+    /** @description NOT a foolproof solution. */
+    static isObject = value => {
+        const type = typeof value
+        return value != null && (type === "object" || type === "function")
+    }
+
+    static randomString = (len = 8) => Math.random().toString(36).substring(2, 2 + len).padEnd(len, "0")
+    static randomInt = (min, max) => {
+        const ceil = Math.ceil(min)
+        const floor = Math.floor(max)
+        return Math.floor(Math.random() * (floor - ceil) + ceil)
+    }
+    static getUUID = () => {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+            const r = (Math.random() * 16) | 0
+            const v = c === "x" ? r : (r & 0x3) | 0x8
+            return v.toString(16)
+        })
+    }
+
+    static escape = html => {
+        const replacements = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;", "/": "&#x2F;", "`": "&#x60;", "=": "&#x3D;" }
+        return html.replace(/[&<>"'`=\/]/g, c => replacements[c])
+    }
+
     static throttle = (fn, delay) => {
-        let timer
-        const isAsync = this.isAsyncFunction(fn)
+        let timer, result
         return function (...args) {
-            if (timer) return
-            const result = isAsync
-                ? Promise.resolve(fn(...args)).catch(e => Promise.reject(e))
-                : fn(...args)
-            timer = setTimeout(() => {
-                clearTimeout(timer)
-                timer = null
-            }, delay)
+            if (timer) return result
+            result = fn.apply(this, args)
+            timer = setTimeout(() => timer = null, delay)
             return result
         }
     }
 
-    /** @description param fn cannot be an ordinary function that returns promise-like objects */
     static debounce = (fn, delay) => {
-        let timer
-        const isAsync = this.isAsyncFunction(fn)
+        let timer, deferred
         return function (...args) {
+            if (!deferred) {
+                deferred = Promise.withResolvers()
+            }
             clearTimeout(timer)
-            if (isAsync) {
-                return new Promise(resolve => timer = setTimeout(() => resolve(fn(...args)), delay)).catch(e => Promise.reject(e))
-            } else {
-                timer = setTimeout(() => fn(...args), delay)
-            }
+            timer = setTimeout(() => {
+                const { resolve, reject } = deferred
+                deferred = null
+                timer = null
+                Promise.try(() => fn.apply(this, args)).then(resolve, reject)
+            }, delay)
+            return deferred.promise
         }
     }
 
-    /** @description param fn cannot be an ordinary function that returns promise-like objects */
-    static once = fn => {
-        let cache = this._sentinel
-        const isAsync = this.isAsyncFunction(fn)
-        return function (...args) {
-            if (cache === utils._sentinel) {
-                cache = isAsync
-                    ? Promise.resolve(fn(...args)).catch(e => Promise.reject(e))
-                    : fn(...args)
-            }
-            return cache
-        }
-    }
-
-    /** @description param fn cannot be an ordinary function that returns promise-like objects */
     static memorize = fn => {
-        const cache = {}
-        const isAsync = this.isAsyncFunction(fn)
+        const cache = Object.create(null)
         return function (...args) {
             const key = JSON.stringify(args)
-            if (cache[key]) {
+            if (key in cache) {
                 return cache[key]
             }
-            const result = isAsync
-                ? Promise.resolve(fn(...args)).catch(e => Promise.reject(e))
-                : fn(...args)
+            const result = fn.apply(this, args)
             cache[key] = result
             return result
         }
     }
 
-    /** @description param fn cannot be an ordinary function that returns promise-like objects */
     static memoizeLimited = (fn, cap = 100) => {
         const cache = new Map()
-        const isAsync = this.isAsyncFunction(fn)
         return function (...args) {
             const key = JSON.stringify(args)
-            const cacheEntry = cache.get(key)
-            if (cacheEntry) {
+            if (cache.has(key)) {
+                const item = cache.get(key)
                 cache.delete(key)
-                cache.set(key, cacheEntry)
-                return cacheEntry
+                cache.set(key, item)
+                return item
             }
-            const result = isAsync
-                ? Promise.resolve(fn(...args)).catch(e => Promise.reject(e))
-                : fn(...args)
+            const result = fn.apply(this, args)
             cache.set(key, result)
             if (cap > 0 && cache.size > cap) {
                 cache.delete(cache.keys().next().value)
@@ -254,129 +250,27 @@ class utils {
         }
     }
 
+    static once = fn => {
+        let result
+        let called = false
+        return function (...args) {
+            if (!called) {
+                called = true
+                result = fn.apply(this, args)
+            }
+            return result
+        }
+    }
+
     static oneShot = () => {
         let shot
         const arm = fn => shot = fn
-        const fire = (...args) => {
+        const fire = function (...args) {
             const fn = shot
             shot = null
-            return fn?.(...args)
+            return fn?.apply(this, args)
         }
         return [arm, fire]
-    }
-
-    /**
-     * @description Creates a function that confirms an action only after it has been
-     * triggered `threshold` times consecutively within `timeWindow` milliseconds.
-     * It supports an optional `getIdentifier` function to ensure only identical actions count.
-     */
-    static createConsecutiveAction = (
-        {
-            threshold = 2,
-            timeWindow = 1000,
-            totalTimeLimit = 0,
-            debounceDelay = 0,
-            resetOnConfirmed = true,
-            getIdentifier = (...args) => undefined,
-            shouldReset = () => false,
-            shouldConfirm = () => false,
-            onTimeout = this.noop,
-            onReset = this.noop,
-            onInsufficient = (current, total) => this.notification.show(i18n.t("global", "confirmNeeded", { count: total - current }), "info"),
-            onConfirmed,
-        }
-    ) => {
-        if (typeof onConfirmed !== "function") {
-            throw new Error("onConfirmed must be a Function")
-        }
-        threshold = Math.max(threshold, 2)
-        totalTimeLimit = Math.max(totalTimeLimit, 0)
-        debounceDelay = Math.max(debounceDelay, 0)
-
-        const NO_IDENTIFIER = Symbol("no_identifier")
-        let currentCount = 0
-        let lastTimestamp = 0
-        let firstTimestamp = 0
-        let lastIdentifier = NO_IDENTIFIER
-        let resetTimer = null
-        let debounceTimer = null
-
-        const resetState = () => {
-            onReset(currentCount, threshold)
-
-            currentCount = 0
-            lastTimestamp = 0
-            firstTimestamp = 0
-            lastIdentifier = NO_IDENTIFIER
-            if (resetTimer) {
-                clearTimeout(resetTimer)
-                resetTimer = null
-            }
-            if (debounceTimer) {
-                clearTimeout(debounceTimer)
-                debounceTimer = null
-            }
-        }
-        const executeConfirmation = (...args) => {
-            onConfirmed(...args)
-            if (resetOnConfirmed) {
-                resetState()
-            }
-        }
-
-        return function (...args) {
-            if (debounceDelay > 0 && debounceTimer) {
-                return
-            }
-            if (shouldConfirm(...args)) {
-                executeConfirmation(...args)
-                return
-            }
-
-            const now = Date.now()
-            const currentIdentifier = getIdentifier(...args)
-            if (shouldReset(...args)) {
-                resetState()
-            }
-
-            const needReset = (
-                currentCount === 0
-                || now - lastTimestamp > timeWindow
-                || (totalTimeLimit > 0 && currentCount > 0 && now - firstTimestamp > totalTimeLimit)
-                || (lastIdentifier !== NO_IDENTIFIER && currentIdentifier !== lastIdentifier)
-            )
-            if (needReset) {
-                resetState()
-                currentCount = 1
-                firstTimestamp = now
-            } else {
-                currentCount++
-            }
-            lastTimestamp = now
-            lastIdentifier = currentIdentifier
-            if (resetTimer) {
-                clearTimeout(resetTimer)
-                resetTimer = null
-            }
-            if (debounceDelay > 0) {
-                if (debounceTimer) {
-                    clearTimeout(debounceTimer)
-                }
-                debounceTimer = setTimeout(() => debounceTimer = null, debounceDelay)
-            }
-
-            if (currentCount < threshold) {
-                resetTimer = setTimeout(() => {
-                    if (currentCount > 0 && currentCount < threshold) {
-                        onTimeout(currentCount, threshold)
-                    }
-                    resetState()
-                }, timeWindow)
-                onInsufficient(currentCount, threshold)
-            } else {
-                executeConfirmation(...args)
-            }
-        }
     }
 
     static chunk = (array, size = 10) => {
@@ -390,15 +284,24 @@ class utils {
     }
 
     static zip = (...arrays) => {
-        const zipped = []
+        if (arrays.length === 0) return []
         const minLength = Math.min(...arrays.map(arr => arr.length))
-        for (let i = 0; i < minLength; i++) {
-            zipped.push(arrays.map(arr => arr[i]))
-        }
-        return zipped
+        return Array.from({ length: minLength }, (_, i) => arrays.map(arr => arr[i]))
     }
 
-    static sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+    static pick = (obj, props) => {
+        if (!obj || typeof obj !== "object") return {}
+        const entries = props
+            .map(prop => [prop, obj[prop]])
+            .filter(([_, val]) => val !== undefined)
+        return Object.fromEntries(entries)
+    }
+
+    static pickBy = (obj, predicate) => {
+        if (!obj || typeof obj !== "object" || typeof predicate !== "function") return {}
+        const entries = Object.entries(obj).filter(([key, value]) => predicate(value, key, obj))
+        return Object.fromEntries(entries)
+    }
 
     /**
      * @example merge({ a: [{ b: 2 }] }, { a: [{ c: 2 }] }) -> { a: [{ c: 2 }] }
@@ -465,26 +368,6 @@ class utils {
         return result
     }
 
-    static pick = (obj, attrs) => {
-        if (!obj || typeof obj !== "object") {
-            return {}
-        }
-        const entries = attrs
-            .map(attr => [attr, obj[attr]])
-            .filter(([_, value]) => value !== undefined)
-        return Object.fromEntries(entries)
-    }
-
-    static pickBy = (obj, predicate) => {
-        if (!obj || typeof obj !== "object" || typeof predicate !== "function") {
-            return {}
-        }
-        const entries = Object.entries(obj).filter(([key, value]) => predicate(value, key, obj))
-        return Object.fromEntries(entries)
-    }
-
-    static deepEqual = (object, other) => _.isEqual(object, other)
-
     static cloneDeep = (obj, memo = new WeakMap()) => {
         if (obj == null || typeof obj !== "object") {
             return obj
@@ -526,36 +409,52 @@ class utils {
             : Object.fromEntries(Object.entries(source).map(([key, val]) => [key, this.naiveCloneDeep(val)]))
     }
 
-    static asyncReplaceAll = (content, regexp, replaceFunc) => {
-        if (!regexp.global) {
+    static deepEqual = (object, other) => _.isEqual(object, other)
+
+    static sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+    static waitUntil = async (conditionFn, interval = 50, timeout = 10000) => {
+        const endTime = Date.now() + timeout
+        while (Date.now() < endTime) {
+            const result = await conditionFn()
+            if (result) {
+                return result
+            }
+            await this.sleep(interval)
+        }
+        throw new Error(`Polling timed out: ${conditionFn}`)
+    }
+
+    static asyncReplaceAll = (text, regex, replaceFn) => {
+        if (!regex.global) {
             throw Error("Called with a non-global RegExp argument")
         }
 
         let match
         let lastIndex = 0
-        const reg = new RegExp(regexp)  // To avoid modifying `RegExp.lastIndex`, copy a new object
+        const reg = new RegExp(regex)  // To avoid modifying `RegExp.lastIndex`, copy a new object
         const promises = []
-        while (match = reg.exec(content)) {
+        while (match = reg.exec(text)) {
             const args = [...match, match.index, match.input]
-            promises.push(content.slice(lastIndex, match.index), replaceFunc(...args))
+            promises.push(text.slice(lastIndex, match.index), replaceFn(...args))
             lastIndex = reg.lastIndex
         }
-        promises.push(content.slice(lastIndex))
+        promises.push(text.slice(lastIndex))
         return Promise.all(promises).then(results => results.join(""))
     }
 
-    static randomString = (len = 8) => Math.random().toString(36).substring(2, 2 + len).padEnd(len, "0")
-    static randomInt = (min, max) => {
-        const ceil = Math.ceil(min)
-        const floor = Math.floor(max)
-        return Math.floor(Math.random() * (floor - ceil) + ceil)
-    }
-    static getUUID = () => {
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
-            const r = (Math.random() * 16) | 0
-            const v = c === "x" ? r : (r & 0x3) | 0x8
-            return v.toString(16)
-        })
+    static compareVersion = (ver1, ver2) => {
+        const arr1 = (ver1 || "").split(".")
+        const arr2 = (ver2 || "").split(".")
+        const maxLength = Math.max(arr1.length, arr2.length)
+        for (let i = 0; i < maxLength; i++) {
+            const num1 = parseInt(arr1[i] || 0, 10)
+            const num2 = parseInt(arr2[i] || 0, 10)
+            if (num1 !== num2) {
+                return Math.sign(num1 - num2)
+            }
+        }
+        return 0
     }
 
     static dateTimeFormat = (date = new Date(), format = "yyyy-MM-dd HH:mm:ss", locale = undefined) => {
@@ -581,41 +480,10 @@ class utils {
             s: () => date.getSeconds().toString(),
             SSS: () => date.getMilliseconds().toString().padStart(3, "0"),
             S: () => date.getMilliseconds().toString(),
-            a: () => new Intl.DateTimeFormat(locale, { hour: "numeric", hour12: true }).formatToParts(date).find(part => part.type === "dayPeriod")?.value || ""
+            a: () => new Intl.DateTimeFormat(locale, { hour: "numeric", hour12: true }).formatToParts(date).find(part => part.type === "dayPeriod")?.value || "",
         }
         const regex = /(yyyy|yyy|yy|MMMM|MMM|MM|M|dddd|ddd|dd|d|HH|H|hh|h|mm|m|ss|s|SSS|S|a)/g
         return format.replace(regex, (match) => fns[match] ? fns[match]() : match)
-    }
-
-    /** @description NOT a foolproof solution. */
-    static isBase64 = str => str.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(str)
-    /** @description NOT a foolproof solution. In fact, the Promises/A+ specification is not a part of Node.js, so there is no foolproof solution at all */
-    static isPromise = obj => this.isObject(obj) && typeof obj.then === "function"
-    /** @description NOT a foolproof solution. Can only be used to determine the "true" asynchronous functions */
-    static isAsyncFunction = fn => fn.constructor.name === "AsyncFunction"
-    /** @description NOT a foolproof solution. */
-    static isObject = value => {
-        const type = typeof value
-        return value != null && (type === "object" || type === "function")
-    }
-
-    static escape = html => {
-        const replacements = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "/": "&#x2F;", "`": "&#x60;", "=": "&#x3D;" }
-        return html.replace(/[&<>"'`=\/]/g, c => replacements[c])
-    }
-
-    static compareVersion = (ver1, ver2) => {
-        const arr1 = (ver1 || "").split(".")
-        const arr2 = (ver2 || "").split(".")
-        const maxLength = Math.max(arr1.length, arr2.length)
-        for (let i = 0; i < maxLength; i++) {
-            const num1 = parseInt(arr1[i] || 0, 10)
-            const num2 = parseInt(arr2[i] || 0, 10)
-            if (num1 !== num2) {
-                return Math.sign(num1 - num2)
-            }
-        }
-        return 0
     }
 
     static nestedPropertyHelpers = {
@@ -624,7 +492,7 @@ class utils {
                 return false
             }
             return key.split(".").every(k => {
-                if (obj && typeof obj === "object" && obj.hasOwnProperty(k)) {
+                if (obj && typeof obj === "object" && Object.hasOwn(obj, k)) {
                     obj = obj[k]
                     return true
                 }
@@ -637,7 +505,7 @@ class utils {
             const targetKey = keys.pop()
             let keyContainer = obj
             for (const k of keys) {
-                if (keyContainer && typeof keyContainer === "object" && keyContainer.hasOwnProperty(k)) {
+                if (keyContainer && typeof keyContainer === "object" && Object.hasOwn(keyContainer, k)) {
                     keyContainer = keyContainer[k]
                 } else {
                     throw new Error(`Object has no such nested property: ${key}`)
@@ -660,9 +528,124 @@ class utils {
         removeIndex: (obj, key, idx) => this.nestedPropertyHelpers.handle(obj, key, (obj, lastKey) => obj[lastKey].splice(idx, 1)),
     }
 
-    ////////////////////////////// business file operation //////////////////////////////
+    /**
+     * @description Creates a function that confirms an action only after it has been
+     * triggered `threshold` times consecutively within `timeWindow` milliseconds.
+     * It supports an optional `getIdentifier` function to ensure only identical actions count.
+     */
+    static createConsecutiveAction = (
+        {
+            threshold = 2,
+            timeWindow = 1000,
+            totalTimeLimit = 0,
+            debounceDelay = 0,
+            resetOnConfirmed = true,
+            getIdentifier = (...args) => undefined,
+            shouldReset = () => false,
+            shouldConfirm = () => false,
+            onTimeout = this.noop,
+            onReset = this.noop,
+            onInsufficient = (current, total) => this.notification.show(i18n.t("global", "confirmNeeded", { count: total - current }), "info"),
+            onConfirmed,
+        },
+    ) => {
+        if (typeof onConfirmed !== "function") {
+            throw new Error("onConfirmed must be a Function")
+        }
+        threshold = Math.max(threshold, 2)
+        totalTimeLimit = Math.max(totalTimeLimit, 0)
+        debounceDelay = Math.max(debounceDelay, 0)
+
+        const NO_IDENTIFIER = Symbol("no-identifier")
+        let currentCount = 0
+        let lastTimestamp = 0
+        let firstTimestamp = 0
+        let lastIdentifier = NO_IDENTIFIER
+        let resetTimer = null
+        let debounceTimer = null
+
+        const resetState = () => {
+            onReset(currentCount, threshold)
+
+            currentCount = 0
+            lastTimestamp = 0
+            firstTimestamp = 0
+            lastIdentifier = NO_IDENTIFIER
+            if (resetTimer) {
+                clearTimeout(resetTimer)
+                resetTimer = null
+            }
+            if (debounceTimer) {
+                clearTimeout(debounceTimer)
+                debounceTimer = null
+            }
+        }
+        const executeConfirmation = (...args) => {
+            onConfirmed(...args)
+            if (resetOnConfirmed) resetState()
+        }
+
+        return function (...args) {
+            if (debounceDelay > 0 && debounceTimer) return
+
+            if (shouldConfirm(...args)) {
+                executeConfirmation(...args)
+                return
+            }
+
+            const now = Date.now()
+            const currentIdentifier = getIdentifier(...args)
+            if (shouldReset(...args)) resetState()
+
+            const needReset = (
+                currentCount === 0
+                || now - lastTimestamp > timeWindow
+                || (totalTimeLimit > 0 && currentCount > 0 && now - firstTimestamp > totalTimeLimit)
+                || (lastIdentifier !== NO_IDENTIFIER && currentIdentifier !== lastIdentifier)
+            )
+            if (needReset) {
+                resetState()
+                currentCount = 1
+                firstTimestamp = now
+            } else {
+                currentCount++
+            }
+            lastTimestamp = now
+            lastIdentifier = currentIdentifier
+            if (resetTimer) {
+                clearTimeout(resetTimer)
+                resetTimer = null
+            }
+            if (debounceDelay > 0) {
+                if (debounceTimer) clearTimeout(debounceTimer)
+                debounceTimer = setTimeout(() => debounceTimer = null, debounceDelay)
+            }
+
+            if (currentCount < threshold) {
+                resetTimer = setTimeout(() => {
+                    if (currentCount > 0 && currentCount < threshold) {
+                        onTimeout(currentCount, threshold)
+                    }
+                    resetState()
+                }, timeWindow)
+                onInsufficient(currentCount, threshold)
+            } else {
+                executeConfirmation(...args)
+            }
+        }
+    }
+
+    // =========== Business File ===========
     static getLocalRootUrl = () => File.editor.docMenu.getLocalRootUrl() || this.getCurrentDirPath()
-    static getFileProtocolUrl = (url) => new URL(url, this.fileProtocolUrlBase)
+    static toProtocolUrl = (path) => {
+        const segments = (typeof path === "string" ? path : "")
+            .trim()
+            .split(/[\\/]+/)
+            .filter(seg => seg && seg !== "." && seg !== "..")
+            .map(encodeURIComponent)
+            .join("/")
+        return `${this.protocolRoot}/${segments}`
+    }
 
     static getCurrentFileContent = () => File.editor.getMarkdown()
     static editCurrentFile = async (replacement, persistence = File.option.enableAutoSave) => {
@@ -690,12 +673,12 @@ class utils {
         })
     }
 
-    static fixScrollTop = async func => {
+    static fixScrollTop = async fn => {
         const inSourceMode = File.editor.sourceView.inSourceMode
         const scrollTop = inSourceMode
             ? File.editor.sourceView.cm.getScrollInfo().top
             : this.entities.eContent.scrollTop
-        await func()
+        await fn()
         if (inSourceMode) {
             File.editor.sourceView.cm.scrollTo(0, scrollTop)
         } else {
@@ -705,40 +688,21 @@ class utils {
 
     static insertStyle = (id, css) => {
         if (!css) return
-        const style = document.createElement("style")
-        style.id = id
-        style.appendChild(document.createTextNode(css))
-        document.head.appendChild(style)
+        const el = document.createElement("style")
+        el.id = id
+        el.appendChild(document.createTextNode(css))
+        document.head.append(el)
     }
     static insertStyleFile = (id, href) => {
-        const link = document.createElement("link")
-        link.id = id
-        link.type = "text/css"
-        link.rel = "stylesheet"
-        link.href = this.joinPath(href)
-        document.head.appendChild(link)
+        const el = document.createElement("link")
+        el.id = id
+        el.type = "text/css"
+        el.rel = "stylesheet"
+        el.href = this.joinPluginPath(href)
+        document.head.append(el)
     }
-    static registerStyle = (fixedName, style) => {
-        if (!style) return
-        switch (typeof style) {
-            case "string":
-                const name = fixedName.replace(/_/g, "-")
-                this.insertStyle(`plugin-${name}-style`, style)
-                break
-            case "object":
-                const { textID, text, fileID, file } = style
-                if (fileID && file) {
-                    this.insertStyleFile(fileID, file)
-                }
-                if (textID && text) {
-                    this.insertStyle(textID, text)
-                }
-                break
-        }
-    }
-
-    static insertScript = filepath => $.getScript(`file:///${this.joinPath(filepath)}`)
-    static removeStyle = id => this.removeElementByID(id)
+    static registerStyle = (name, style) => this.insertStyle(`plugin-${name}-style`, style)
+    static removeStyle = id => document.getElementById(id)?.remove()
 
     static newFilePath = async filename => {
         filename = filename || File.getFileName() || Date.now() + ".md"
@@ -775,16 +739,16 @@ class utils {
         remove: () => localStorage.removeItem(key),
     })
 
-    ////////////////////////////// Basic file operations //////////////////////////////
+    // =========== Basic File ===========
     static getDirname = () => global.dirname || global.__dirname
     static getHomeDir = () => require("os").homedir() || File.option.userPath
     static getFilePath = () => File.filePath || File.bundle?.filePath || ""
     static getMountFolder = () => File.getMountFolder() || ""
     static getCurrentDirPath = () => PATH.dirname(this.getFilePath())
-    static joinPath = (...paths) => PATH.join(this.getDirname(), ...paths)
-    static resolvePath = (...paths) => PATH.resolve(this.getDirname(), ...paths)
-    static require = (...paths) => require(this.joinPath(...paths))
-    static getUserSpaceFile = (file = "") => this.joinPath("./plugin/global/user_space", file)
+    static joinPluginPath = (...paths) => PATH.join(this.getDirname(), ...paths)
+    static resolvePluginPath = (...paths) => PATH.resolve(this.getDirname(), ...paths)
+    static getUserSpaceFile = (file = "") => this.joinPluginPath("./plugin/global/user_space", file)
+    static require = (...paths) => require(this.joinPluginPath(...paths))
 
     static readFiles = async files => Promise.all(files.map(file => FS_EXTRA.readFile(file, "utf-8").catch(() => undefined)))
     static existPath = async path => FS_EXTRA.access(path).then(() => true).catch(() => false)
@@ -835,17 +799,17 @@ class utils {
             fileFilter = (name, path, stats) => true,
             dirFilter = (name, path, stats) => true,
             fileParamsGetter = (path, file, dir, stats) => ({ path, file, dir, stats }),
-            onStat = null,
+            onEntity = null,
             onNonFatalError = (path, err) => console.error(`Error processing path ${path}:`, err),
             onFinished = null,
             semaphore = 20,
             maxDepth = -1,
-            maxStats = -1,
+            maxEntities = -1,
             strategy = "bfs", // bfs | dfs
             followSymlinks = false,
             stopOnNonFatalError = false,
             signal = null,
-        }
+        },
     ) => {
         if (signal?.aborted) {
             const reason = signal.reason ?? new DOMException("Signal Aborted", "AbortError")
@@ -858,12 +822,12 @@ class utils {
         const { join, dirname, basename } = PATH
         const statFn = followSymlinks ? stat : lstat
         const dequeueFn = strategy === "dfs" ? "pop" : "shift"
-        const needCheckStats = maxStats > 0
+        const needCheckEntities = maxEntities > 0
         const noNeedCheckDepth = maxDepth < 0
 
         let fatalError
         let aborted = false
-        let statsCount = 0
+        let entityCount = 0
         let runningTasks = 0  // The number of currently executing tasks, limited by the `semaphore`
         let pendingPaths = 0  // The number of discovered paths that are not yet processed
         const taskQueue = []
@@ -872,12 +836,13 @@ class utils {
         if (signal) {
             const onAbort = () => rejectAndStop(signal.reason ?? new DOMException("Signal Aborted", "AbortError"))
             signal.addEventListener("abort", onAbort, { once: true })
-            drainPromise.finally(() => signal.removeEventListener("abort", onAbort))
+            drainPromise.finally(() => signal.removeEventListener("abort", onAbort)).catch(() => undefined)
         }
         if (onFinished) {
-            drainPromise.finally(() => onFinished(fatalError))
+            drainPromise.finally(() => onFinished(fatalError)).catch(() => undefined)
         }
         const rejectAndStop = (err) => {
+            if (aborted) return
             aborted = true
             taskQueue.length = 0
             fatalError = err
@@ -911,14 +876,14 @@ class utils {
                 const stats = await statFn(currentPath)
                 if (aborted) return
 
-                if (needCheckStats) {
-                    statsCount++
-                    if (statsCount > maxStats) {
+                if (needCheckEntities) {
+                    entityCount++
+                    if (entityCount > maxEntities) {
                         rejectAndStop(new DOMException("Stats Count Exceeded", "QuotaExceededError"))
                         return
                     }
                 }
-                onStat?.(stats)
+                onEntity?.(stats)
                 if (stats.isDirectory()) {
                     if (dirFilter(fileName, currentPath, stats) && (noNeedCheckDepth || depth < maxDepth)) {
                         const shouldProcessChildren = !(onDir && await onDir(fileName, currentPath, stats) === false)
@@ -951,7 +916,7 @@ class utils {
         return drainPromise
     }
 
-    ////////////////////////////// Business Operations //////////////////////////////
+    // =========== Business Operations ===========
     static exitTypora = () => JSBridge.invoke("window.close")
     static restartTypora = () => {
         this.openFolder(this.getMountFolder())
@@ -967,14 +932,14 @@ class utils {
     static showMessageBox = async (
         {
             type = "info",
-            title = "typora",
+            title = "Typora Plugin",
             message, detail,
             buttons = [i18n.t("global", "confirm"), i18n.t("global", "cancel")],
             defaultId = 0,
             cancelId = 1,
             normalizeAccessKeys = true,
             checkboxLabel,
-        }
+        },
     ) => {
         const op = { type, title, message, detail, buttons, defaultId, cancelId, normalizeAccessKeys, checkboxLabel }
         return JSBridge.invoke("dialog.showMessageBox", op)
@@ -1009,9 +974,9 @@ class utils {
         }
         const yamlContent = content.slice(4, endDelimiterMatch.index)
         result.remainContent = content.slice(endDelimiterMatch.index + endDelimiterMatch[0].length)
-        result.yamlLineCount = (yamlContent.match(/\n/g) || []).length + 3
+        result.yamlLineCount = (yamlContent === "" ? 0 : (yamlContent.match(/\n/g) || []).length + 1) + 2
         try {
-            result.yamlObject = this.readYaml(yamlContent)
+            result.yamlObject = this.readYaml(yamlContent) ?? {}
         } catch (e) {
             console.error(e)
         }
@@ -1035,6 +1000,152 @@ class utils {
         return fence?.getValue()
     }
 
+    static getTocTree = useBuiltin => {
+        const root = { depth: 0, cid: "n0", text: this.getFileName(), parent: null, children: [] }
+        const stack = [root]
+        const toc = useBuiltin
+            ? File.editor.library.outline.getHeaderMatrix(true)
+                .map(([depth, text, cid]) => ({ depth, text, cid, children: [] }))
+            : (File.editor.nodeMap.toc.headers ?? [])
+                .filter(node => Boolean(node?.attributes))
+                .map(({ attributes: { depth, text }, cid }) => {
+                    text = text.replace(/\[\^([^\]]+)\]/g, "")
+                    text = this.escape(text)
+                    return { depth, cid, text, children: [] }
+                })
+        toc.forEach(node => {
+            while (stack.length > 0 && stack.at(-1).depth >= node.depth) {
+                stack.pop()
+            }
+            const parent = stack.at(-1)
+            node.parent = parent
+            parent.children.push(node)
+            stack.push(node)
+        })
+        return root
+    }
+
+    // =========== DOM Operations ===========
+    static entities = {
+        eWrite: document.querySelector("#write"),
+        $eWrite: $(document.querySelector("#write")),
+        eContent: document.querySelector("content"),
+        $eContent: $(document.querySelector("content")),
+        querySelectorInWrite: (...args) => this.entities.eWrite.querySelector(...args),
+        querySelectorAllInWrite: (...args) => this.entities.eWrite.querySelectorAll(...args),
+    }
+
+    static isShown = el => !el.classList.contains("plugin-common-hidden")
+    static isHidden = el => el.classList.contains("plugin-common-hidden")
+    static hide = el => el.classList.add("plugin-common-hidden")
+    static show = el => el.classList.remove("plugin-common-hidden")
+    static toggleInvisible = (el, hide) => el.classList.toggle("plugin-common-hidden", hide)
+
+    static isInViewBox = el => {
+        const totalHeight = window.innerHeight || document.documentElement.clientHeight
+        const totalWidth = window.innerWidth || document.documentElement.clientWidth
+        const { top, right, bottom, left } = el.getBoundingClientRect()
+        return top >= 0 && left >= 0 && right <= totalWidth && bottom <= totalHeight
+    }
+
+    static isImgEmbed = img => img.complete && img.naturalWidth !== 0 && img.naturalHeight !== 0
+
+    static markdownInlineStyleToHTML = (content, dir = this.getLocalRootUrl()) => {
+        return content
+            .replace(/(?<!\\)`(.+?)(?<!\\)`/gs, `<code>$1</code>`)
+            .replace(/(?<!\\)[*_]{2}(.+?)(?<!\\)[*_]{2}/gs, `<strong>$1</strong>`)
+            .replace(/(?<![*\\])\*(?![\\*])(.+?)(?<![*\\])\*(?![\\*])/gs, `<em>$1</em>`)
+            .replace(/(?<!\\)~~(.+?)(?<!\\)~~/gs, "<del>$1</del>")
+            .replace(/(?<![\\!])\[(.+?)\]\((.+?)\)/gs, `<a href="$2">$1</a>`)
+            .replace(/(?<!\\)!\[(.+?)\]\((.+?)\)/gs, (_, alt, src) => {
+                if (!this.isNetworkImage(src) && !this.isSpecialImage(src)) {
+                    src = PATH.resolve(dir, src)
+                }
+                return `<img alt="${alt}" src="${src}">`
+            })
+    }
+
+    static buildTable = ([headers = [], ...bodyRows] = []) => {
+        if (headers.length === 0) return "<table></table>"
+        const thead = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>`
+        const tbody = bodyRows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")
+        return `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>`
+    }
+
+    static jumpToEdge = (toTop = true) => {
+        const fn = toTop ? "jumpTop" : "jumpBottom"
+        File.editor.selection[fn]()
+        if (File.isTypeWriterMode) {
+            const scrollTop = toTop ? "0" : this.entities.eWrite.getBoundingClientRect().height
+            this.entities.$eContent.animate({ scrollTop }, "100", "swing", () => File.editor.library.outline.highlightVisibleHeader())
+        }
+    }
+
+    static scroll = (target, options = {}) => {
+        if (target instanceof Element) {
+            target = $(target)
+        } else if (typeof target === "string") {
+            target = File.editor.findElemById(target)
+        }
+        if (!target) return
+
+        const {
+            height = (window.innerHeight || document.documentElement.clientHeight) / 2,
+            focus = true, moveCursor = false, showHiddenEls = true,
+        } = options
+
+        if (focus) File.editor.focusAndRestorePos()
+        if (moveCursor) File.editor.selection.jumpIntoElemEnd(target)
+        if (showHiddenEls) ["collapse_paragraph", "collapse_table", "collapse_list", "truncate_text"].forEach(plu => this.callPluginFunction(plu, "rollback", target[0]))
+
+        if (File.isTypeWriterMode) {
+            File.editor.selection.typeWriterScroll(target)
+        } else {
+            File.editor.selection.scrollAdjust(target, height)
+        }
+        if (File.isFocusMode) {
+            File.editor.updateFocusMode(false)
+        }
+    }
+
+    static scrollSourceView = lineToGo => {
+        const cm = File.editor.sourceView.cm
+        lineToGo = Math.min(Math.max(1, lineToGo), cm.lastLine() + 1)
+        const cursor = { line: lineToGo - 1, ch: 0 }
+        cm.scrollIntoView(cursor)
+        cm.setCursor(cursor)
+    }
+
+    // content: string type. \n represents a soft line break; \n\n represents a hard line break.
+    static insertText = (anchorNode, content, restoreLastCursor = true) => {
+        if (restoreLastCursor) {
+            File.editor.contextMenu.hide()
+            // File.editor.writingArea.focus()
+            File.editor.restoreLastCursor()
+        }
+        File.editor.insertText(content)
+    }
+
+    static createFragment = elements => {
+        if (!elements) return
+
+        if (typeof elements === "string") {
+            const dom = new DOMParser().parseFromString(elements, "text/html")
+            elements = [...dom.body.childNodes]
+        }
+        let fragment = elements
+        if (Array.isArray(elements) || elements instanceof NodeList) {
+            fragment = document.createDocumentFragment()
+            fragment.append(...elements)
+        }
+        return fragment
+    }
+
+    static insertElement = elements => {
+        const fragment = this.createFragment(elements)
+        if (fragment) document.getElementById("typora-quick-open").after(fragment)
+    }
+
     /** Backup before `File.editor.stylize.toggleFences()` as it uses `File.option` to set block code language. Restore after. */
     static insertFence = (lang = "") => {
         const lang1_ = File.option["default-code-lang"]  // Used for old versions
@@ -1056,156 +1167,9 @@ class utils {
         }
     }
 
-    static getTocTree = useBuiltin => {
-        const root = { depth: 0, cid: "n0", text: this.getFileName(), parent: null, children: [] }
-        const stack = [root]
-        const toc = useBuiltin
-            ? File.editor.library.outline.getHeaderMatrix(true)
-                .map(([depth, text, cid]) => ({ depth, text, cid, children: [] }))
-            : (File.editor.nodeMap.toc.headers ?? [])
-                .filter(node => Boolean(node?.attributes))
-                .map(({ attributes: { depth, text }, cid }) => {
-                    text = text.replace(/\[\^([^\]]+)\]/g, "")
-                    text = this.escape(text)
-                    return { depth, cid, text, children: [] }
-                })
-        toc.forEach(node => {
-            while (stack.length > 0 && stack[stack.length - 1].depth >= node.depth) {
-                stack.pop()
-            }
-            const parent = stack[stack.length - 1]
-            node.parent = parent
-            parent.children.push(node)
-            stack.push(node)
-        })
-        return root
-    }
-
-    ////////////////////////////// DOM Operations //////////////////////////////
-    static removeElement = el => el?.parentElement?.removeChild(el)
-    static removeElementByID = id => this.removeElement(document.getElementById(id))
-
-    static isShown = el => !el.classList.contains("plugin-common-hidden")
-    static isHidden = el => el.classList.contains("plugin-common-hidden")
-    static hide = el => el.classList.add("plugin-common-hidden")
-    static show = el => el.classList.remove("plugin-common-hidden")
-    static toggleInvisible = (el, hide) => el.classList.toggle("plugin-common-hidden", hide)
-
-    static isImgEmbed = img => img.complete && img.naturalWidth !== 0 && img.naturalHeight !== 0
-
-    static isInViewBox = el => {
-        const totalHeight = window.innerHeight || document.documentElement.clientHeight
-        const totalWidth = window.innerWidth || document.documentElement.clientWidth
-        const { top, right, bottom, left } = el.getBoundingClientRect()
-        return top >= 0 && left >= 0 && right <= totalWidth && bottom <= totalHeight
-    }
-
-    static compareScrollPosition = (element, contentScrollTop) => {
-        contentScrollTop = contentScrollTop || this.entities.eContent.scrollTop()
-        const elementOffsetTop = element.offsetTop
-        if (elementOffsetTop < contentScrollTop) {
-            return -1
-        } else if (elementOffsetTop > contentScrollTop + window.innerHeight) {
-            return 1
-        } else {
-            return 0
-        }
-    }
-
-    static markdownInlineStyleToHTML = (content, dir = this.getLocalRootUrl()) => {
-        return content
-            .replace(/(?<!\\)`(.+?)(?<!\\)`/gs, `<code>$1</code>`)
-            .replace(/(?<!\\)[*_]{2}(.+?)(?<!\\)[*_]{2}/gs, `<strong>$1</strong>`)
-            .replace(/(?<![*\\])\*(?![\\*])(.+?)(?<![*\\])\*(?![\\*])/gs, `<em>$1</em>`)
-            .replace(/(?<!\\)~~(.+?)(?<!\\)~~/gs, "<del>$1</del>")
-            .replace(/(?<![\\!])\[(.+?)\]\((.+?)\)/gs, `<a href="$2">$1</a>`)
-            .replace(/(?<!\\)!\[(.+?)\]\((.+?)\)/gs, (_, alt, src) => {
-                if (!this.isNetworkImage(src) && !this.isSpecialImage(src)) {
-                    src = PATH.resolve(dir, src)
-                }
-                return `<img alt="${alt}" src="${src}">`
-            })
-    }
-
-    static buildTable = rows => {
-        const first = rows.shift()
-        const th = first.map(row => `<th>${row}</th>`).join("")
-        const trs = rows.map(row => row.map(e => `<td>${e}</td>`).join(""))
-        const all = [th, ...trs].map(e => `<tr>${e}</tr>`)
-        const thead = all.shift()
-        const tbody = all.join("")
-        return `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>`
-    }
-
-    static moveCursor = $target => File.editor.selection.jumpIntoElemEnd($target)
-
-    static scroll = ($target, height = -1, moveCursor = false, showHiddenElement = true) => {
-        if (!$target) return
-        if ($target instanceof Element) {
-            $target = $($target)
-        }
-        File.editor.focusAndRestorePos()
-        if (moveCursor) {
-            this.moveCursor($target)
-        }
-        if (showHiddenElement) {
-            this.showHiddenElementByPlugin($target[0])
-        }
-        if (height === -1) {
-            height = (window.innerHeight || document.documentElement.clientHeight) / 2
-        }
-        if (File.isTypeWriterMode) {
-            File.editor.selection.typeWriterScroll($target)
-        } else {
-            File.editor.selection.scrollAdjust($target, height)
-        }
-        if (File.isFocusMode) {
-            File.editor.updateFocusMode(false)
-        }
-    }
-
-    static scrollByCid = (cid, height = -1, moveCursor = false, showHiddenElement = true) => {
-        const $target = File.editor.findElemById(cid)
-        this.scroll($target, height, moveCursor, showHiddenElement)
-    }
-
-    static scrollSourceView = lineToGo => {
-        const cm = File.editor.sourceView.cm
-        cm.scrollIntoView({ line: lineToGo - 1, ch: 0 })
-        cm.setCursor({ line: lineToGo - 1, ch: 0 })
-    }
-
-    // content: string type. \n represents a soft line break; \n\n represents a hard line break.
-    static insertText = (anchorNode, content, restoreLastCursor = true) => {
-        if (restoreLastCursor) {
-            File.editor.contextMenu.hide()
-            // File.editor.writingArea.focus()
-            File.editor.restoreLastCursor()
-        }
-        File.editor.insertText(content)
-    }
-
-    static createDocumentFragment = elements => {
-        if (!elements) return
-
-        if (typeof elements === "string") {
-            const dom = new DOMParser().parseFromString(elements, "text/html")
-            elements = [...dom.body.childNodes]
-        }
-        let fragment = elements
-        if (Array.isArray(elements) || elements instanceof NodeList) {
-            fragment = document.createDocumentFragment()
-            fragment.append(...elements)
-        }
-        return fragment
-    }
-
-    static insertElement = elements => {
-        const fragment = this.createDocumentFragment(elements)
-        if (fragment) {
-            const quickOpenNode = document.getElementById("typora-quick-open")
-            quickOpenNode.parentNode.insertBefore(fragment, quickOpenNode.nextSibling)
-        }
+    static insertBlockCode = (anchorNode, lang, content) => {
+        const cnt = ["```", lang, "\n", content, "\n", "```"].join("")
+        this.insertText(anchorNode, cnt)
     }
 
     static findActiveNode = range => {
@@ -1234,6 +1198,44 @@ class utils {
         return el.rawText().substring(bookmark.start, bookmark.end)
     }
 
+    static getRafManager = () => new AnimationFrameManager()
+
+    static renderMermaid = async (definition) => {
+        const graph = await window.mermaidAPI.render("plugin-common-mermaid", definition)
+        return (typeof graph === "string") ? graph : graph.svg
+    }
+
+    static runWithFakeProgressBar = (task, timeout = 30 * 1000) => {
+        const id = `plugin-progress-${this.randomString()}`
+        const outerCss = "position:fixed; top:0; left:0; width:100%; height:3px; z-index:9999; pointer-events:none;"
+        const innerCss = "width:100%; height:100%; background-color:#e91e63; transform-origin:left; transform:scaleX(0); opacity:1; will-change:transform, opacity;"
+        this.insertElement(`<div id="${id}" style="${outerCss}"><div style="${innerCss}"></div></div>`)
+
+        const outerEl = document.getElementById(id)
+        const innerEl = outerEl.firstElementChild
+
+        void innerEl.offsetWidth  // Trigger reflow
+        innerEl.style.transition = `transform ${timeout}ms cubic-bezier(0.05, 0.9, 0.1, 1)`
+        innerEl.style.transform = "scaleX(0.99)"
+
+        const { promise, resolve, reject } = Promise.withResolvers()
+        const timer = setTimeout(() => reject(new Error("Timeout")), timeout)
+        const onFinish = () => {
+            clearTimeout(timer)
+            innerEl.style.transition = "transform 0.3s ease-out"
+            innerEl.style.transform = "scaleX(1)"
+            setTimeout(() => {
+                innerEl.style.transition = "opacity 0.3s ease-in"
+                innerEl.style.opacity = "0"
+                setTimeout(() => outerEl.remove(), 300)
+            }, 300)
+        }
+
+        task().then(resolve).catch(reject).finally(onFinish)
+
+        return promise
+    }
+
     static resizeElement = (
         {
             targetEle,
@@ -1243,8 +1245,9 @@ class utils {
             onMouseDown = null,
             onMouseMove = null,
             onMouseUp = null,
-        }
+        },
     ) => {
+        const rafManager = this.getRafManager()
         let startX, startY, startWidth, startHeight
         targetEle.addEventListener("mousedown", ev => {
             const { width, height } = document.defaultView.getComputedStyle(resizeEle)
@@ -1260,7 +1263,7 @@ class utils {
         }, true)
 
         function mousemove(e) {
-            requestAnimationFrame(() => {
+            rafManager.schedule(() => {
                 let deltaX = e.clientX - startX
                 let deltaY = e.clientY - startY
                 if (onMouseMove) {
@@ -1280,6 +1283,7 @@ class utils {
         function mouseup() {
             document.removeEventListener("mousemove", mousemove)
             document.removeEventListener("mouseup", mouseup)
+            rafManager.cancel()
             onMouseUp?.()
         }
     }
@@ -1292,8 +1296,9 @@ class utils {
             onMouseDown = null,
             onMouseMove = null,
             onMouseUp = null,
-        }
+        },
     ) => {
+        const rafManager = this.getRafManager()
         targetEle.addEventListener("mousedown", ev => {
             if (onCheck && !onCheck(ev)) return
 
@@ -1306,24 +1311,26 @@ class utils {
             const _onMouseMove = ev => {
                 ev.stopPropagation()
                 ev.preventDefault()
-                requestAnimationFrame(() => {
+                const currentX = ev.clientX
+                const currentY = ev.clientY
+                rafManager.schedule(() => {
                     onMouseMove?.()
-                    moveEle.style.left = ev.clientX - shiftX + "px"
-                    moveEle.style.top = ev.clientY - shiftY + "px"
+                    moveEle.style.left = currentX - shiftX + "px"
+                    moveEle.style.top = currentY - shiftY + "px"
                 })
             }
 
             const _onMouseUp = ev => {
-                onMouseUp?.()
                 ev.stopPropagation()
                 ev.preventDefault()
+                rafManager.cancel()
+                onMouseUp?.()
                 document.removeEventListener("mousemove", _onMouseMove)
-                moveEle.onmouseup = null
                 document.removeEventListener("mouseup", _onMouseUp)
             }
 
-            document.addEventListener("mouseup", _onMouseUp)
             document.addEventListener("mousemove", _onMouseMove)
+            document.addEventListener("mouseup", _onMouseUp)
         })
         targetEle.ondragstart = () => false
     }
@@ -1339,60 +1346,101 @@ class utils {
         active.scrollIntoView({ block: "nearest" })
     }
 
-    static stopCallError = Symbol("stop_calling") // For the decorate method; return this to stop executing the native function.
-    static decorate = (objGetter, attr, beforeFn, afterFn, modifyResult = false, modifyArgs = false) => {
-        const createDecorator = (originalFn, before, after) => {
-            const decoratedFn = function (...args) {
-                let executionArgs = args
-                if (before) {
-                    const beforeFnResult = before.call(this, ...args)
-                    if (beforeFnResult === utils.stopCallError) return
-                    if (modifyArgs) executionArgs = beforeFnResult
-                }
-                const result = originalFn.apply(this, executionArgs)
-                if (after) {
-                    const afterFnResult = after.call(this, result, ...executionArgs)
-                    if (modifyResult) return afterFnResult
-                }
-                return result
-            }
-            return Object.defineProperties(decoratedFn, {
-                name: { value: originalFn.name, configurable: true },
-                length: { value: originalFn.length, configurable: true },
-            })
+    static createSmartInputHandler = (inputEl, callback, options = {}) => {
+        const config = {
+            immediateOnCompositionEnd: true, debounceDelay: 0, throttleDelay: 0, minInputLength: 0,
+            trimWhitespace: true, caseSensitive: false, enableIMECache: false, maxCacheSize: 10,
+            onCompositionStart: null, onCompositionEnd: null, onInput: null,
+            ...options,
         }
 
-        const endTime = 10000 + Date.now()
-        const timer = setInterval(() => {
-            if (Date.now() > endTime) {
-                console.error("decorate timeout!", objGetter, attr, beforeFn, afterFn, modifyResult)
-                clearInterval(timer)
-                return
+        const buildExecutor = () => {
+            let executor = callback
+            if (config.enableIMECache) {
+                executor = this.memoizeLimited(executor, config.maxCacheSize)
             }
-            const obj = objGetter()
-            if (obj?.[attr]) {
-                clearInterval(timer)
-                obj[attr] = createDecorator(obj[attr], beforeFn, afterFn)
+            if (config.debounceDelay > 0) {
+                executor = this.debounce(executor, config.debounceDelay)
+            } else if (config.throttleDelay > 0) {
+                executor = this.throttle(executor, config.throttleDelay)
             }
-        }, 50)
+            return executor
+        }
+
+        let isComposing = false
+        let lastCallbackTime = 0
+        let finalCallback = buildExecutor()
+
+        const processValue = (val) => {
+            let processed = val || ""
+            if (config.trimWhitespace) processed = processed.trim()
+            if (!config.caseSensitive) processed = processed.toLowerCase()
+            return processed
+        }
+        const shouldExecuteCallback = (val) => config.minInputLength === 0 || val.length >= config.minInputLength
+        const execute = (val, ev) => {
+            if (!shouldExecuteCallback(val)) return
+            lastCallbackTime = Date.now()
+            const result = finalCallback(val, ev)
+            config.onInput?.(val, ev)
+            return result
+        }
+        const handleInput = (ev) => {
+            if (!isComposing) execute(processValue(ev.target.value), ev)
+        }
+        const handleCompositionStart = (ev) => {
+            isComposing = true
+            config.onCompositionStart?.(ev)
+        }
+        const handleCompositionEnd = (ev) => {
+            isComposing = false
+            config.onCompositionEnd?.(ev)
+            if (config.immediateOnCompositionEnd) {
+                execute(processValue(ev.target.value), ev)
+            }
+        }
+        const handle = (register) => {
+            const attr = register ? "addEventListener" : "removeEventListener"
+            inputEl[attr]("input", handleInput)
+            inputEl[attr]("compositionstart", handleCompositionStart)
+            inputEl[attr]("compositionend", handleCompositionEnd)
+        }
+
+        handle(true)
+
+        return {
+            updateConfig: (newConfig) => {
+                Object.assign(config, newConfig)
+                finalCallback = buildExecutor()
+            },
+            clean: () => handle(false),
+            isComposing: () => isComposing,
+            getLastCallbackTime: () => lastCallbackTime,
+            trigger: (val) => execute(processValue(val ?? inputEl.value), null),
+        }
+    }
+}
+
+class AnimationFrameManager {
+    rafId = null
+
+    get isPending() {
+        return this.rafId !== null
     }
 
-    static pollUntil = (until, after, interval = 50, timeout = 10000, runWhenTimeout = true) => {
-        let run = false
-        const endTime = timeout + Date.now()
-        const timer = setInterval(() => {
-            if (Date.now() > endTime) {
-                run = runWhenTimeout
-                if (!run) {
-                    clearInterval(timer)
-                    return
-                }
-            }
-            if (until() || run) {
-                clearInterval(timer)
-                after?.()
-            }
-        }, interval)
+    schedule(callback) {
+        if (this.rafId) cancelAnimationFrame(this.rafId)
+        this.rafId = requestAnimationFrame(() => {
+            callback()
+            this.rafId = null
+        })
+    }
+
+    cancel() {
+        if (this.rafId) {
+            cancelAnimationFrame(this.rafId)
+            this.rafId = null
+        }
     }
 }
 

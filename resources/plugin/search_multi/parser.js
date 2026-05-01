@@ -1,16 +1,17 @@
 class Parser {
+    TYPE = {
+        OR: "OR",
+        AND: "AND",
+        NOT: "NOT",
+        PAREN_OPEN: "PAREN_OPEN",
+        PAREN_CLOSE: "PAREN_CLOSE",
+        KEYWORD: "KEYWORD",
+        PHRASE: "PHRASE",
+        REGEXP: "REGEXP",
+        QUALIFIER: "QUALIFIER",
+    }
+
     constructor() {
-        this.TYPE = {
-            OR: "OR",
-            AND: "AND",
-            NOT: "NOT",
-            PAREN_OPEN: "PAREN_OPEN",
-            PAREN_CLOSE: "PAREN_CLOSE",
-            KEYWORD: "KEYWORD",
-            PHRASE: "PHRASE",
-            REGEXP: "REGEXP",
-            QUALIFIER: "QUALIFIER",
-        }
         this.setQualifier()
     }
 

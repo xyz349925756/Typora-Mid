@@ -1,46 +1,41 @@
 class DataTablesPlugin extends BasePlugin {
-    init = () => {
-        this.dataTablesConfig = null;
-        this.tableList = [];
-    }
+    dataTablesConfig = null
+    tableList = []
 
     process = () => {
-        this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.otherFileOpened, this.destroyAllDataTable);
-        this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.beforeToggleSourceMode, this.destroyAllDataTable);
+        this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.otherFileOpened, this.destroyAllDataTable)
+        this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.beforeToggleSourceMode, this.destroyAllDataTable)
 
-        this.utils.decorate(() => File?.editor?.tableEdit, "showTableEdit", (...args) => {
+        this.utils.decorator.preventCallIf(() => File?.editor?.tableEdit, "showTableEdit", (...args) => {
             const table = args[0]?.find?.("table")
-            if (!table || table.length === 0) return
+            if (!table || table.length === 0) return false
             const uuid = table.attr("table-uuid")
-            const exists = this.tableList.some(t => t.uuid === uuid)
-            if (exists) {
-                return this.utils.stopCallError
-            }
+            return this.tableList.some(t => t.uuid === uuid)
         })
     }
 
     destroyAllDataTable = () => {
         while (this.tableList.length) {
-            this.removeDataTable(this.tableList[0].uuid);
+            this.removeDataTable(this.tableList[0].uuid)
         }
-        this.tableList = [];
+        this.tableList = []
     }
 
     // addTfoot = $table => {
-    //     const th = $table.find("thead th");
-    //     const list = [...th].map(ele => `<td>${ele.textContent}: </td>`);
-    //     const tfoot = `<tfoot><tr>${list.join("")}</tr></tfoot>`;
-    //     $table.append(tfoot);
+    //     const th = $table.find("thead th")
+    //     const list = [...th].map(ele => `<td>${ele.textContent}: </td>`)
+    //     const tfoot = `<tfoot><tr>${list.join("")}</tr></tfoot>`
+    //     $table.append(tfoot)
     // }
 
     appendFilter = dataTable => {
         dataTable.columns().flatten().each(function (colIdx) {
-            const select = $("<select />").appendTo(dataTable.column(colIdx).header()).on("change", function () {
-                dataTable.column(colIdx).search($(this).val()).draw();
-            }).on("click", function () {
-                return false
-            })
-            select.append($(`<option value=""></option>>`));
+            const select = $("<select />").appendTo(dataTable.column(colIdx).header())
+                .on("change", function () {
+                    dataTable.column(colIdx).search($(this).val()).draw()
+                })
+                .on("click", () => false)
+            select.append($(`<option value=""></option>>`))
             dataTable.column(colIdx).cache("search").sort().unique().each(d => select.append($(`<option value="${d}">${d}</option>>`)))
         })
     }
@@ -48,9 +43,11 @@ class DataTablesPlugin extends BasePlugin {
     lazyLoad = async () => {
         if ($?.fn?.dataTable) return
         this.initDataTablesConfig()
-        await this.utils.insertScript("./plugin/datatables/resource/datatables.min.js")
-        this.utils.insertStyleFile("plugin-datatables-common-style", "./plugin/datatables/resource/datatables.min.css")
-        await this.utils.styleTemplater.register(this.fixedName)
+        await Promise.all([
+            $.getScript(this.utils.toProtocolUrl("plugin/datatables/resource/js/datatables.min.js")),
+            this.utils.insertStyleFile("plugin-datatables-common-style", "./plugin/datatables/resource/css/datatables.min.css"),
+            this.utils.styleTemplater.register(this.fixedName),
+        ])
     }
 
     initDataTablesConfig = () => {
@@ -78,7 +75,7 @@ class DataTablesPlugin extends BasePlugin {
                 infoThousands: ",",
                 thousands: ".",
                 paginate: { first: "<<", previous: "<", next: ">", last: ">>" },
-            }
+            },
         }
         if (!this.config.DEFAULT_ORDER) {
             this.dataTablesConfig.order = []
@@ -86,49 +83,46 @@ class DataTablesPlugin extends BasePlugin {
     }
 
     newDataTable = async target => {
-        if (!target) return;
-        await this.lazyLoad();
-        const edit = target.parentElement.querySelector(".md-table-edit");
-        const $table = $(target);
-        const uuid = this.utils.randomString();
-        $table.attr("table-uuid", uuid);
-        // addTfoot($table);
-        const table = $table.dataTable(this.dataTablesConfig);
-        this.appendFilter(table.api());
-        this.tableList.push({ uuid, table });
-        edit?.parentNode.removeChild(edit)
+        if (!target) return
+        await this.lazyLoad()
+        const edit = target.parentElement.querySelector(".md-table-edit")
+        const $table = $(target)
+        const uuid = this.utils.randomString()
+        $table.attr("table-uuid", uuid)
+        // addTfoot($table)
+        const table = $table.dataTable(this.dataTablesConfig)
+        this.appendFilter(table.api())
+        this.tableList.push({ uuid, table })
+        edit?.remove()
         return uuid
     }
 
     removeDataTable = uuid => {
-        if (!uuid || !this.tableList.length) return;
+        if (!uuid || !this.tableList.length) return
         const idx = this.tableList.findIndex(t => t.uuid === uuid)
-        if (idx === -1) return;
+        if (idx === -1) return
 
-        const table = this.tableList[idx].table;
-        const target = table[0];
-        table.api().destroy();
-        target.removeAttribute("table-uuid");
-        this.tableList.splice(idx, 1);
-        target.querySelectorAll("th select").forEach(ele => ele.parentNode.removeChild(ele));
+        const table = this.tableList[idx].table
+        const target = table[0]
+        table.api().destroy()
+        target.removeAttribute("table-uuid")
+        this.tableList.splice(idx, 1)
+        target.querySelectorAll("th select").forEach(el => el.remove())
         if (target) {
-            const $fig = $(target.parentElement);
-            File.editor.tableEdit.showTableEdit($fig);
+            const $fig = $(target.parentElement)
+            File.editor.tableEdit.showTableEdit($fig)
         }
     }
 
     getDynamicActions = (anchorNode, meta) => {
-        const table = anchorNode.closest("#write table.md-table");
+        const table = anchorNode.closest("#write table.md-table")
         const uuid = table?.getAttribute("table-uuid")
-        meta.uuid = uuid;
-        meta.target = table;
-
-        const hint = this.i18n.t("actHint.positioningTable")
-        const act_name = this.i18n.t(uuid ? "act.revert_table" : "act.enhance_table")
+        meta.uuid = uuid
+        meta.target = table
         const act = {
-            act_name,
+            act_name: this.i18n.t(uuid ? "act.revert_table" : "act.enhance_table"),
             act_value: uuid ? "revert_table" : "enhance_table",
-            act_hint: !table ? hint : "",
+            act_hint: !table ? this.i18n.t("actHint.positioningTable") : "",
             act_disabled: !table,
         }
         return [act]
@@ -144,5 +138,5 @@ class DataTablesPlugin extends BasePlugin {
 }
 
 module.exports = {
-    plugin: DataTablesPlugin
+    plugin: DataTablesPlugin,
 }

@@ -1,14 +1,12 @@
 class FenceEnhancePlugin extends BasePlugin {
+    buttons = []
+    supportIndent = this.config.ENABLE_INDENT && File.editor.fences?.formatContent
+    enableIndent = this.supportIndent
+
     styleTemplate = () => ({
         bgColorOnHover: this.config.HIGHLIGHT_ON_HOVER ? `.CodeMirror-line:hover { background-color: ${this.config.HIGHLIGHT_LINE_COLOR_ON_HOVER}; }` : "",
         bgColorOnFocus: this.config.HIGHLIGHT_ON_FOCUS ? `.md-focus .CodeMirror-activeline { background-color: ${this.config.HIGHLIGHT_LINE_COLOR_ON_FOCUS}; }` : "",
     })
-
-    init = () => {
-        this.supportIndent = this.config.ENABLE_INDENT && File.editor.fences?.formatContent
-        this.enableIndent = this.supportIndent
-        this.buttons = []
-    }
 
     process = async () => {
         this.utils.settings.autoSave(this)
@@ -73,7 +71,7 @@ class FenceEnhancePlugin extends BasePlugin {
             const _showIconFeedback = (btnEl, feedbackClass, originalClass) => {
                 const icon = btnEl.firstElementChild
                 icon.className = feedbackClass
-                setTimeout(() => icon.className = originalClass, this.config.WAIT_RECOVER_INTERVAL)
+                setTimeout(() => icon.className = originalClass, this.config.HINT_DURATION)
             }
             const _getFenceHeight = (cm, retainedLines) => {
                 const textHeight = cm.display.cachedTextHeight || cm.defaultTextHeight()
@@ -214,7 +212,7 @@ class FenceEnhancePlugin extends BasePlugin {
                     const btnEl = document.createElement("div")
                     btnEl.classList.add("enhance-btn")
                     btnEl.setAttribute("action", btn.action)
-                    if (!this.config.REMOVE_BUTTON_HINT && btn.hint) {
+                    if (!this.config.HIDE_BUTTON_HINT && btn.hint) {
                         btnEl.setAttribute("ty-hint", btn.hint)
                     }
                     if (!btn.enable) {
@@ -226,7 +224,7 @@ class FenceEnhancePlugin extends BasePlugin {
                     return btnEl
                 })
                 enhance.append(...buttons)
-                fence.appendChild(enhance)
+                fence.append(enhance)
                 this.buttons.forEach((b, idx) => b.extraFunc?.({ btn: buttons[idx], cid, fence, enhance }))
             })
         }
@@ -541,15 +539,18 @@ const indentWrappedLine = ({ utils }) => {
 }
 
 class HighlightHelper {
+    className = "plugin-fence-enhance-highlight"
+    highlightSym = Symbol("highlight")
+    highlightHandlesSym = Symbol("highlight_handles")
+
     constructor(plugin) {
         this.utils = plugin.utils
         this.pattern = new RegExp(plugin.config.HIGHLIGHT_PATTERN)
         this.numberingBase = (plugin.config.NUMBERING_BASE === "0-based") ? 0 : 1
-        this.className = "plugin-fence-enhance-highlight"
     }
 
     _setHighlight = (cm) => {
-        const line = cm?.options?.mode?.__highlight?.line
+        const line = cm?.options?.mode?.[this.highlightSym]?.line
         if (!line) return
 
         const lastLine = cm.lastLine()
@@ -564,7 +565,7 @@ class HighlightHelper {
             .map(n => n - this.numberingBase)
             .filter(n => n >= 0 && n <= lastLine)
 
-        cm.__highlight_handles = [...new Set(lineNumbers)].map(lineNo => {
+        cm[this.highlightHandlesSym] = [...new Set(lineNumbers)].map(lineNo => {
             const handle = cm.getLineHandle(lineNo)
             cm.addLineClass(handle, "background", this.className)
             return handle
@@ -572,11 +573,11 @@ class HighlightHelper {
     }
 
     _clearHighlight = cm => {
-        const handles = cm.__highlight_handles
+        const handles = cm[this.highlightHandlesSym]
         if (Array.isArray(handles) && handles.length > 0) {
             handles.filter(handle => handle?.parent).forEach(handle => cm.removeLineClass(handle, "background", this.className))
         }
-        cm.__highlight_handles = null
+        cm[this.highlightHandlesSym] = null
     }
 
     _rerender = (cm) => {
@@ -605,19 +606,23 @@ class HighlightHelper {
         const after = (mode) => {
             if (mode == null) return mode
             if (typeof mode !== "object") {
-                mode = { name: mode }
+                // `monkeyPatch` makes `frame.js` happy
+                // `File.editor.diagrams.updateDiagram` uses `isType(cm.options.mode, "mermaid")` to determine the type
+                // `isType` compares whether `mode.attributes.type === "mermaid"`
+                const monkeyPatch = { attributes: { type: mode } }
+                mode = { name: mode, ...monkeyPatch }
             }
-            mode.__highlight = context
+            mode[this.highlightSym] = context
             context = null
             return mode
         }
-        this.utils.decorate(() => window, "getCodeMirrorMode", before, after, true, true)
+        this.utils.decorator.decorate(() => window, "getCodeMirrorMode", { before, after, modifyResult: true, modifyArgs: true })
         this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.afterAddCodeBlock, (cid, cm) => {
             this._rerender(cm)
             cm.off("change", handleLineChange)
             cm.on("change", handleLineChange)
         })
-        this.utils.decorate(() => File?.editor?.fences, "tryAddLangUndo", null, (_, node) => {
+        this.utils.decorator.afterCall(() => File?.editor?.fences, "tryAddLangUndo", (_, node) => {
             const cid = node?.cid
             if (cid) this._rerender(File.editor.fences.queue[cid])
         })
@@ -627,13 +632,11 @@ class HighlightHelper {
 // doc: https://codemirror.net/5/demo/folding.html
 const foldLanguage = async ({ utils }) => {
     const requireModules = async () => {
-        const resourcePath = "./plugin/fence_enhance/resource/"
-        utils.insertStyleFile("plugin-fence-enhance-fold-style", resourcePath + "foldgutter.css")
-        require("./resource/foldcode")
-        require("./resource/foldgutter")
-        const files = await utils.Package.FsExtra.readdir(utils.joinPath(resourcePath))
-        const modules = files.filter(f => f.endsWith("-fold.js"))
-        modules.forEach(f => require(utils.joinPath(resourcePath, f)))
+        const foldPath = "./plugin/fence_enhance/resource/fold/"
+        utils.insertStyleFile("plugin-fence-enhance-fold-style", foldPath + "foldgutter.css")
+        const modules = (await utils.Package.FsExtra.readdir(utils.joinPluginPath(foldPath))).filter(f => f.endsWith("-fold.js"))
+        const vendors = ["foldcode.js", "foldgutter.js", ...modules]
+        vendors.map(f => utils.joinPluginPath(foldPath, f)).forEach(require)
         console.debug(`[ CodeMirror folding module ] [ ${modules.length} ]:`, modules)
     }
 
@@ -655,5 +658,5 @@ const foldLanguage = async ({ utils }) => {
 }
 
 module.exports = {
-    plugin: FenceEnhancePlugin
+    plugin: FenceEnhancePlugin,
 }

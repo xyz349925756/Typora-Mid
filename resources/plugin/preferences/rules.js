@@ -41,7 +41,7 @@ module.exports = {
         ALLOW_EXT: each(fileExt),
         IGNORE_FOLDERS: each(required),
         TIMEOUT: notZero,
-        MAX_STATS: notZero,
+        MAX_ENTITIES: notZero,
         MAX_DEPTH: notZero,
     },
     md_padding: {
@@ -91,9 +91,13 @@ module.exports = {
         TRIGGER_REGEXP: [required, regex]
     },
     resource_manager: {
-        MAX_STATS: notZero,
+        MAX_ENTITIES: notZero,
         MAX_DEPTH: notZero,
         IGNORE_FOLDERS: each(required),
+    },
+    asset_root_redirect: {
+        ROOT_PATH: required,
+        IGNORE_GLOB_FILES: each(required),
     },
     editor_width_slider: {
         WIDTH_RATIO: notZero,
@@ -153,40 +157,40 @@ module.exports = {
         ...chartStyles,
         SERVER_URL: [required, url],
     },
-    marp: chartStyles,
+    marp: {
+        TEMPLATE: required,
+    },
     callouts: {
-        font_family: required,
-        network_icon_url: [required, url],
-        default_background_color: required,
-        default_left_line_color: required,
-        default_icon: required,
-        template: required,
+        FONT_FAMILY: required,
+        NETWORK_ICON_URL: [required, url],
+        DEFAULT_BACKGROUND_COLOR: required,
+        DEFAULT_LEFT_LINE_COLOR: required,
+        DEFAULT_ICON: required,
+        TEMPLATE: required,
     },
     templater: {
-        template_folders: each([required, path]),
+        TEMPLATE_FOLDERS: each([required, path]),
     },
-    imageReviewer: {
-        thumbnail_height: required,
+    image_viewer: {
+        THUMBNAIL_HEIGHT: required,
     },
-    markdownLint: {
-        button_width: required,
-        button_height: required,
-        button_right: required,
-        button_border_radius: required,
-        pass_color: required,
-        error_color: required,
-        custom_rule_files: each([required, path]),
+    markdownlint: {
+        BUTTON_WIDTH: required,
+        BUTTON_HEIGHT: required,
+        BUTTON_RIGHT: required,
+        BUTTON_BORDER_RADIUS: required,
+        BUTTON_PASS_COLOR: required,
+        BUTTON_ERROR_COLOR: required,
+        CUSTOM_RULE_FILES: each([required, path]),
     },
-    quickButton: {
-        button_size: required,
-        button_border_radius: required,
-        button_box_shadow: required,
-        button_gap: required,
-        position_right: required,
-        position_bottom: required,
-    },
-    redirectLocalRootUrl: {
-        root: required,
-        filter_regexp: regex,
+    action_buttons: {
+        BUTTON_SIZE: required,
+        BUTTON_ICON_SIZE: required,
+        BUTTON_BORDER_RADIUS: required,
+        BUTTON_BOX_SHADOW: required,
+        BUTTON_BOX_SHADOW_ON_HOVER: required,
+        BUTTON_GAP: required,
+        POSITION_RIGHT: required,
+        POSITION_BOTTOM: required,
     },
 }

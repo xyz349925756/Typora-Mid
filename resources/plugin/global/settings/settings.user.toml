@@ -2,7 +2,7 @@
 ENABLE = false
 TRIM_FILE_EXT = false
 SHOW_DIR_ON_DUPLICATE = false
-SHOW_FULL_PATH_WHEN_HOVER = false
+SHOW_FULL_PATH_ON_HOVER = false
 SHOW_TAB_CLOSE_BUTTON = false
 CTRL_CLICK_TO_NEW_WINDOW = false
 WHEEL_TO_SCROLL_TAB_BAR = false
@@ -11,568 +11,80 @@ MIDDLE_CLICK_TO_CLOSE = false
 [search_multi]
 ENABLE = false
 
-[md_padding]
-ENABLE = false
-
-[read_only]
-ENABLE = false
-
-[blur]
-ENABLE = false
-
-[dark]
-ENABLE = false
-
-[no_image]
-ENABLE = false
-
-[resize_image]
-ENABLE = false
-
-[resize_table]
+[commander]
 ENABLE = false
 
 [auto_number]
 ENABLE = false
+ENABLE_OUTLINE = false
+ENABLE_CONTENT = false
+ENABLE_WHEN_EXPORT = false
 
 [fence_enhance]
 ENABLE = false
+ENABLE_BUTTON = false
+
+[sidebar_enhance]
+ENABLE = false
+CTRL_WHEEL_TO_SCROLL_SIDEBAR = false
+SORTABLE_OUTLINE = false
+ENABLE_FILE_COUNT = false
+
+[markdownlint]
+ENABLE = false
+TRANSLATE = false
+USE_INDICATOR_BUTTON = false
+RIGHT_CLICK_TABLE_TO_TOGGLE_SOURCE_MODE = false
 
 [slash_commands]
 ENABLE = false
 
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "H1"
-callback = "() => File.editor.stylize.changeBlock('header1', undefined, true)"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "H2"
-callback = "() => File.editor.stylize.changeBlock('header2', undefined, true)"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "H3"
-callback = "() => File.editor.stylize.changeBlock('header3', undefined, true)"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "H4"
-callback = "() => File.editor.stylize.changeBlock('header4', undefined, true)"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "H5"
-callback = "() => File.editor.stylize.changeBlock('header5', undefined, true)"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "H6"
-callback = "() => File.editor.stylize.changeBlock('header6', undefined, true)"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "Paragraph"
-callback = "() => File.editor.stylize.changeBlock('paragraph')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "IncreaseHeaderLevel"
-callback = "() => File.editor.stylize.increaseHeaderLevel()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "DecreaseHeaderLevel"
-callback = "() => File.editor.stylize.decreaseHeaderLevel()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "Table"
-callback = "() => File.editor.tableEdit.insertTable()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "BlockCode"
-callback = "() => File.editor.stylize.toggleFences()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "BlockMath"
-callback = "() => File.editor.stylize.toggleMathBlock()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "BlockQuote"
-callback = "() => File.editor.stylize.toggleIndent('blockquote')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "Callouts"
-callback = "() => File.editor.stylize.insertAlert('NOTE')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "OrderedList"
-callback = "() => File.editor.stylize.toggleIndent('ol')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "UnorderedList"
-callback = "() => File.editor.stylize.toggleIndent('ul')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "TaskList"
-callback = "() => File.editor.stylize.toggleIndent('tasklist')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "ListMoreIndent"
-callback = "() => File.editor.UserOp.moreIndent(File.editor)"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "ListLessIndent"
-callback = "() => File.editor.UserOp.lessIndent(File.editor)"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "InsertParagraphAbove"
-callback = "() => File.editor.UserOp.insertParagraph(true)"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "InsertParagraphBelow"
-callback = "() => File.editor.UserOp.insertParagraph(false)"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "LinkReference"
-callback = "() => File.editor.stylize.insertBlock('def_link')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "FootnoteReference"
-callback = "() => File.editor.stylize.insertBlock('def_footnote')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "HorizontalLine"
-callback = "() => File.editor.stylize.insertBlock('hr')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "TOC"
-callback = "() => File.editor.stylize.insertBlock('toc')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "📝"
-keyword = "FrontMatter"
-callback = "() => File.editor.stylize.insertMetaBlock()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Strong"
-callback = "() => File.editor.stylize.toggleStyle('strong')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Em"
-callback = "() => File.editor.stylize.toggleStyle('em')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Underline"
-callback = "() => File.editor.stylize.toggleStyle('underline')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Code"
-callback = "() => File.editor.stylize.toggleStyle('code')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "InlineMath"
-callback = "() => File.editor.stylize.toggleStyle('inline_math')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Delete"
-callback = "() => File.editor.stylize.toggleStyle('del')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Highlight"
-callback = "() => File.editor.stylize.toggleStyle('highlight')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Superscript"
-callback = "() => File.editor.stylize.toggleStyle('superscript')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Subscript"
-callback = "() => File.editor.stylize.toggleStyle('subscript')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Footnote"
-callback = "() => File.editor.stylize.toggleStyle('footnote')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Comment"
-callback = "() => File.editor.stylize.toggleStyle('comment')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Link"
-callback = "() => File.editor.stylize.toggleStyle('link')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "Image"
-callback = "() => File.editor.stylize.toggleStyle('image')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "👕"
-keyword = "ClearStyle"
-callback = "() => File.editor.stylize.clearStyle()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "💻"
-keyword = "Golang"
-callback = "() => this.utils.insertFence('go')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "💻"
-keyword = "Python"
-callback = "() => this.utils.insertFence('python')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "💻"
-keyword = "Bash"
-callback = "() => this.utils.insertFence('bash')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "💻"
-keyword = "Java"
-callback = "() => this.utils.insertFence('java')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "💻"
-keyword = "HTML"
-callback = "() => this.utils.insertFence('html')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "💻"
-keyword = "SQL"
-callback = "() => this.utils.insertFence('sql')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "💻"
-keyword = "CSS"
-callback = "() => this.utils.insertFence('css')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "💻"
-keyword = "Mermaid"
-callback = "() => this.utils.insertFence('mermaid')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "💻"
-keyword = "JavaScript"
-callback = "() => this.utils.insertFence('javascript')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "💻"
-keyword = "TypeScript"
-callback = "() => this.utils.insertFence('typescript')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "🧰"
-keyword = "JumpTop"
-callback = "() => File.editor.selection.jumpTop()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "🧰"
-keyword = "JumpBottom"
-callback = "() => File.editor.selection.jumpBottom()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "🧰"
-keyword = "JumpToLineStart"
-callback = "() => File.editor.selection.jumpToLineStart()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "🧰"
-keyword = "JumpToLineEnd"
-callback = "() => File.editor.selection.jumpToLineEnd()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "🧰"
-keyword = "Help"
-callback = "() => this.call()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "snippet"
-icon = "🧩"
-keyword = "BR"
-callback = "<br>"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "snippet"
-icon = "🧩"
-keyword = "IMG"
-cursorOffset = [ -14, -14 ]
-callback = "<img src=\"\" alt=\"alt\" />"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "snippet"
-icon = "🧩"
-keyword = "SPAN"
-cursorOffset = [ -7, -7 ]
-callback = "<span></span>"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "snippet"
-icon = "🧩"
-keyword = "cursorOffsetExample"
-cursorOffset = [ -23, -10 ]
-callback = "Enjoying Typora Plugin? Star us!"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "snippet"
-icon = "🧩"
-keyword = "SnippetExample"
-callback = "https://github.com/obgnail/typora_plugin"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "gen-snp"
-icon = "🧩"
-keyword = "Datetime"
-callback = "() => this.utils.dateTimeFormat(new Date(), 'yyyy/MM/dd HH:mm:ss')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "gen-snp"
-icon = "🧩"
-keyword = "Date"
-callback = "() => this.utils.dateTimeFormat(new Date(), 'yyyy/MM/dd')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "gen-snp"
-icon = "🧩"
-keyword = "Time"
-callback = "() => this.utils.dateTimeFormat(new Date(), 'HH:mm:ss')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "gen-snp"
-icon = "🧩"
-keyword = "Weekday"
-callback = "() => this.utils.dateTimeFormat(new Date(), 'dddd')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "gen-snp"
-icon = "🧩"
-keyword = "Timestamp"
-callback = "() => Date.now().toString()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "gen-snp"
-icon = "🧩"
-keyword = "UUID"
-callback = "() => this.utils.getUUID()"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "snippet"
-icon = "🧩"
-keyword = "alpha"
-hint = "α"
-scope = "inline_math"
-callback = "\\alpha "
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "snippet"
-icon = "🧩"
-keyword = "beta"
-hint = "β"
-scope = "inline_math"
-callback = "\\beta "
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "snippet"
-icon = "🧩"
-keyword = "epsilon"
-hint = "ε"
-scope = "inline_math"
-callback = "\\epsilon "
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "snippet"
-icon = "🧩"
-keyword = "rightarrow"
-hint = "→"
-scope = "inline_math"
-callback = "\\rightarrow "
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "gen-snp"
-icon = "🌟"
-keyword = "BlockCodeGenerator"
-callback = "(...langs) => langs.map(l => '```' + l.toLowerCase() + '\\n```').join('\\n\\n')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "gen-snp"
-icon = "🌟"
-keyword = "CalloutGenerator"
-callback = "(...types) => types.map(t => `> [!${t.toUpperCase()}]\\n>\\n> `).join('\\n\\n')"
-
-[[slash_commands.COMMANDS]]
-enable = true
-type = "command"
-icon = "🌟"
-keyword = "TableGenerator"
-callback = "(col, row) => { col = parseInt(col); row = parseInt(row); const c = ['      ', ' ---- ', ...Array(row - 1).fill('      ')].map(e => `|${Array(col).fill(e).join('|')}|`).join('\\n'); this.utils.insertText(null, c, false) }"
-
-[file_counter]
-ENABLE = false
-ALLOW_EXT = [ "", "md", "markdown", "mdown", "mmd", "text", "txt", "rmarkdown", "mkd", "mdwn", "mdtxt", "rmd", "mdtext", "apib" ]
-IGNORE_FOLDERS = [ ".git", ".idea", "node_modules" ]
-
-[hotkeys]
-ENABLE = false
-
-[editor_width_slider]
-ENABLE = false
-
-[sidebar_enhance]
+[[action_buttons.BUTTONS]]
+enable = true
+coordinate = [ 0, 0 ]
+icon = "fa fa-caret-up"
+size = "24px"
+color = ""
+bgColor = ""
+hint = ""
+callback = ""
+evil = "() => this.utils.jumpToEdge(true)"
+
+[[action_buttons.BUTTONS]]
+enable = true
+coordinate = [ 1, 0 ]
+icon = "fa fa-font"
+size = "17px"
+color = ""
+bgColor = ""
+hint = ""
+callback = "text_stylize.call"
+evil = ""
+
+[[action_buttons.BUTTONS]]
+enable = true
+coordinate = [ 2, 0 ]
+icon = "fa fa-gear"
+size = "17px"
+color = ""
+bgColor = ""
+hint = ""
+callback = "preferences.call"
+evil = ""
+
+[[action_buttons.BUTTONS]]
+enable = true
+coordinate = [ 0, 1 ]
+size = "17px"
+icon = "fa fa-sitemap fa-rotate-270"
+callback = "markmap.onButtonClick"
+
+[[action_buttons.BUTTONS]]
+enable = true
+coordinate = [ 1, 1 ]
+size = "17px"
+icon = "fa fa-image"
+callback = "image_viewer.call"
+
+[resource_manager]
 ENABLE = false

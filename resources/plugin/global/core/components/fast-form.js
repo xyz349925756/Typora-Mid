@@ -19,7 +19,7 @@ class FastForm extends HTMLElement {
             getNestedSchemas: { type: "function" },
             controlOptions: { type: "plainObject" },
         })
-        if (this.controls.hasOwnProperty(name)) {
+        if (Object.hasOwn(this.controls, name)) {
             console.warn(`FastForm Warning: Overwriting control for '${name}'.`)
         }
         this.controls[name] = definition
@@ -32,7 +32,7 @@ class FastForm extends HTMLElement {
             compile: { type: "function" },
             featureOptions: { type: "plainObject" },
         })
-        if (this.features.hasOwnProperty(name)) {
+        if (Object.hasOwn(this.features, name)) {
             console.warn(`FastForm Warning: Overwriting feature for '${name}'.`)
         }
         this.features[name] = definition
@@ -45,7 +45,7 @@ class FastForm extends HTMLElement {
         if (!definition || typeof definition !== "object") {
             throw new TypeError("Layout definition must be an object.")
         }
-        if (this.layouts.hasOwnProperty(name)) {
+        if (Object.hasOwn(this.layouts, name)) {
             console.warn(`FastForm Warning: Overwriting layout for '${name}'.`)
         }
         this.layouts[name] = definition
@@ -416,7 +416,7 @@ class FastForm extends HTMLElement {
                     return state
                 },
             }
-            if (options._instanceFeatures.hasOwnProperty(name) && typeof feature.install === "function") {
+            if (Object.hasOwn(options._instanceFeatures, name) && typeof feature.install === "function") {
                 console.warn(`FastForm Warning: The 'install' method of the feature '${name}' will be ignored. For instance-specific logic, use 'configure'.`)
             }
             if (typeof feature.configure === "function") {
@@ -512,6 +512,9 @@ class FastForm extends HTMLElement {
 }
 
 class LifecycleHooks {
+    _temporaries = new Map()
+    _overrides = new Map()
+
     constructor(defaultImpls, strategies, staticSubscribers = []) {
         this._definitions = new Map(
             Object.entries(defaultImpls).map(([hookName, impl]) => {
@@ -527,8 +530,6 @@ class LifecycleHooks {
                 })
                 .filter(([_, set]) => set.size > 0)
         )
-        this._temporaries = new Map()
-        this._overrides = new Map()
     }
 
     on = (hookName, listener) => {
@@ -619,7 +620,7 @@ function validateDefinition(name, definition, checks, options = {}) {
         if (rule.required && (value === undefined || value === null)) {
             throw new TypeError(`'${name}' must have a '${key}' of type '${rule.type}'.`)
         }
-        if (definition.hasOwnProperty(key)) {
+        if (Object.hasOwn(definition, key)) {
             if (rule.type === "function" && typeof value !== "function") {
                 throw new TypeError(`The '${key}' property for '${name}' must be a function.`)
             }
@@ -762,7 +763,7 @@ const Feature_EventDelegation = {
 
             let events, selector, data, handler, options
 
-            const lastArg = args[args.length - 1]
+            const lastArg = args.at(-1)
             if (lastArg == null || typeof lastArg === "boolean" || typeof lastArg === "object") {
                 options = args.pop() // The last parameter is `options`
             }
@@ -886,10 +887,130 @@ const Feature_InteractiveTooltip = {
     }
 }
 
+const Feature_Highlight = {
+    featureOptions: {
+        highlight: "",  // string | RegExp
+        highlightTargetSelector: ".title, .control-left",
+        highlightIgnoreSelector: ".tooltip, .feature-highlight",
+        highlightClass: "feature-highlight",
+        autoExpandOnHighlight: true,
+        scrollToFirstMatchOnHighlight: false,
+        caseSensitiveOnHighlight: false,
+    },
+    configure: ({ form, registerApi, hooks, options }) => {
+        const { highlight: hl, highlightTargetSelector, highlightIgnoreSelector, highlightClass } = options
+
+        const clear = () => {
+            const formEl = form.getFormEl()
+            if (!formEl) return
+
+            formEl.querySelectorAll(`mark.${highlightClass}`).forEach(mark => {
+                const parent = mark.parentNode
+                if (!parent) return
+                mark.replaceWith(...mark.childNodes)
+                parent.normalize()
+            })
+        }
+
+        const highlight = (keyword) => {
+            clear()
+
+            if (!keyword) return
+
+            const formEl = form.getFormEl()
+            if (!formEl) return
+
+            let regex
+            if (typeof keyword === "string" && keyword.trim()) {
+                const flags = options.caseSensitiveOnHighlight ? "g" : "gi"
+                regex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), flags)
+            } else if (keyword instanceof RegExp) {
+                regex = new RegExp(keyword.source, keyword.flags.includes("g") ? keyword.flags : keyword.flags + "g")
+            } else {
+                return
+            }
+
+            const walker = document.createTreeWalker(formEl, NodeFilter.SHOW_TEXT, {
+                acceptNode: (node) => {
+                    const parent = node.parentElement
+                    if (!node.nodeValue.trim() || !parent) {
+                        return NodeFilter.FILTER_REJECT
+                    }
+                    if (highlightIgnoreSelector && parent.closest(highlightIgnoreSelector)) {
+                        return NodeFilter.FILTER_REJECT
+                    }
+                    if (highlightTargetSelector && parent.closest(highlightTargetSelector)) {
+                        return NodeFilter.FILTER_ACCEPT
+                    }
+                    return NodeFilter.FILTER_REJECT
+                }
+            })
+
+            const targetNodes = []
+            let node
+            while ((node = walker.nextNode())) {
+                targetNodes.push(node)
+            }
+
+            let firstMatchEl = null
+            targetNodes.forEach(textNode => {
+                const text = textNode.nodeValue
+                const matches = [...text.matchAll(regex)]
+                if (matches.length === 0) return
+
+                const parentEl = textNode.parentElement
+                const frag = document.createDocumentFragment()
+                let lastIdx = 0
+
+                matches.forEach(match => {
+                    if (!match[0]) return
+                    if (match.index > lastIdx) {
+                        frag.appendChild(document.createTextNode(text.slice(lastIdx, match.index)))
+                    }
+                    const mark = document.createElement("mark")
+                    mark.className = highlightClass
+                    mark.textContent = match[0]
+                    frag.appendChild(mark)
+                    lastIdx = match.index + match[0].length
+                })
+
+                if (lastIdx < text.length) {
+                    frag.appendChild(document.createTextNode(text.slice(lastIdx)))
+                }
+                parentEl.replaceChild(frag, textNode)
+
+                if (!firstMatchEl) {
+                    firstMatchEl = parentEl
+                }
+                if (options.autoExpandOnHighlight) {
+                    parentEl.closest(".box-container.collapsed")?.classList.remove("collapsed")
+                }
+            })
+
+            if (options.scrollToFirstMatchOnHighlight && firstMatchEl) {
+                firstMatchEl.scrollIntoView({ behavior: "smooth", block: "center" })
+            }
+        }
+
+        registerApi("highlight", { highlight, clear })
+        hooks.on("onRender", () => hl && highlight(hl))
+    }
+}
+
 /**
- * Uses PascalCase for chainable setters (e.g., `.Label()`) to prevent namespace collisions with the underlying camelCase data properties (e.g., `.label`).
+ * Provides a contextual, dual-state UI Builder architecture.
+ * It uses PascalCase for chainable setters to prevent namespace collisions with the underlying camelCase data properties.
  * This hybrid design allows the builder instance to serve directly as the final data object,
- * enabling native `JSON.stringify` serialization without a `.build()` step and ensuring a clean, transparent debugging experience.
+ * enabling native `JSON.stringify` serialization without an explicit `.build()` step.
+ *
+ * Contextual Resolution: `asBox` vs. `asField`
+ * UI controls adapt their data structure based on their placement within the schema:
+ * - `asBox`: Triggered when a control acts as a top-level layout node. It retains its outer container (Box) to manage layout-level attributes like `col` (grid span) and `title`.
+ * - `asField`: Triggered when a control is embedded inside a composite container (e.g., Groups, Tabs). The outer Box wrapper is stripped, yielding a pure, inner Field object.
+ *
+ * Property Lifecycle: `assign` & `transfer`
+ * - `assign` (Immediate Mutation): Invoked instantly when a chainable method is called. It assigns the property to either the outer Box or the inner Field depending on the strategy.
+ * - `transfer` (Contextual Injection): Invoked exclusively during `asField` resolution. It migrates layout properties (e.g., `title`, `col`) that were originally assigned to the outer Box down into the inner Field (as `label`, `col`), ensuring configurations are perfectly preserved even after the layout wrapper is discarded.
  */
 const Feature_DSLEngine = (() => {
     const RESOLVE_SYM = Symbol("schema:resolve")
@@ -908,7 +1029,7 @@ const Feature_DSLEngine = (() => {
             return prop in target
                 ? target[prop]
                 : (key, val) => ({ [key]: { [`$${prop}`]: val } })
-        }
+        },
     })
     const Tip = {
         info: (text) => text,
@@ -934,46 +1055,61 @@ const Feature_DSLEngine = (() => {
         if (combined.length === 1) return combined[0]
         return { $and: combined }
     }
-    const resolve = (input) => {
-        if (input == null) return input
-        if (input[RESOLVE_SYM]) {
-            return resolve(input[RESOLVE_SYM]())
+    const createResolver = (strategy) => {
+        const resolver = (input) => {
+            if (input == null) return []
+            if (input[RESOLVE_SYM]) {
+                const result = input[RESOLVE_SYM][strategy]?.call(input)
+                if (result == null) return []
+                return Array.isArray(result) ? result.flatMap(resolver) : [result]
+            }
+            if (Array.isArray(input)) {
+                return input.flatMap(resolver)
+            }
+            return [input]
         }
-        if (Array.isArray(input)) {
-            return input.flatMap(resolve)
-        }
-        return input
+        return resolver
     }
+
+    const resolveFields = createResolver("asField")
+    const resolveBoxes = createResolver("asBox")
+
     const normalizeBoxes = (boxes) => {
-        const ret = Array.isArray(boxes) ? boxes : [boxes]
-        return ret.flat(Infinity).filter(box => box && typeof box === "object")
+        return resolveBoxes([boxes].flat(Infinity)).reduce((acc, box) => {
+            if (box && typeof box === "object") {
+                const rawFields = Array.isArray(box.fields) ? box.fields : []
+                const fields = resolveFields(rawFields).filter(field => field && typeof field === "object")
+                acc.push({ ...box, fields })
+            }
+            return acc
+        }, [])
     }
-    const applyFields = (box, items) => {
+    const appendFields = (box, items) => {
         if (!items || items.length === 0) return
         if (!box.fields) box.fields = []
-        box.fields.push(...resolve(items))
+        box.fields.push(...resolveFields(items))
     }
 
     const PropResolvers = {
         FIELD: {
-            stage: (box, innerField, propKey, propVal) => innerField[propKey] = propVal,
-            commit: null,
+            assign: (box, innerField, propKey, propVal) => innerField[propKey] = propVal,
+            transfer: null,
         },
         BOX: {
-            stage: (box, innerField, propKey, propVal) => box[propKey] = propVal,
-            commit: null,
+            assign: (box, innerField, propKey, propVal) => box[propKey] = propVal,
+            transfer: null,
         },
         SHARED: {
-            stage: (box, innerField, propKey, propVal) => box[propKey] = propVal,
-            commit: (box, innerField, propKey) => {
+            assign: (box, innerField, propKey, propVal) => box[propKey] = propVal,
+            transfer: (box, innerField, propKey) => {
                 if (box[propKey] !== undefined) {  // `null` is allowed
                     innerField[propKey] = box[propKey]
                 }
             },
         },
         TITLE_LABEL: {
-            stage: (box, innerField, propKey, propVal) => box.title = propVal,
-            commit: (box, innerField) => {
+            assign: (box, innerField, propKey, propVal) => box.title = propVal,
+            transfer: (box, innerField) => {
                 if (box.title != null) {
                     innerField.label = box.title
                 }
@@ -981,45 +1117,44 @@ const Feature_DSLEngine = (() => {
         },
         /** Sets the unit value and implicitly upgrades the field type from 'number' to 'unit'. This enables suffix rendering without requiring an explicit control change. */
         UNIT_CONVERTER: {
-            stage: (box, innerField, propKey, propVal) => {
+            assign: (box, innerField, propKey, propVal) => {
                 innerField[propKey] = propVal
                 if (innerField.type === "number") {
                     innerField.type = "unit"
                 }
             },
-            commit: null,
+            transfer: null,
         },
         DEPENDENCY: {
-            stage: (box, innerField, propKey, ...deps) => {
+            assign: (box, innerField, propKey, ...deps) => {
                 const [keyOrDep, value] = deps
                 const newDep = (value != null) ? Dep.eq(keyOrDep, value)
-                    : (typeof keyOrDep === "string") ? Dep.true(keyOrDep)
-                        : keyOrDep
+                    : (typeof keyOrDep === "string") ? Dep.true(keyOrDep) : keyOrDep
                 box.dependencies = mergeDeps(box.dependencies, newDep)
             },
-            commit: (box, innerField) => {
+            transfer: (box, innerField) => {
                 if (box.dependencies != null) {
                     innerField.dependencies = mergeDeps(innerField.dependencies, box.dependencies)
                 }
             },
         },
         FIELDS: {
-            stage: (box, innerField, propKey, ...fields) => applyFields(box, fields),
-            commit: null,
+            assign: (box, innerField, propKey, ...fields) => appendFields(box, fields),
+            transfer: null,
         },
         SCHEMA: {
-            stage: (box, innerField, propKey, ...boxes) => innerField[propKey] = normalizeBoxes(boxes),
-            commit: null,
+            assign: (box, innerField, propKey, ...boxes) => innerField[propKey] = normalizeBoxes(boxes),
+            transfer: null,
         },
         TABS: {
-            stage: (box, innerField, propKey, tabsConfig) => {
+            assign: (box, innerField, propKey, tabsConfig) => {
                 if (!Array.isArray(tabsConfig)) return
                 innerField[propKey] = tabsConfig.map(tab => tab.schema ? { ...tab, schema: normalizeBoxes(tab.schema) } : { ...tab })
             },
-            commit: null,
+            transfer: null,
         },
         TAB_APPEND: {
-            stage: (box, innerField, propKey, tabConfig) => {
+            assign: (box, innerField, propKey, tabConfig) => {
                 const tab = { ...tabConfig }
                 if (tab.schema) {
                     tab.schema = normalizeBoxes(tab.schema)
@@ -1027,8 +1162,8 @@ const Feature_DSLEngine = (() => {
                 if (!innerField.tabs) innerField.tabs = []
                 innerField.tabs.push(tab)
             },
-            commit: null,
-        }
+            transfer: null,
+        },
     }
     const BaseSpecs = {
         FIELD: {
@@ -1056,30 +1191,42 @@ const Feature_DSLEngine = (() => {
             children: PropResolvers.FIELDS,  // Alias for `fields`
             dependencies: PropResolvers.DEPENDENCY,
             showIf: PropResolvers.DEPENDENCY,  // Alias for `dependencies`
-        }
+        },
     }
     const BuilderFactory = {
         FIELD: {
             createSetter: (propKey, propResolver) => function (...args) {
-                propResolver.stage(this, this.fields[0], propKey, ...args)
+                propResolver.assign(this, this.fields[0], propKey, ...args)
                 return this
             },
-            createResolver: (specs) => function () {
-                const inner = { ...this.fields[0] }
-                for (const [key, propResolver] of Object.entries(specs)) {
-                    propResolver.commit?.(this, inner, key)
+            createResolver: (specs) => ({
+                asField() {
+                    const inner = { ...this.fields[0] }
+                    for (const [key, propResolver] of Object.entries(specs)) {
+                        propResolver.transfer?.(this, inner, key)
+                    }
+                    return inner
+                },
+                asBox() {
+                    const box = { ...this }
+                    box.fields = [{ ...this.fields[0] }]
+                    return box
                 }
-                return inner
-            },
+            }),
         },
         BOX: {
             createSetter: (propKey, propResolver) => function (...args) {
-                propResolver.stage(this, null, propKey, ...args)
+                propResolver.assign(this, null, propKey, ...args)
                 return this
             },
-            createResolver: () => function () {
-                return this
-            },
+            createResolver: () => ({
+                asField() {
+                    return null
+                },
+                asBox() {
+                    return { ...this }
+                }
+            }),
         },
         PRESET: {
             createSetter: (handler) => function (...args) {
@@ -1092,60 +1239,86 @@ const Feature_DSLEngine = (() => {
     return {
         onConstruct: (form) => {
             form.dslEngine = () => {
-                const scopedPresetMap = new Map()
-                const preset = (name, handler) => scopedPresetMap.set(name, handler)
-                const buildProto = (specs, factory) => {
-                    const presetMethods = [...scopedPresetMap].map(([name, handler]) => [name, BuilderFactory.PRESET.createSetter(handler)])
-                    const propMethods = Object.entries(specs).map(([propKey, propResolver]) => [capitalize(propKey), factory.createSetter(propKey, propResolver)])
-                    return {
-                        ...Object.fromEntries(presetMethods),
-                        ...Object.fromEntries(propMethods),
-                        [RESOLVE_SYM]: factory.createResolver(specs),
+                const scopedProto = { box: null, fields: Object.create(null), any: Object.create(null) }
+                const validatePresetName = (name, targetProto) => {
+                    if (!name || typeof name !== "string") {
+                        throw new TypeError(`[DSLEngine] Preset name must be a non-empty string.`)
+                    }
+                    const isReserved = Object.keys(BaseSpecs.FIELD).some(k => capitalize(k) === name)
+                        || Object.keys(BaseSpecs.BOX).some(k => capitalize(k) === name)
+                    if (isReserved) {
+                        throw new Error(`[DSLEngine] Preset collision: "${name}" is a reserved standard DSL property.`)
+                    }
+                    if (targetProto && Object.hasOwn(targetProto, name)) {
+                        throw new Error(`[DSLEngine] Preset collision: "${name}" is already registered in this sandbox.`)
                     }
                 }
-                const applyProps = (box, innerField, props, specs) => {
-                    for (const prop of Object.keys(props)) {
+                const preset = (name, handler) => {
+                    validatePresetName(name, scopedProto.any)
+                    scopedProto.any[name] = BuilderFactory.PRESET.createSetter(handler)
+                }
+                const presetFor = (targetType, name, handler) => {
+                    const targetProto = targetType === "box" ? scopedProto.box : scopedProto.fields[targetType]
+                    if (!targetProto) {
+                        throw new Error(`[DSLEngine] Target type "${targetType}" does not exist.`)
+                    }
+                    validatePresetName(name, targetProto)
+                    if (Object.hasOwn(scopedProto.any, name)) {
+                        throw new Error(`[DSLEngine] Preset collision: "${name}" is already registered globally.`)
+                    }
+                    targetProto[name] = BuilderFactory.PRESET.createSetter(handler)
+                }
+                const buildPrototype = (specs, factory) => {
+                    const shared = Object.create(scopedProto.any)
+                    const methods = Object.fromEntries(Object.entries(specs).map(([propKey, propStrategy]) => [capitalize(propKey), factory.createSetter(propKey, propStrategy)]))
+                    const resolver = { [RESOLVE_SYM]: factory.createResolver(specs) }
+                    return Object.assign(shared, methods, resolver)
+                }
+                const assignProps = (box, innerField, props, specs) => {
+                    for (const [prop, value] of Object.entries(props)) {
                         const propResolver = specs[prop]
                         if (!propResolver) {
-                            throw new Error(`[SchemaBuilder] Property "${prop}" is NOT defined in the specs`)
+                            throw new Error(`[DSLEngine] Property "${prop}" is NOT defined in the specs`)
                         }
-                        propResolver.stage(box, innerField, prop, props[prop])
+                        propResolver.assign(box, innerField, prop, value)
                     }
                 }
                 const defineField = (type, specs = {}, defaultProps = {}) => {
                     const finalSpecs = { ...BaseSpecs.FIELD, ...specs }
-                    const proto = buildProto(finalSpecs, BuilderFactory.FIELD)
+                    const proto = buildPrototype(finalSpecs, BuilderFactory.FIELD)
+                    scopedProto.fields[type] = proto
                     return (key, overrideProps = {}) => {
                         const finalProps = { ...defaultProps, ...overrideProps }
                         const box = Object.create(proto)
                         const innerField = { type, key }
                         box.fields = [innerField]
-                        applyProps(box, innerField, finalProps, finalSpecs)
+                        assignProps(box, innerField, finalProps, finalSpecs)
                         return box
                     }
                 }
                 const defineBox = (specs = {}, defaultProps = {}) => {
                     const finalSpecs = { ...BaseSpecs.BOX, ...specs }
-                    const proto = buildProto(finalSpecs, BuilderFactory.BOX)
+                    const proto = buildPrototype(finalSpecs, BuilderFactory.BOX)
+                    scopedProto.box = proto
                     return (...args) => {
                         const box = Object.create(proto)
-                        applyProps(box, null, defaultProps, finalSpecs)
+                        assignProps(box, null, defaultProps, finalSpecs)
                         let argIdx = 0
                         if (args.length > 0 && typeof args[0] === "string") {
                             box.title = args[0]
                             argIdx++
                         }
-                        applyFields(box, args.slice(argIdx))
+                        appendFields(box, args.slice(argIdx))
                         return box
                     }
                 }
                 const createDefine = (context) => {
                     return (input) => normalizeBoxes(typeof input === "function" ? input(context) : input)
                 }
-                return { Dep, Tip, PropResolvers, createDefine, defineField, defineBox, preset }
+                return { Dep, Tip, PropResolvers, createDefine, defineField, defineBox, preset, presetFor }
             }
-            form.dslEngine.statics = { resolve, normalizeBoxes, applyFields, RESOLVE_SYM, Dep, Tip, PropResolvers, BaseSpecs, BuilderFactory }
-        }
+            form.dslEngine.statics = { resolveFields, resolveBoxes, normalizeBoxes, appendFields, RESOLVE_SYM, Dep, Tip, PropResolvers, BaseSpecs, BuilderFactory }
+        },
     }
 })()
 
@@ -1232,7 +1405,7 @@ const Feature_Watchers = (() => {
         userWatchers.forEach((watcher, index) => {
             if (!watcher) return
             const key = watcher.key || watcher.name || `anonymous_watcher_${index}`
-            if (normalized.hasOwnProperty(key)) {
+            if (Object.hasOwn(normalized, key)) {
                 console.warn(`FastForm Warning: Duplicate watcher key detected: '${key}'.`)
             }
             normalized[key] = watcher
@@ -1331,9 +1504,9 @@ const Feature_Watchers = (() => {
 
         const uiBehaviors = {
             visibility: (el, actions, ctx) => {
-                if (actions.hasOwnProperty("$toggle")) {
+                if (Object.hasOwn(actions, "$toggle")) {
                     utils.toggleInvisible(el)
-                } else if (actions.hasOwnProperty("$set")) {
+                } else if (Object.hasOwn(actions, "$set")) {
                     utils.toggleInvisible(el, actions.$set === "hidden")
                 } else {
                     console.warn("FastForm Warning: Invalid action for '$visibility' effect. Use '$set' or '$toggle'.", actions)
@@ -1391,7 +1564,7 @@ const Feature_Watchers = (() => {
                 addKey: (key) => keys.add(key),
             }
             for (const [name, handler] of Object.entries(form.options.conditionEvaluators)) {
-                if (condition.hasOwnProperty(name)) {
+                if (Object.hasOwn(condition, name)) {
                     let value = condition[name]
                     if (typeof handler.beforeEvaluate === "function") value = handler.beforeEvaluate(value, context)
                     handler.collectTriggers(value, context)
@@ -1479,7 +1652,7 @@ const Feature_Watchers = (() => {
 
             // Handle logical evaluators like $and, $or
             for (const [name, handler] of Object.entries(context.conditionEvaluators)) {
-                if (condition.hasOwnProperty(name)) {
+                if (Object.hasOwn(condition, name)) {
                     let value = condition[name]
                     if (typeof handler.beforeEvaluate === "function") {
                         value = handler.beforeEvaluate(value, context)
@@ -1728,25 +1901,25 @@ const Feature_Watchers = (() => {
             FastFormClass.registerMeta = (name, getterFn) => {
                 if (typeof name !== "string" || !name) throw new TypeError("Meta name must be a non-empty string.")
                 if (typeof getterFn !== "function") throw new TypeError("Meta getter must be a function.")
-                if (Registries.meta.hasOwnProperty(name)) console.warn(`FastForm Warning: Overwriting meta '${name}'.`)
+                if (Object.hasOwn(Registries.meta, name)) console.warn(`FastForm Warning: Overwriting meta '${name}'.`)
                 Registries.meta[name] = getterFn
             }
             FastFormClass.registerConditionEvaluator = (name, definition) => {
                 const checks = { evaluate: { required: true, type: "function" }, collectTriggers: { required: true, type: "function" }, beforeEvaluate: { type: "function" } }
                 validateDefinition(name, definition, checks, validationOptions)
-                if (Registries.conditionEvaluators.hasOwnProperty(name)) console.warn(`FastForm Warning: Overwriting Condition Evaluator for '${name}'.`)
+                if (Object.hasOwn(Registries.conditionEvaluators, name)) console.warn(`FastForm Warning: Overwriting Condition Evaluator for '${name}'.`)
                 Registries.conditionEvaluators[name] = definition
             }
             FastFormClass.registerComparisonEvaluator = (name, definition) => {
                 const checks = { evaluate: { required: true, type: "function" }, beforeEvaluate: { type: "function" } }
                 validateDefinition(name, definition, checks, validationOptions)
-                if (Registries.comparisonEvaluators.hasOwnProperty(name)) console.warn(`FastForm Warning: Overwriting Comparison Evaluator for '${name}'.`)
+                if (Object.hasOwn(Registries.comparisonEvaluators, name)) console.warn(`FastForm Warning: Overwriting Comparison Evaluator for '${name}'.`)
                 Registries.comparisonEvaluators[name] = definition
             }
             FastFormClass.registerEffectHandler = (name, definition) => {
                 const checks = { collectAffects: { required: true, type: "function" }, execute: { required: true, type: "function" } }
                 validateDefinition(name, definition, checks, validationOptions)
-                if (Registries.effectHandlers.hasOwnProperty(name)) console.warn(`FastForm Warning: Overwriting Effect Handler for '${name}'.`)
+                if (Object.hasOwn(Registries.effectHandlers, name)) console.warn(`FastForm Warning: Overwriting Effect Handler for '${name}'.`)
                 Registries.effectHandlers[name] = definition
             }
         },
@@ -1915,7 +2088,7 @@ const Feature_Validation = {
                 if (typeof definition !== "function") {
                     throw new TypeError(`Validator Error: validator '${name}' must be a function.`)
                 }
-                if (Feature_Validation._validators.hasOwnProperty(name)) {
+                if (Object.hasOwn(Feature_Validation._validators, name)) {
                     console.warn(`FastForm Warning: Overwriting validator for '${name}'.`)
                 }
                 Feature_Validation._validators[name] = definition
@@ -1980,7 +2153,7 @@ const Feature_Validation = {
 }
 
 function normalizeWatcherOptions(rule) {
-    const isFullDefinition = ["when", "triggers"].some(key => rule.hasOwnProperty(key))
+    const isFullDefinition = ["when", "triggers"].some(key => Object.hasOwn(rule, key))
     let when, triggers
     if (isFullDefinition) {
         when = rule.when
@@ -2001,7 +2174,7 @@ const Feature_FieldDependencies = {
         const allDependencies = { ...options.fieldDependencies }
         form.traverseFields(field => {
             if (!field.dependencies) return
-            if (allDependencies.hasOwnProperty(field.key)) {
+            if (Object.hasOwn(allDependencies, field.key)) {
                 console.warn(`FastForm Warning: Dependency for '${field.key}' is defined both inline and in top-level options. The inline definition will be used.`)
             }
             allDependencies[field.key] = field.dependencies
@@ -2070,7 +2243,7 @@ const Feature_BoxDependencies = {
         form.traverseBoxes((box) => {
             allBoxes[box.id] = box
             if (box.dependencies) {
-                if (allRules.hasOwnProperty(box.id)) {
+                if (Object.hasOwn(allRules, box.id)) {
                     console.warn(`FastForm Warning: Box for '${box.id}' is defined both inline and in top-level options. The inline definition will be used.`)
                 }
                 allRules[box.id] = box.dependencies
@@ -2141,7 +2314,7 @@ const Feature_Cascades = {
         const { register } = form.getApi("watchers")
         Object.entries(options.cascades).forEach(([cascadeKey, rule]) => {
             const watcherKey = `_cascade_${cascadeKey}`
-            if (!rule || !rule.hasOwnProperty("target") || !rule.hasOwnProperty("value")) {
+            if (!rule || !Object.hasOwn(rule, "target") || !Object.hasOwn(rule, "value")) {
                 console.warn(`FastForm Warning: Cascade rule "${cascadeKey}" is missing a "target" or "value".`)
                 return
             }
@@ -2167,6 +2340,7 @@ FastForm.registerFeature("eventDelegation", Feature_EventDelegation)
 FastForm.registerFeature("defaultKeybindings", Feature_DefaultKeybindings)
 FastForm.registerFeature("collapsibleBox", Feature_CollapsibleBox)
 FastForm.registerFeature("interactiveTooltip", Feature_InteractiveTooltip)
+FastForm.registerFeature("highlight", Feature_Highlight)
 FastForm.registerFeature("watchers", Feature_Watchers)
 FastForm.registerFeature("parsing", Feature_Parsing)
 FastForm.registerFeature("validation", Feature_Validation)
@@ -2310,7 +2484,7 @@ const Validator_Regex = ({ value }) => {
 }
 
 const Validator_Path = ({ value }) => {
-    const base = utils.resolvePath(value)
+    const base = utils.resolvePluginPath(value)
     return Try(() => value && utils.Package.FsExtra.accessSync(base), () => `No such path: ${base}`)
 }
 
@@ -2363,7 +2537,7 @@ function normalizeOptionsAttr(field) {
 }
 
 function defaultBlockLayout(field) {
-    if (!field.hasOwnProperty("isBlockLayout")) {
+    if (!Object.hasOwn(field, "isBlockLayout")) {
         field.isBlockLayout = true
     }
 }
@@ -2741,7 +2915,7 @@ const Control_Hotkey = {
     update: ({ element, value, field }) => {
         const input = element.querySelector(".hotkey-input")
         if (input) {
-            updateInputState(input, field, value || "")
+            updateInputState(input, field, utils.hotkeyHub.capitalize(value || ""))
         }
     },
     bindEvents: ({ form }) => {
@@ -2765,7 +2939,7 @@ const Control_Hotkey = {
                     utils.altKeyPressed(ev) ? "alt" : undefined,
                     ignoreKeys.includes(key) ? undefined : key,
                 ]
-                this.value = keyCombination.filter(Boolean).join("+")
+                this.value = utils.hotkeyHub.capitalize(keyCombination.filter(Boolean).join("+"))
                 updateHotkey(this)
             }
             ev.stopPropagation()
@@ -2798,8 +2972,9 @@ const Control_Textarea = {
     bindEvents: ({ form }) => {
         form.onEvent("keydown", ".textarea", function (ev) {
             if (utils.metaKeyPressed(ev) && ev.key === "Enter") {
-                form.validateAndCommit(this.dataset.key, this.value)
+                ev.stopPropagation()
                 ev.preventDefault()
+                form.validateAndCommit(this.dataset.key, this.value)
             }
         }, true).onEvent("change", ".textarea", function () {
             form.validateAndCommit(this.dataset.key, this.value)
@@ -2861,6 +3036,7 @@ const Control_CodeEditor = {
                 syncState(this)
                 form.validateAndCommit(key, this.value)
             } else if (ev.key === "Enter") {
+                ev.stopPropagation()
                 ev.preventDefault()
                 const cursor = this.selectionStart
                 const currentLineStart = this.value.lastIndexOf("\n", cursor - 1) + 1
@@ -2923,7 +3099,7 @@ const Control_Object = {
                 parsedValue = serializer.parse(textarea.value || "{}")
             } catch (e) {
                 console.error(e)
-                const msg = i18n.t("global", "error.IncorrectFormatContent", { format: controlOptions.format })
+                const msg = i18n.t("global", "error.incorrectFormat", { format: controlOptions.format })
                 utils.notification.show(msg, "error")
                 return
             }
@@ -3308,6 +3484,7 @@ const Control_Transfer = {
         element.querySelector(".source-list").innerHTML = Control_Transfer._createItems(toSelectKeys, field.options, disabledOptions)
     },
     bindEvents: ({ form }) => {
+        const rafManager = utils.getRafManager()
         let activeDraggable = null
         let dragGhost = null
         let grabOffsetX = 0
@@ -3324,7 +3501,6 @@ const Control_Transfer = {
             return _transparentImg
         }
 
-        let rafId = null
         let lastSortTime = 0
         const SORT_THROTTLE_MS = 50
 
@@ -3350,10 +3526,7 @@ const Control_Transfer = {
         })
 
         form.onEvent("dragend", ".transfer-card", function () {
-            if (rafId) {
-                cancelAnimationFrame(rafId)
-                rafId = null
-            }
+            rafManager.cancel()
             if (!activeDraggable || !dragGhost) return
 
             const destRect = activeDraggable.getBoundingClientRect()
@@ -3385,10 +3558,11 @@ const Control_Transfer = {
 
             if (!dragGhost || !activeDraggable) return
 
-            if (rafId) cancelAnimationFrame(rafId)
-            rafId = requestAnimationFrame(() => {
-                ghostX = ev.clientX - grabOffsetX
-                ghostY = ev.clientY - grabOffsetY
+            const currentX = ev.clientX
+            const currentY = ev.clientY
+            rafManager.schedule(() => {
+                ghostX = currentX - grabOffsetX
+                ghostY = currentY - grabOffsetY
                 dragGhost.style.transform = `translate3d(${ghostX}px, ${ghostY}px, 0)`
             })
 
@@ -3425,12 +3599,16 @@ const Control_Transfer = {
             handle.classList.add("active")
 
             const onMouseMove = (moveEv) => {
-                const dy = moveEv.clientY - startY
-                const newHeight = Math.max(150, startHeight + dy)
-                container.style.height = `${newHeight}px`
+                const currentY = moveEv.clientY
+                rafManager.schedule(() => {
+                    const dy = currentY - startY
+                    const newHeight = Math.max(150, startHeight + dy)
+                    container.style.height = `${newHeight}px`
+                })
             }
             const onMouseUp = () => {
                 handle.classList.remove("active")
+                rafManager.cancel()
                 document.removeEventListener("mousemove", onMouseMove)
                 document.removeEventListener("mouseup", onMouseUp)
             }
@@ -3841,17 +4019,9 @@ const Control_Table = {
         return `<div class="table" ${key}>${table}</div>`
     },
     update: ({ element, value, field }) => {
-        const tableEl = element.querySelector("table")
-        if (!tableEl) return
-
-        let tbody = tableEl.querySelector("tbody")
-        if (tbody) {
-            tbody.innerHTML = ""
-        } else {
-            tbody = document.createElement("tbody")
-            tableEl.appendChild(tbody)
-        }
-        tbody.innerHTML = (value || [])
+        const tbodyEl = element.querySelector("tbody")
+        if (!tbodyEl) return
+        tbodyEl.innerHTML = (value || [])
             .map(item => `<tr>${Control_Table._createTableRow(field.thMap, item).map(e => `<td>${e}</td>`).join("")}</tr>`)
             .join("")
     },
@@ -3926,7 +4096,7 @@ const Control_Composite = {
         form.setData(field.key, fixedValue)  // Fix data
         state.set(field.key, { ...field.defaultValues, ...fixedValue })  // Set cache
 
-        Control_Composite._setCacheWatcher(options, field, state)
+        Control_Composite._setCacheWatcher(form, field, state)
         Control_Composite._setDependencies(field)
     },
     getNestedSchemas: (field) => Array.isArray(field.subSchema) ? [field.subSchema] : [],
@@ -3973,19 +4143,18 @@ const Control_Composite = {
             }
         }
     },
-    _setCacheWatcher: (options, field, state) => {
+    _setCacheWatcher: (form, field, state) => {
         const subFieldKeys = Control_Composite._collectAllKeys(field.subSchema)
         if (subFieldKeys.length === 0) return
-        if (!options.watchers) options.watchers = {}
         const watcherKey = `_composite_cache_sync_${field.key}`
-        options.watchers[watcherKey] = {
+        form.getApi("watchers")?.register(watcherKey, {
             triggers: subFieldKeys,
             when: { [field.key]: { $typeof: "object" } },
             affects: [],
             effect: (isMet, ctx) => {
                 if (isMet) state.set(field.key, { ...field.defaultValues, ...ctx.getValue(field.key) })
             }
-        }
+        })
     },
     _collectAllKeys: (schema, prefix) => {
         const keys = []

@@ -1,10 +1,8 @@
 class ServiceContainer {
-    constructor() {
-        this.services = new Map()
-        this.plugins = {}
-        this.settings = {}
-        this.utils = null
-    }
+    services = new Map()
+    plugins = {}
+    settings = {}
+    utils = null
 
     registerService(name, instance) {
         this.services.set(name, instance)

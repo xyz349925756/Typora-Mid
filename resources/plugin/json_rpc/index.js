@@ -1,63 +1,42 @@
 class JsonRPCPlugin extends BasePlugin {
     process = () => {
-        try {
-            const rpc = require("./node-json-rpc")
-            const server = new rpc.Server(this.config.SERVER_OPTIONS)
-            this.registerRPCFunction(server)
-            server.start(err => {
-                if (err) {
-                    console.error("RPC Server Error:", err)
-                } else {
-                    console.debug("RPC Server running with options", this.config.SERVER_OPTIONS)
-                }
+        return Promise.resolve()
+            .then(() => {
+                const rpc = require("./node-json-rpc")
+                const server = new rpc.Server(this.config.SERVER_OPTIONS)
+                this.registerMethods(server)
+                return new Promise((resolve, reject) => server.start(err => err ? reject(err) : resolve()))
             })
-        } catch (err) {
-            console.warn(err)
-        }
+            .then(() => console.debug("RPC Server running"))
+            .catch(console.error)
     }
 
-    registerRPCFunction = server => {
-        server.addMethod("ping", (params, callback) => {
-            callback(null, "pong from typora-plugin")
-        })
+    registerMethods = server => {
+        const run = (send, fn) => {
+            return Promise.try(fn)
+                .then(result => send(null, result))
+                .catch(error => send({ code: 500, message: error.toString() }), null)
+        }
 
-        server.addMethod("invokePlugin", (params, callback) => {
-            let error, result
-
-            const [plugin, func, ...args] = params
-            if (!plugin || !func) {
-                callback({ code: 400, message: "params has not plugin or function" })
+        server.addMethod("ping", (_, send) => send(null, "pong from typora-plugin"))
+        server.addMethod("eval", (params, send) => run(send, () => eval(params[0])))
+        server.addMethod("invokePlugin", (params, send) => {
+            const [pluginName, fnName, ...args] = params
+            if (!pluginName || !fnName) {
+                send({ code: 400, message: "Parameters do NOT contain 'plugin' or 'function'" })
                 return
             }
-
-            const _plugin = this.utils.tryGetPlugin(plugin)
-            const _func = _plugin?.[func]
-            if (!_func) {
-                callback({ code: 404, message: "has not the plugin function" })
+            const plugin = this.utils.tryGetPlugin(pluginName)
+            const fn = plugin?.[fnName]
+            if (!fn) {
+                send({ code: 404, message: `No such method '${fnName}' in plugin '${pluginName}'` })
                 return
             }
-
-            try {
-                result = _func.apply(_plugin, args)
-            } catch (err) {
-                error = { code: 500, message: err.toString() }
-            }
-            callback(error, result)
-        })
-
-        server.addMethod("eval", (params, callback) => {
-            let error, result
-
-            try {
-                result = eval(params[0])
-            } catch (err) {
-                error = { code: 500, message: err.toString() }
-            }
-            callback(error, result)
+            run(send, () => fn.apply(plugin, args))
         })
     }
 }
 
 module.exports = {
-    plugin: JsonRPCPlugin
+    plugin: JsonRPCPlugin,
 }

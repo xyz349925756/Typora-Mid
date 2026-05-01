@@ -5,9 +5,10 @@
  *              and then automatically fold the chapters back after the user switches back to maintain consistency.
  */
 class StateRecorder {
+    recorders = new Map()  // map[name]recorder
+
     constructor(utils) {
-        this.utils = utils;
-        this.recorders = new Map(); // map[name]recorder
+        this.utils = utils
     }
 
     /**
@@ -20,24 +21,22 @@ class StateRecorder {
      * @param {function} options.finalFn: The function to execute last.
      * @param {function(Function)} options.delayFn: The function to delay execute.
      */
-    register = (options) => {
-        this.recorders.set(options.name, { ...options, collections: new Map() })
-    }
-    unregister = recorderName => this.recorders.delete(recorderName);
+    register = (options) => this.recorders.set(options.name, { ...options, collections: new Map() })
+    unregister = recorderName => this.recorders.delete(recorderName)
 
     collect = name => {
-        const filepath = this.utils.getFilePath();
+        const filepath = this.utils.getFilePath()
         for (const [recorderName, recorder] of this.recorders.entries()) {
             if (!name || name === recorderName) {
-                const collection = new Map();
+                const collection = new Map()
                 document.querySelectorAll(recorder.selector).forEach((ele, idx) => {
-                    const state = recorder.stateGetter(ele);
+                    const state = recorder.stateGetter(ele)
                     if (state) collection.set(idx, state)
                 })
                 if (collection.size) {
                     recorder.collections.set(filepath, collection)
                 } else {
-                    recorder.collections.delete(filepath);
+                    recorder.collections.delete(filepath)
                 }
             }
         }

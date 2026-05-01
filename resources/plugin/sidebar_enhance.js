@@ -37,16 +37,14 @@ class SidebarEnhancePlugin extends BasePlugin {
 
         File.SupportedFiles.push(...displayExt)
 
-        // Delay decoration to ensure this beforeFn runs first, this beforeFn may return a stopCallError
-        this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.allPluginsHadInjected, () => {
-            this.utils.decorate(() => File?.editor?.library, "openFile", (toOpenFile) => {
-                const ext = this.utils.Package.Path.extname(toOpenFile)
-                if (openBySystemExt.has(ext)) {
-                    this.utils.openPath(toOpenFile)
-                    return this.utils.stopCallError
-                }
-            })
-        })
+        this.utils.decorator.preventCallIf(() => File?.editor?.library, "openFile", (toOpenFile) => {
+            const ext = this.utils.Package.Path.extname(toOpenFile)
+            if (openBySystemExt.has(ext)) {
+                this.utils.openPath(toOpenFile)
+                return true
+            }
+            return false
+        }, { priority: -100 })
     }
 
     _rerenderOutlineNode = () => {
@@ -83,12 +81,12 @@ class SidebarEnhancePlugin extends BasePlugin {
 
         const customizeFileIcons = getCustomFileIcons()
         const hideFolders = getHideFolders()
-        this.utils.decorate(() => File?.editor?.library?.fileTree, "renderNode", null, ($node, info) => {
+        this.utils.decorator.afterCall(() => File?.editor?.library?.fileTree, "renderNode", ($node, info) => {
             customizeFileIcons($node, info)
             hideFolders($node, info)
         })
 
-        this.utils.eventHub.once(this.utils.eventHub.eventType.fileOpened, () => File.editor.library.refreshPanelCommand())
+        this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.allPluginsHadInjected, () => File.editor.library.refreshPanelCommand())
     }
 
     _setOutlineState = () => {
@@ -97,7 +95,8 @@ class SidebarEnhancePlugin extends BasePlugin {
         const openItem = el => el.classList.add(hasOpenClass)
         const isItemOpen = el => el.classList.contains(hasOpenClass)
         switch (this.config.OUTLINE_FOLD_STATE) {
-            case "alwaysFold": return
+            case "alwaysFold":
+                return
             case "alwaysUnfold":
                 this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.outlineUpdated, () => {
                     this.entities.outline.querySelectorAll(`.outline-item-wrapper:not(.${singleItemClass})`).forEach(openItem)
@@ -130,8 +129,8 @@ class SidebarEnhancePlugin extends BasePlugin {
 
         const fresh = this.utils.debounce(() => this.entities.outline.querySelectorAll(".outline-item").forEach(e => e.draggable = true), 200)
         this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.outlineUpdated, fresh)
-        this.utils.decorate(() => File, "freshMenu", null, fresh)
-        this.utils.decorate(() => File?.editor?.library?.outline, "renderOutline", null, fresh)
+        this.utils.decorator.afterCall(() => File, "freshMenu", fresh)
+        this.utils.decorator.afterCall(() => File?.editor?.library?.outline, "renderOutline", fresh)
 
         let dragItem
         const isAncestorOf = (ancestor, descendant) => ancestor.parentElement.contains(descendant)
@@ -243,7 +242,7 @@ class SidebarEnhancePlugin extends BasePlugin {
                 fileFilter: (name, filepath, stat) => verifySize(stat) && verifyExt(name),
                 dirFilter: name => !this.config.IGNORE_FOLDERS.includes(name),
                 fileParamsGetter: this.utils.identity,
-                maxStats: this.config.MAX_STATS,
+                maxEntities: this.config.MAX_ENTITIES,
                 semaphore: this.config.CONCURRENCY_LIMIT,
                 followSymlinks: this.config.FOLLOW_SYMBOLIC_LINKS,
                 signal: abortController.signal,
@@ -267,7 +266,7 @@ class SidebarEnhancePlugin extends BasePlugin {
             let fileCount = 0
             await this.utils.walkDir({ ...walkOptions, dir: node.dataset.path, onFile: () => fileCount++ })
             const displayEl = node.querySelector(":scope > .file-node-content")
-            if (fileCount <= this.config.IGNORE_MIN_NUM) {
+            if (fileCount <= this.config.MIN_FILES_TO_DISPLAY) {
                 displayEl.removeAttribute("data-count")
             } else {
                 displayEl.setAttribute("data-count", fileCount)
@@ -292,7 +291,7 @@ class SidebarEnhancePlugin extends BasePlugin {
                 font-weight: ${this.config.FONT_WEIGHT};
             }`
         )
-        this.utils.eventHub.once(this.utils.eventHub.eventType.fileOpened, () => {
+        this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.allPluginsHadInjected, () => {
             File.editor.library.refreshPanelCommand()
             countAllDirs()
         })

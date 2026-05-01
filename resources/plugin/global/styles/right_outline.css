@@ -1,0 +1,181 @@
+#plugin-right-outline {
+    --right-outline-font-size: 1em;
+    --right-outline-line-width: 0.05rem;
+    --right-outline-line-color: rgba(0, 0, 0, 0.1);
+    --right-outline-line-width-select: 0.1rem;
+    --right-outline-line-color-select: red;
+
+    height: 95%;
+    right: 0;
+    box-shadow: initial;
+    border-left: dashed 1px rgba(0, 0, 0, 0.2);
+    z-index: 9990;
+}
+
+#plugin-right-outline .grip-right {
+    position: absolute;
+    left: -5px;
+    width: 10px;
+    height: 100%;
+    cursor: ew-resize;
+}
+
+#plugin-right-outline .plugin-right-outline-wrap {
+    width: 100%;
+    height: 100%;
+}
+
+#plugin-right-outline .plugin-right-outline-header {
+    display: inline-flex;
+    width: 100%;
+    padding-bottom: 0.25em;
+    border-bottom: dashed 1px rgba(0, 0, 0, 0.1);
+}
+
+#plugin-right-outline .plugin-right-outline-icon {
+    opacity: .7;
+    margin: 1px 2px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1.1em;
+    line-height: 1.6em;
+    flex-grow: 1;
+    text-align: center;
+}
+
+#plugin-right-outline .plugin-right-outline-icon.select,
+#plugin-right-outline .plugin-right-outline-icon:hover {
+    background: var(--active-file-bg-color);
+    color: var(--active-file-text-color);
+    opacity: 1;
+}
+
+#plugin-right-outline .plugin-right-outline-list {
+    height: 100%;
+    overflow: scroll;
+    font-size: var(--right-outline-font-size);
+}
+
+#plugin-right-outline .toc-root {
+    margin: 0 0.5em 4em 0.5em;
+}
+
+#plugin-right-outline .toc-header-node {
+    opacity: 0.6;
+}
+
+#plugin-right-outline ul {
+    position: relative;
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+#plugin-right-outline li {
+    margin-bottom: 0.1em;
+    overflow-wrap: break-word;
+    list-style: none;
+}
+
+#plugin-right-outline ul ul {
+    margin-left: 1.5em;
+}
+
+#plugin-right-outline .toc-node {
+    padding: 1px 5px;
+    border-radius: 4px;
+    user-select: none;
+}
+
+#plugin-right-outline .toc-node:hover {
+    cursor: pointer;
+    background-color: var(--item-hover-bg-color);
+}
+
+#plugin-right-outline .toc-node.active {
+    font-weight: 700;
+}
+
+#plugin-right-outline .toc-toggle {
+    cursor: pointer;
+    width: 16px;
+    text-align: center;
+    transition: transform 0.2s;
+    color: #666;
+}
+
+#plugin-right-outline .toc-root li.collapsed > ul {
+    display: none;
+}
+
+#plugin-right-outline .toc-root li.collapsed > .toc-node > .toc-toggle {
+    transform: rotate(-90deg);
+}
+
+#plugin-right-outline .toc-text {
+    margin-left: 6px;
+}
+#plugin-right-outline .toc-text:hover {
+    text-decoration: underline;
+}
+
+/* drag & drop */
+.plugin-right-outline-drag-source {
+    opacity: 0.4;
+}
+
+.plugin-right-outline-drag-above {
+    outline: 1px dashed #000;
+    box-shadow: 0 -3px 0 #8d8df0;
+}
+
+.plugin-right-outline-drag-below {
+    outline: 1px dashed #000;
+    box-shadow: 0 3px 0 #8d8df0;
+}
+
+/* preview-threading */
+#plugin-right-outline .plugin-right-outline-list {
+    padding-left: 0.8rem;
+}
+
+.toc-root .toc-node:before {
+    content: "";
+    display: inline-block;
+    width: .8rem;
+    height: var(--right-outline-line-width);
+    position: absolute;
+    z-index: 10;
+    left: -0.72rem;
+    margin-right: .2rem;
+    top: 1rem;
+    background: var(--right-outline-line-color);
+}
+
+/*#plugin-right-outline ul:has(.toc-node.active):after,*/
+#plugin-right-outline ul:before {
+    content: "";
+    display: inline-block;
+    width: var(--right-outline-line-width);
+    position: absolute;
+    top: -0.1rem;
+    left: -0.8rem;
+    z-index: 15;
+    margin-bottom: .8rem;
+}
+
+#plugin-right-outline ul:before {
+    height: calc(100% - 0.5rem);
+    background: var(--right-outline-line-color);
+}
+
+/*#plugin-toc ul:has(.toc-node.active):after {*/
+/*    height: calc(100% - 0.5rem);*/
+/*    background: var(--right-outline-line-color-select);*/
+/*}*/
+
+.toc-root .toc-node.active:before,
+.toc-root .toc-node:has(+ ul .toc-node.active):before {
+    background: var(--right-outline-line-color-select);
+    height: var(--right-outline-line-width-select);
+}

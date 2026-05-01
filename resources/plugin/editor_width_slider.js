@@ -1,4 +1,6 @@
 class EditorWidthSliderPlugin extends BasePlugin {
+    hotkey = () => [{ hotkey: this.config.HOTKEY, callback: this.call }]
+
     process = async () => {
         await this._setWidth(this.config.WIDTH_RATIO)
     }
@@ -7,15 +9,15 @@ class EditorWidthSliderPlugin extends BasePlugin {
         return parseInt(this.utils.entities.eWrite.offsetWidth * 100 / this.utils.entities.eContent.offsetWidth)
     }
 
-    _setWidth = async (width, tmp = true) => {
-        const { eWrite } = this.utils.entities
+    _setWidth = async (width, temp = true) => {
+        const s = this.utils.entities.eWrite.style
         if (width < 0) {
-            eWrite.style.removeProperty("max-width")
+            s.removeProperty("max-width")
         } else {
-            eWrite.style.setProperty("max-width", `${width}%`, "important")
+            s.setProperty("max-width", `${width}%`, "important")
         }
         this.config.WIDTH_RATIO = width
-        if (!tmp) {
+        if (!temp) {
             await this.utils.settings.save(this.fixedName, this.config)
         }
     }
@@ -39,12 +41,12 @@ class EditorWidthSliderPlugin extends BasePlugin {
                     await this._setWidth(-1, false)
                     this.utils.formDialog.exit()
                     this.utils.notification.show(this.i18n.t("success.restore"))
-                }
+                },
             },
             hooks: {
                 onCommit: ({ key, value }) => {
                     if (key === "width") this._setWidth(value, true)
-                }
+                },
             },
         }
         const { response, data } = await this.utils.formDialog.modal(op)
@@ -57,5 +59,5 @@ class EditorWidthSliderPlugin extends BasePlugin {
 }
 
 module.exports = {
-    plugin: EditorWidthSliderPlugin
+    plugin: EditorWidthSliderPlugin,
 }

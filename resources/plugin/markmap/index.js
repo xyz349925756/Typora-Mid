@@ -2,11 +2,14 @@ const FenceMarkmap = require("./fence.js")
 const TOCMarkmap = require("./toc.js")
 
 class MarkmapPlugin extends BasePlugin {
-    beforeProcess = () => {
-        this.Lib = {}
-        this.tocMarkmap = this.config.ENABLE_TOC_MARKMAP ? new TOCMarkmap(this) : null
-        this.fenceMarkmap = this.config.ENABLE_FENCE_MARKMAP ? new FenceMarkmap(this) : null
-    }
+    Lib = {}
+    tocMarkmap = this.config.ENABLE_TOC_MARKMAP ? new TOCMarkmap(this) : null
+    fenceMarkmap = this.config.ENABLE_FENCE_MARKMAP ? new FenceMarkmap(this) : null
+    staticActions = this.i18n.fillActions([
+        { act_value: "draw_fence_outline", act_hotkey: this.config.FENCE_HOTKEY, act_hidden: !this.fenceMarkmap },
+        { act_value: "draw_fence_template", act_hidden: !this.fenceMarkmap },
+        { act_value: "toggle_toc", act_hotkey: this.config.TOC_HOTKEY, act_hidden: !this.tocMarkmap },
+    ])
 
     styleTemplate = () => true
 
@@ -14,33 +17,17 @@ class MarkmapPlugin extends BasePlugin {
 
     hotkey = () => [this.tocMarkmap, this.fenceMarkmap].filter(Boolean).flatMap(p => p.hotkey())
 
-    init = () => {
-        this.staticActions = this.i18n.fillActions([
-            { act_value: "draw_fence_outline", act_hotkey: this.config.FENCE_HOTKEY, act_hidden: !this.fenceMarkmap },
-            { act_value: "draw_fence_template", act_hidden: !this.fenceMarkmap },
-            { act_value: "toggle_toc", act_hotkey: this.config.TOC_HOTKEY, act_hidden: !this.tocMarkmap }
-        ])
-    }
-
     process = () => {
-        if (this.tocMarkmap) {
-            this.tocMarkmap.init()
-            this.tocMarkmap.process()
-        }
-        if (this.fenceMarkmap) {
-            this.fenceMarkmap.process()
-        }
+        this.tocMarkmap?.init()
+        this.tocMarkmap?.process()
+        this.fenceMarkmap?.process()
     }
 
     call = async action => {
         if (action === "toggle_toc") {
-            if (this.tocMarkmap) {
-                await this.tocMarkmap.callback(action)
-            }
+            await this.tocMarkmap?.callback(action)
         } else if (action === "draw_fence_template" || action === "draw_fence_outline") {
-            if (this.fenceMarkmap) {
-                await this.fenceMarkmap.callback(action)
-            }
+            await this.fenceMarkmap?.callback(action)
         }
     }
 
@@ -77,16 +64,38 @@ class MarkmapPlugin extends BasePlugin {
         Object.assign(this.Lib, markmap, { transformer, Transformer, transformerVersions })
 
         const { styles, scripts } = transformer.getAssets()
-        const getPath = file => this.utils.joinPath("./plugin/markmap/resource/", file)
-        styles[0].data.href = getPath("katex.min.css")
-        styles[1].data.href = getPath("default.min.css")
-        scripts[1].data.src = getPath("webfontloader.js")
+        this.localizeResources(styles, scripts)
 
         await markmap.loadCSS(styles)
         await markmap.loadJS(scripts, { getMarkmap: () => markmap })
     }
+
+    localizeResources = (styles = [], scripts = []) => {
+        const katexBase = "./plugin/global/core/lib/katex"
+        const pluginBase = "./plugin/markmap/resource/"
+        const localResources = {
+            "katex.min.js": this.utils.joinPluginPath(katexBase, "katex.js"),
+            "katex.min.css": this.utils.joinPluginPath(katexBase, "katex.min.css"),
+            "default.min.css": this.utils.joinPluginPath(pluginBase, "default.min.css"),
+            "webfontloader.js": this.utils.joinPluginPath(pluginBase, "webfontloader.js"),
+        }
+        const localize = (items, expectedType, urlProp) => {
+            for (const item of items) {
+                if (item?.type === expectedType && typeof item?.data?.[urlProp] === "string") {
+                    const url = item.data[urlProp]
+                    const filename = url.slice(url.lastIndexOf("/") + 1)
+                    const localResource = localResources[filename]
+                    if (localResource) {
+                        item.data[urlProp] = localResource
+                    }
+                }
+            }
+        }
+        localize(styles, "stylesheet", "href")
+        localize(scripts, "script", "src")
+    }
 }
 
 module.exports = {
-    plugin: MarkmapPlugin
+    plugin: MarkmapPlugin,
 }

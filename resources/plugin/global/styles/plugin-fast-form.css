@@ -1,52 +1,54 @@
 :host {
-    --ff-primary: #007AFF;
-    --ff-primary-hover: #0062CC;
-    --ff-primary-alpha: rgba(0, 122, 255, 0.1);
-    --ff-focus-ring: rgba(0, 122, 255, 0.2);
+    --ff-primary: #4285f4;
+    --ff-primary-hover: #3367d6;
+    --ff-primary-alpha: rgba(66, 133, 244, 0.1);
+    --ff-focus-ring: rgba(66, 133, 244, 0.25);
 
-    --ff-danger: #FF3B30;
-    --ff-danger-bg: #FFE0DD;
+    --ff-danger: #ef4444;
+    --ff-danger-bg: #fef2f2;
 
-    --ff-error: #FF3B30;
-    --ff-error-bg: #FFF0F0;
-    --ff-warn: #FF9500;
-    --ff-warn-bg: #FFF5E5;
+    --ff-error: #ef4444;
+    --ff-error-bg: #fef2f2;
+    --ff-warn: #f59e0b;
+    --ff-warn-bg: #fffbeb;
 
     --ff-text-main: #415462;
-    --ff-text-sub: #909399;
-    --ff-text-placeholder: #C0C4CC;
+    --ff-text-sub: #64748b;
+    --ff-text-placeholder: #94a3b8;
 
-    --ff-bg-white: #FFFFFF;
-    --ff-bg-body: #F5F7FA;
-    --ff-bg-hover: #F2F6FC;
-    --ff-bg-block: #FAFBFC;
-    --ff-bg-disabled: #F5F7FA;
+    --ff-bg-white: #ffffff;
+    --ff-bg-body: #f8fafc;
+    --ff-bg-hover: #f1f5f9;
+    --ff-bg-block: #ffffff;
+    --ff-bg-disabled: #f1f5f9;
 
-    --ff-bg-selection: #007AFF4D;
-    --ff-bg-selection-disabled: #E4E7ED;
+    --ff-bg-selection: rgba(66, 133, 244, 0.2);
+    --ff-bg-selection-disabled: #e2e8f0;
 
-    --ff-border: #DCDFE6;
-    --ff-border-hover: #C0C4CC;
+    --ff-border: #e2e8f0;
+    --ff-border-hover: #cbd5e1;
 
-    --ff-radius: 4px;
-    --ff-box-radius: 8px;
+    --ff-radius: 6px;
+    --ff-font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --ff-shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
 
-    --ff-close-icon-size: 18px;
-    --ff-close-icon-line-width: 10px;
+    --ff-box-bg: #ffffff;
+    --ff-box-radius: 12px;
+
+    --ff-control-padding-h: 16px;
+    --ff-control-padding-v: 8px;
+
+    --ff-close-icon-size: 16px;
+    --ff-close-icon-line-width: 9px;
     --ff-close-icon-line-height: 1.5px;
 
-    /*--ff-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;*/
-    --ff-font-family: "Open Sans", "Clear Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-
-    --ff-scrollbar-bg: #E4E7ED;
-    --ff-scrollbar-thumb: #909399;
-
-    --ff-shadow-base: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+    --ff-scrollbar-bg: transparent;
+    --ff-scrollbar-thumb: #cbd5e1;
 }
 
-/* ==========================================================================
+/* ========================
    Global & Utilities
-   ========================================================================== */
+   ======================== */
 .plugin-common-hidden {
     display: none !important;
 }
@@ -54,7 +56,6 @@
 .plugin-common-readonly {
     pointer-events: none;
     opacity: 0.6;
-    filter: grayscale(100%);
 }
 
 .plugin-common-close {
@@ -66,7 +67,7 @@
     background-color: var(--ff-bg-white);
     border: 1px solid var(--ff-danger);
     border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     cursor: pointer;
     font-size: 0;
     line-height: 0;
@@ -99,7 +100,7 @@
     background-color: var(--ff-danger);
     border-color: var(--ff-danger);
     transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(255, 59, 48, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2), 0 2px 4px -1px rgba(239, 68, 68, 0.1);
 }
 
 .plugin-common-close:hover::before,
@@ -172,9 +173,9 @@
     background-color: var(--ff-warn-bg) !important;
 }
 
-/* ==========================================================================
+/* ========================
    Grid System
-   ========================================================================== */
+   ======================== */
 .ff-row {
     display: flex;
     flex-wrap: wrap;
@@ -191,8 +192,8 @@
     position: relative;
     width: 100%;
     box-sizing: border-box;
-    padding-right: 5px;
-    padding-left: 5px;
+    padding-right: 4px;
+    padding-left: 4px;
 
     --ff-col: 12;
     --ff-max-col: 12;
@@ -249,9 +250,9 @@
     --ff-col: 12;
 }
 
-/* ==========================================================================
+/* ========================
    Selection
-   ========================================================================== */
+   ======================== */
 ::selection {
     background-color: var(--ff-bg-selection);
 }
@@ -262,59 +263,63 @@ textarea:disabled::selection,
     background-color: var(--ff-bg-selection-disabled);
 }
 
-/* ==========================================================================
+/* ========================
    Layout Containers
-   ========================================================================== */
+   ======================== */
 .box-container {
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 .box {
-    padding: 5px 0;
-    background: var(--ff-bg-white);
+    padding: 4px 0;
+    background: var(--ff-box-bg);
     border-radius: var(--ff-box-radius);
-    /*border: 1px solid #EBEEF5;*/
+    /*border: 1px solid #e5e7eb;*/
 }
 
 .title {
-    font-weight: bold;
     display: flex;
     align-items: center;
-    height: 42px;
-    line-height: 42px;
+    min-height: 42px;
+    font-weight: bold;
     user-select: none;
     color: var(--ff-text-main);
 }
 
 #form.feature-collapsible-box .box-container > .title {
     cursor: pointer;
-    position: relative;
-    padding-left: 20px;
     user-select: none;
 }
 
 #form.feature-collapsible-box .box-container > .title::before {
     content: '';
-    position: absolute;
-    left: 4px;
-    top: 50%;
+    display: block;
+    flex-shrink: 0;
     width: 6px;
     height: 6px;
+    margin-right: 10px;
     border: 2px solid var(--ff-text-sub);
     border-top: 0;
     border-left: 0;
-    transform: translateY(-65%) rotate(45deg);
+    transform: rotate(45deg);
     transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border-radius: 1px;
 }
 
 #form.feature-collapsible-box .box-container.collapsed > .title::before {
-    transform: translateY(-50%) rotate(-45deg);
+    transform: rotate(-45deg);
 }
 
 #form.feature-collapsible-box .box-container.collapsed > .box {
     display: none;
+}
+
+mark.feature-highlight {
+    background-color: rgba(245, 158, 11, 0.4);
+    color: inherit;
+    border-radius: 2px;
+    line-height: 2em;
 }
 
 .explain {
@@ -360,9 +365,9 @@ textarea:disabled::selection,
     top: 100%;
     left: -12px;
     margin-top: 10px;
-    background-color: rgba(0, 0, 0, 0.85);
+    background-color: #1e293b;
     color: var(--ff-bg-white);
-    padding: 8px 12px;
+    padding: 8px 10px;
     border-radius: var(--ff-radius);
     font-size: 12px;
     line-height: 1.5;
@@ -372,7 +377,7 @@ textarea:disabled::selection,
     overflow-wrap: break-word;
     word-break: break-word;
     z-index: 100;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     pointer-events: none;
     animation: tooltipSlideUp 0.2s ease-out;
 }
@@ -380,14 +385,14 @@ textarea:disabled::selection,
 .tooltip .tooltip-content::after {
     content: "";
     position: absolute;
-    top: -5px;
+    top: -4px;
     left: 24px;
     transform: translateX(-50%);
     width: 0;
     height: 0;
-    border-bottom: 5px solid rgba(0, 0, 0, 0.85);
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
+    border-bottom: 4px solid #1e293b;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
 }
 
 .tooltip:hover .tooltip-content {
@@ -413,13 +418,13 @@ textarea:disabled::selection,
     background-color: var(--ff-focus-ring);
 }
 
-/* ==========================================================================
+/* ========================
    Controls Base
-   ========================================================================== */
+   ======================== */
 .control {
     display: flex;
     align-items: center;
-    padding: 8px 12px;
+    padding: var(--ff-control-padding-v) var(--ff-control-padding-h);
     min-height: 24px;
     line-height: 32px;
 }
@@ -450,16 +455,16 @@ textarea:disabled::selection,
     flex: 42;
 }
 
-/* ==========================================================================
+/* ========================
    Standard Inputs
-   ========================================================================== */
+   ======================== */
 input[type="text"],
 input[type="number"],
 input[type="password"],
 textarea {
     box-sizing: border-box;
     margin: 0;
-    padding: 1px 8px;
+    padding: 1px 12px;
     line-height: 2;
     list-style: none;
     position: relative;
@@ -508,9 +513,9 @@ textarea:disabled {
     color: var(--ff-text-sub);
 }
 
-/* ==========================================================================
+/* ========================
    Specific Components
-   ========================================================================== */
+   ======================== */
 
 /* Switch */
 .switch-input {
@@ -520,7 +525,7 @@ textarea:disabled {
     width: 43px;
     height: 26px;
     position: relative;
-    background-color: #E4E7ED;
+    background-color: var(--ff-border-hover);
     outline: none;
     border: 0;
     border-radius: 13px;
@@ -543,7 +548,7 @@ textarea:disabled {
     bottom: 0;
     margin: auto;
     transition: .3s;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.15);
 }
 
 .switch-input:checked {
@@ -567,7 +572,7 @@ textarea:disabled {
     border-radius: var(--ff-radius);
     border: 1px solid transparent;
     padding: 2px 8px;
-    line-height: 25px;
+    line-height: 24px;
     cursor: pointer;
     user-select: none;
     color: var(--ff-text-main);
@@ -654,10 +659,12 @@ textarea:disabled {
     flex-direction: row-reverse;
     justify-content: space-between;
     align-items: center;
-    top: 50%;
-    transform: translateY(-50%);
-    right: 0;
-    margin: 0 5px;
+    top: 0;
+    bottom: 0;
+    right: 4px;
+    height: fit-content;
+    margin: auto;
+    padding: 0 4px;
 }
 
 .hotkey-reset {
@@ -775,7 +782,7 @@ textarea:disabled {
 
 .range-input[type="range"]::-webkit-slider-runnable-track {
     height: 4px;
-    background: #E4E7ED;
+    background: var(--ff-border);
     border-radius: 2px;
 }
 
@@ -860,11 +867,6 @@ textarea:disabled {
     background-color: var(--ff-bg-hover);
 }
 
-.control[data-type="action"]:hover .action {
-    margin-right: 0;
-    color: var(--ff-primary);
-}
-
 .action-ripple-mask {
     position: absolute;
     top: 0;
@@ -879,7 +881,7 @@ textarea:disabled {
 .ripple {
     position: absolute;
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.08);
+    background-color: rgba(0, 0, 0, 0.05);
     transform: scale(0);
     animation: ripple-effect .8s ease-out forwards;
     pointer-events: none;
@@ -908,9 +910,9 @@ textarea:disabled {
     border-radius: var(--ff-radius);
     background-color: var(--ff-bg-white);
     transition: border-color 0.2s, box-shadow 0.2s;
-    font-family: "Menlo", "Monaco", "Consolas", "Courier New", monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     font-size: 13px;
-    line-height: 1.5;
+    line-height: 20px;
     align-items: stretch;
     min-width: 0;
 }
@@ -1087,7 +1089,7 @@ textarea:disabled {
     transform: scale(0.5);
     transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 10;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --ff-close-icon-size: 16px;
     --ff-close-icon-line-width: 8px;
 }
@@ -1121,7 +1123,7 @@ textarea:disabled {
     border-radius: var(--ff-radius);
     font-size: 13px;
     height: 32px;
-    border: 1px dashed var(--ff-border);
+    border: 1px dashed var(--ff-border-hover);
     color: var(--ff-text-sub);
     cursor: pointer;
     background-color: transparent;
@@ -1375,7 +1377,7 @@ textarea:disabled {
     white-space: nowrap;
     text-overflow: ellipsis;
     font-size: 15px;
-    padding: 5px 10px;
+    padding: 6px 12px;
 }
 
 .table th {
@@ -1385,7 +1387,7 @@ textarea:disabled {
 }
 
 .table td {
-    border-bottom: 1px solid #EBEEF5;
+    border-bottom: 1px solid var(--ff-border);
 }
 
 .table tr:last-child td {
@@ -1490,7 +1492,7 @@ textarea:disabled {
 }
 
 .checkbox-square {
-    border-radius: 2px;
+    border-radius: 4px;
 }
 
 .radio-wrapper:hover .radio-disc,
@@ -1617,9 +1619,6 @@ textarea:disabled {
     position: relative;
     max-width: 100%;
     line-height: 1.4;
-
-    will-change: transform;
-    transform: translateZ(0);
 }
 
 .transfer-card:last-child {
@@ -1628,7 +1627,7 @@ textarea:disabled {
 
 .transfer-card:hover {
     border-color: var(--ff-primary);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
     z-index: 1;
 }
 
@@ -1923,7 +1922,7 @@ textarea:disabled {
 /* Composite */
 .control[data-type="composite"] {
     flex-direction: column;
-    padding: 0 12px;
+    padding: 0 var(--ff-control-padding-h);
 }
 
 .control[data-type="composite"] > .control,
@@ -1973,7 +1972,7 @@ textarea:disabled {
 }
 
 .custom-wrap tr {
-    border-bottom: 1px solid #EBEEF5;
+    border-bottom: 1px solid var(--ff-border);
 }
 
 .custom-wrap tbody tr:last-child {
@@ -1982,7 +1981,7 @@ textarea:disabled {
 
 .custom-wrap th,
 .custom-wrap td {
-    padding: .65em 2px .65em 2px;
+    padding: 8px 2px;
     color: var(--ff-text-main);
 }
 
@@ -2105,7 +2104,7 @@ textarea:disabled {
 
 .tabs-style-card.tabs-pos-top .tab-header-item.active {
     background-color: var(--ff-bg-white);
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 -1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .tabs-style-card.tabs-pos-left .tabs-header-list {
@@ -2123,7 +2122,7 @@ textarea:disabled {
 
 .tabs-style-card.tabs-pos-left .tab-header-item.active {
     background-color: var(--ff-bg-white);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--ff-shadow-base);
     color: var(--ff-primary);
 }
 
@@ -2154,7 +2153,7 @@ textarea:disabled {
 .tabs-style-segment.tabs-pos-top .tab-header-item.active {
     background-color: var(--ff-bg-white);
     color: var(--ff-primary);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--ff-shadow-base);
 }
 
 .tabs-style-segment.tabs-pos-top .tab-header-item:not(.active):hover {
@@ -2188,7 +2187,7 @@ textarea:disabled {
 .tabs-style-segment.tabs-pos-left .tab-header-item.active {
     background-color: var(--ff-bg-white);
     color: var(--ff-primary);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--ff-shadow-base);
 }
 
 .tabs-style-segment.tabs-pos-left .tab-header-item:not(.active):hover {

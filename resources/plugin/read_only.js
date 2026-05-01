@@ -1,15 +1,16 @@
 class ReadOnlyPlugin extends BasePlugin {
+    inReadOnlyMode = false
+
     styleTemplate = () => true
 
     hotkey = () => [{ hotkey: this.config.HOTKEY, callback: this.call }]
 
     process = () => {
-        this.inReadOnlyMode = false
         this.eventHandlers = this._buildEventHandlers()
         this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.allPluginsHadInjected, () => {
-            this.utils.decorate(() => File, "freshLock", null, this._afterFreshLock)
+            this.utils.decorator.afterCall(() => File, "freshLock", this._afterFreshLock)
             if (this.config.READ_ONLY_DEFAULT) {
-                this.utils.pollUntil(() => File?.lock, this.toggleLock)
+                this.utils.waitUntil(() => File?.lock).then(this.toggleLock)
             }
         })
     }
@@ -21,7 +22,7 @@ class ReadOnlyPlugin extends BasePlugin {
         }
         const updateInput = wantToLock => {
             if (!wantToLock) return
-            const selectors = ["#typora-quick-open-input input", "#plugin-search-multi-form input", "#plugin-commander-form input", "#plugin-toolbar-form input", "#plugin-ripgrep-form input"]
+            const selectors = ["#typora-quick-open-input input", "#plugin-search-multi-form input", "#plugin-commander-form input", "#plugin-command-palette-input", "#plugin-ripgrep-form input"]
             selectors.forEach(s => document.querySelector(s)?.removeAttribute("readonly"))
         }
         const updateReplaceButton = wantToLock => {
@@ -54,7 +55,7 @@ class ReadOnlyPlugin extends BasePlugin {
             if (!isInline(ev.target)) $(".md-expand").removeClass("md-expand")
         }
         const openHyperlink = ev => {
-            if (this.config.NO_EXPAND_WHEN_READ_ONLY && isInline(ev.target)) {
+            if (this.config.DISABLE_EXPAND_WHEN_READ_ONLY && isInline(ev.target)) {
                 ev.stopPropagation()
                 ev.preventDefault()
                 return
@@ -68,10 +69,10 @@ class ReadOnlyPlugin extends BasePlugin {
         }
 
         const handlers = { keydown: stopForbiddenKey, compositionstart: stopEvent, compositionend: stopEvent, paste: stopEvent }
-        if (this.config.CLICK_HYPERLINK_TO_OPEN_WHEN_READ_ONLY || this.config.NO_EXPAND_WHEN_READ_ONLY) {
+        if (this.config.CLICK_HYPERLINK_TO_OPEN_WHEN_READ_ONLY || this.config.DISABLE_EXPAND_WHEN_READ_ONLY) {
             handlers.click = openHyperlink
         }
-        if (this.config.REMOVE_EXPAND_WHEN_READ_ONLY) {
+        if (this.config.AUTO_COLLAPSE_WHEN_READ_ONLY) {
             handlers.mousedown = recoverExpand
         }
         return handlers

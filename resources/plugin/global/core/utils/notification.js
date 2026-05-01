@@ -1,13 +1,14 @@
 class Notification {
+    TYPES = {
+        success: { bgColor: "#dcfce7", color: "#166534", icon: "fa fa-check" },
+        info: { bgColor: "#dbeafe", color: "#1e40af", icon: "fa fa-info-circle" },
+        warning: { bgColor: "#fef9c3", color: "#854d0e", icon: "fa fa-warning" },
+        error: { bgColor: "#fee2e2", color: "#991b1b", icon: "fa fa-bug" },
+        generic: { bgColor: "#f3e8ff", color: "#6b21a8", icon: "fa fa-bullhorn" },
+    }
+
     constructor(utils) {
         this.utils = utils
-        this.types = {
-            success: { bgColor: "#dcfce7", color: "#166534", icon: "fa fa-check" },
-            info: { bgColor: "#dbeafe", color: "#1e40af", icon: "fa fa-info-circle" },
-            warning: { bgColor: "#fef9c3", color: "#854d0e", icon: "fa fa-warning" },
-            error: { bgColor: "#fee2e2", color: "#991b1b", icon: "fa fa-bug" },
-            generic: { bgColor: "#f3e8ff", color: "#6b21a8", icon: "fa fa-bullhorn" },
-        }
     }
 
     process = async () => {
@@ -17,7 +18,7 @@ class Notification {
 
     // duration: 0 indicates not automatically closing
     show = (message, type = "success", duration = 3000) => {
-        const { bgColor, color, icon } = this.types[type] || this.types.info
+        const { bgColor, color, icon } = this.TYPES[type] || this.TYPES.info
 
         const notification = document.createElement("div")
         notification.className = "plugin-common-notification"

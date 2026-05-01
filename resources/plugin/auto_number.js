@@ -1,8 +1,7 @@
 class AutoNumberPlugin extends BasePlugin {
-    beforeProcess = () => {
-        this.separator = "@"
-        this._reloadCSS()
-    }
+    SEPARATOR = "@"
+
+    beforeProcess = () => this._reloadCSS()
 
     process = () => {
         this.utils.settings.autoSave(this)
@@ -22,7 +21,7 @@ class AutoNumberPlugin extends BasePlugin {
     getDynamicActions = () => {
         const layouts = this.config.LAYOUTS.map(lo => ({
             act_name: lo.name,
-            act_value: "set_layout" + this.separator + lo.name,
+            act_value: "set_layout" + this.SEPARATOR + lo.name,
             act_state: lo.selected,
         }))
         return [
@@ -53,7 +52,7 @@ class AutoNumberPlugin extends BasePlugin {
                 })
             },
         }
-        const [act, meta] = action.split(this.separator, 2)
+        const [act, meta] = action.split(this.SEPARATOR, 2)
         toggleFns[act]?.(meta)
         this._reloadCSS()
     }
@@ -262,7 +261,7 @@ class AutoNumberPlugin extends BasePlugin {
                 const content = counter + extra
                 const css = `counter-increment: ${type}; content: ${content};`
                 return [type, css]
-            })
+            }),
         )
     }
 
@@ -277,7 +276,7 @@ class AutoNumberPlugin extends BasePlugin {
                     const [level, text, ...rest] = header
                     counters[level]++
                     counters.fill(0, level + 1)
-                    const counter = counters.slice(2, level + 1).join('.')
+                    const counter = counters.slice(2, level + 1).join(".")
                     const numbering = counter ? `${counter}. ` : ""
                     header[1] = numbering + text
                 })
@@ -288,7 +287,7 @@ class AutoNumberPlugin extends BasePlugin {
             inExport = true
             return `body {font-variant-ligatures: no-common-ligatures;} ` + this._getCSS(true)
         })
-        this.utils.decorate(() => File?.editor?.library?.outline, "getHeaderMatrix", null, headers => {
+        this.utils.decorator.afterCall(() => File?.editor?.library?.outline, "getHeaderMatrix", headers => {
             if (inExport) {
                 inExport = false
                 applyHeaderNumbering(headers)
@@ -298,5 +297,5 @@ class AutoNumberPlugin extends BasePlugin {
 }
 
 module.exports = {
-    plugin: AutoNumberPlugin
+    plugin: AutoNumberPlugin,
 }

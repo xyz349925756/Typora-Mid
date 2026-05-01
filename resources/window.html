@@ -10,6 +10,7 @@
 	<link rel="stylesheet" href="typora://app/typemark/lib.asar/bootstrape/css/bootstrap.css" crossorigin="anonymous">
 	<link rel="stylesheet" css-include href="typora://app/typemark/lib.asar/diagram/css/mermaid.css"
 		crossorigin="anonymous">
+	<!-- <link rel="stylesheet" href="./style/font-awesome-4.1.0/css/font-awesome.min.css" crossorigin="anonymous"> -->
 	<link rel="stylesheet" href="./style/font-awesome-4.7.0/css/font-awesome.min.css" crossorigin="anonymous" />
 	<link rel="stylesheet" href="./style/ionicons-2.0.1/css/ionicons.min.css" crossorigin="anonymous">
 	<link rel="stylesheet" href="./style/typora-icon/style.css" crossorigin="anonymous">
@@ -218,8 +219,7 @@
 							<li role="presentation" class="menuitem-group-label file-action-item not-empty-menu-group">
 								<span data-localize="Action" data-lg="Front">Action</span> <span
 									class="ty-icon ty-delete-button" ty-hint="Close Sidebar Menu"
-									id="close-sidebar-menu-btn"></span>
-							</li>
+									id="close-sidebar-menu-btn"></span></li>
 							<li role="presentation" class="file-action-item not-empty-menu-group"><a role="menuitem"
 									tabindex="-1" href="#" id="new-file-from-sidebar-menu" data-localize="New File"
 									data-lg="Front">New File</a></li>
@@ -259,8 +259,7 @@
 							<li role="presentation"
 								class="folder-menu-item folder-menu-group selected-folder-menu-item file-action-item show">
 								<a role="menuitem" tabindex="-1" href="#"><i
-										class="fa fa-folder-o"></i><span></span></a>
-							</li>
+										class="fa fa-folder-o"></i><span></span></a></li>
 							<li role="presentation" class="menuitem-group-label file-action-item empty-menu-group"
 								id="folder-menu-item-after"><span data-localize="Location"
 									data-lg="Front">Location</span></li>
@@ -390,8 +389,7 @@
 						data-lg="Front">Search text not found in article</span> <span id="searchpanel-msg-close-btn"
 						class="searchpanel-msg-btn" style="padding-right:4px" data-localize="Dismiss"
 						data-lg="Front">Dismiss</span> <span id="searchpanel-msg-undo-btn" class="searchpanel-msg-btn"
-						data-localize="Undo" data-lg="Front">Undo</span>
-				</div>
+						data-localize="Undo" data-lg="Front">Undo</span></div>
 			</div>
 		</div>
 		<div id="typora-quick-open" class="modal-dialog" style="display:none">
@@ -433,6 +431,7 @@
     </div></script>
 		</div>
 		<script type="text/javascript">
+			// Parse Typora options from process arguments (Electron)
 			if (window.process) {
 				var typoraOptionPrefix = /^--tyopt=/;
 				for (argv of process.argv) {
@@ -443,7 +442,8 @@
 					}
 				}
 			}
-
+		</script>
+		<script type="text/javascript" id="mathjax-load">
 			var mathPackages = ['noundefined', 'autoload', 'ams', 'textmacros', 'xypic'];
 			if ((window._options || {}).allowPhysicsConflict) {
 				mathPackages.push('physics');
@@ -458,140 +458,61 @@
 
 			window.MathJax = {
 				loader: {
-					load: [ /*'ui/safe', 'a11y/semantic-enrich',*/ 'input/tex/extensions/xypic']
+					paths: {
+						xypic: '[mathjax]/extensions'
+					},
+					source: {
+						'[tex]/xypic': '[xypic]/xypic.js'
+					},
+					load: ['[tex]/xypic']
+				},
+				options: {
+					// Enable assistive MathML (lightweight accessibility without web workers)
+					enableAssistiveMml: true,
+					// Document options
+					skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code", "span"],
+					processHtmlClass: "md-mathjax-preview|md-inline-math|inline-math-export-jax|math-in-toc",
+					ignoreHtmlClass: 'tex2jax_ignore'
+				},
+				// Menu options (MathJax 4 structure - top level, not nested in options)
+				menu: {
+					settings: {
+						inTabOrder: false,
+						assistiveMml: true,
+						collapsible: false,
+						speech: false,
+						braille: false,
+						enrich: false
+					}
+				},
+				// Safe extension options (MathJax 4 structure - top level)
+				safe: {
+					allow: {
+						URLs: 'safe',
+						classes: 'all',
+						cssIDs: 'all',
+						styles: 'all'
+					},
+					safeProtocols: {
+						http: true,
+						https: true,
+						file: true,
+						javascript: false,
+						data: false
+					}
 				},
 				startup: {
 					typeset: false,
-					ready: () => {
+					ready: function() {
 						console.debug('MathJax is loaded, but not yet initialized');
-
-						const {
-							RANGES
-						} = MathJax._.core.MmlTree.OperatorDictionary;
+						// Fix for CJK characters in operator dictionary
+						var RANGES = MathJax._.core.MmlTree.OperatorDictionary.RANGES;
 						RANGES[28][3] = RANGES[30][3] = RANGES[33][3] = RANGES[47][3] = 'mtext';
 						MathJax.startup.defaultReady();
 						MathJax.startup.document.addStyleSheet();
-					},
-					pageReady: () => {
-						/*var safeOptions = MathJax.startup.document.safe.options;
-						safeOptions.safeProtocols.file = false;
-						safeOptions.idPattern = /^mjx-[-a-zA-Z0-9_.:]+$/;
-						safeOptions.dataPattern = /^data-(mjx|semantic)-/;*/
-						//MathJax.startup.document.options.internalSpeechTitles = true;
-						console.debug('MathJax is initialized');
 					}
 				},
 				tex: {
-					macros: {
-						/*
-							MathJax.startup.input[0].configuration.handlers.get("macro")._configuration.items
-						*/
-						// https://github.com/mathjax/MathJax/pull/1810/files
-						AA: "\u00c5",
-						alef: "\\aleph",
-						alefsym: "\\aleph",
-						Alpha: "\\mathrm{A}",
-						and: "\\land",
-						ang: "\\angle",
-						Bbb: "\\mathbb",
-						Beta: "\\mathrm{B}",
-						bold: "\\mathbf",
-						bull: "\\bullet",
-						C: "\\mathbb{C}",
-						Chi: "\\mathrm{X}",
-						clubs: "\\clubsuit",
-						cnums: "\\mathbb{C}",
-						Complex: "\\mathbb{C}",
-						coppa: "\u03D9",
-						Coppa: "\u03D8",
-						Dagger: "\\ddagger",
-						Digamma: "\u03DC",
-						darr: "\\downarrow",
-						dArr: "\\Downarrow",
-						Darr: "\\Downarrow",
-						diamonds: "\\diamondsuit",
-						empty: "\\emptyset",
-						Epsilon: "\\mathrm{E}",
-						Eta: "\\mathrm{H}",
-						euro: "\u20AC",
-						exist: "\\exists",
-						geneuro: "\u20AC",
-						geneuronarrow: "\u20AC",
-						geneurowide: "\u20AC",
-						H: "\\mathbb{H}",
-						hAar: "\\Leftrightarrow",
-						harr: "\\leftrightarrow",
-						Harr: "\\Leftrightarrow",
-						hearts: "\\heartsuit",
-						image: "\\Im",
-						infin: "\\infty",
-						Iota: "\\mathrm{I}",
-						isin: "\\in",
-						Kappa: "\\mathrm{K}",
-						koppa: "\u03DF",
-						Koppa: "\u03DE",
-						lang: "\\langle",
-						larr: "\\leftarrow",
-						Larr: "\\Leftarrow",
-						lArr: "\\Leftarrow",
-						lrarr: "\\leftrightarrow",
-						Lrarr: "\\Leftrightarrow",
-						lrArr: "\\Leftrightarrow",
-						Mu: "\\mathrm{M}",
-						N: "\\mathbb{N}",
-						natnums: "\\mathbb{N}",
-						Nu: "\\mathrm{N}",
-						O: "\\emptyset",
-						officialeuro: "\u20AC",
-						Omicron: "\\mathrm{O}",
-						or: "\\lor",
-						P: "\u00B6",
-						pagecolor: ["", 1],
-						part: "\\partial",
-						plusmn: "\\pm",
-						Q: "\\mathbb{Q}",
-						R: "\\mathbb{R}",
-						rang: "\\rangle",
-						rarr: "\\rightarrow",
-						Rarr: "\\Rightarrow",
-						rArr: "\\Rightarrow",
-						real: "\\Re",
-						reals: "\\mathbb{R}",
-						Reals: "\\mathbb{R}",
-						Rho: "\\mathrm{P}",
-						sdot: "\\cdot",
-						sampi: "\u03E1",
-						Sampi: "\u03E0",
-						sect: "\\S",
-						spades: "\\spadesuit",
-						stigma: "\u03DB",
-						Stigma: "\u03DA",
-						sub: "\\subset",
-						sube: "\\subseteq",
-						supe: "\\supseteq",
-						Tau: "\\mathrm{T}",
-						textvisiblespace: "\u2423",
-						thetasym: "\\vartheta",
-						uarr: "\\uparrow",
-						uArr: "\\Uparrow",
-						Uarr: "\\Uparrow",
-						varcoppa: "\u03D9",
-						varstigma: "\u03DB",
-						vline: "\\smash{\\large\\lvert}",
-						weierp: "\\wp",
-						Z: "\\mathbb{Z}",
-						Zeta: "\\mathrm{Z}",
-						dashint: "\\unicodeInt{x2A0D}",
-						ddashint: "\\unicodeInt{x2A0E}",
-						oiint: "\\unicodeInt{x222F}",
-						oiiint: "\\unicodeInt{x2230}",
-						ointctrclockwise: "\\unicodeInt{x2233}",
-						unicodeInt: [
-							"\\mathop{\\vcenter{\\mathchoice{\\huge\\unicode{#1}\\,}{\\unicode{#1}}{\\unicode{#1}}{\\unicode{#1}}}\\,}\\nolimits",
-							1
-						],
-						varointclockwise: "\\unicodeInt{x2232}",
-					},
 					maxBuffer: 10 * 1024,
 					displayMath: [
 						['$$\n', '\n$$'],
@@ -602,69 +523,26 @@
 						['$$', '$$']
 					],
 					processEscapes: true,
+					// Base packages - physics and tags configured dynamically in MathBlock.js
 					packages: {
 						'[+]': mathPackages
 					},
+					// Default to no auto-numbering - configured dynamically in MathBlock.js
 					tags: mathJaxTags,
-					formatError: // function called when TeX syntax errors occur
-						(jax, err) => {
-							var message = err.message.replace(/\n.*/, "");
-							return jax.parseOptions.nodeFactory.create("error", message, err.id, "Error: " + message);
-						},
+					formatError: function(jax, err) {
+						var message = err.message.replace(/\n.*/, "");
+						return jax.parseOptions.nodeFactory.create("error", message, err.id, "Error: " + message);
+					},
 					useLabelIds: true
 				},
 				svg: {
 					scale: 1,
-					minScale: 80,
-				},
-				options: {
-					skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code", "span"],
-					processHtmlClass: "md-mathjax-preview|md-inline-math|inline-math-export-jax|math-in-toc",
-					menuOptions: {
-						settings: {
-							inTabOrder: false
-						}
-					},
-					sre: {
-						speech: 'shallow', // or 'shallow', or 'deep'
-					},
-					enableMenu: false,
-					ignoreHtmlClass: 'tex2jax_ignore',
-					renderActions: {
-						//
-						// Force speech enrichment regardless of the menu settings
-						// https://mathjax.github.io/MathJax-demos-web/speech-tex-chtml.html.html
-						/*enrich: {'[+]': [
-							function (doc) {doc.enrich(true)},
-							function (math, doc) {math.enrich(doc, true)}  
-						]}*/
-					},
-					safeOptions: {
-						allow: {
-							//
-							//  Values can be "all", "safe", or "none"
-							//
-							URLs: 'safe', // safe are in safeProtocols below
-							classes: 'all', // safe start with mjx- (can be set by pattern below)
-							cssIDs: 'all', // safe start with mjx- (can be set by pattern below)
-							styles: 'all' // safe are in safeStyles below
-						},
-						//
-						//  Which URL protocols are allowed
-						//
-						safeProtocols: {
-							http: true,
-							https: true,
-							file: true,
-							javascript: false,
-							data: false
-						}
-					}
+					minScale: 80
 				}
 			};
 		</script>
 		<style id="no-sel-style"></style>
-		<script type="text/javascript" src="./lib.asar/MathJax3/es5/tex-svg-full.js" id="MathJax-script" defer="defer">
+		<script type="text/javascript" src="./lib.asar/MathJax4/tex-svg-full.js" id="MathJax-script" defer="defer">
 		</script>
 		<style type="text/css" id="write-style"></style>
 		<div id="typora-source" style="z-index:-1"></div>
@@ -742,8 +620,7 @@
 							data-localize='Typora are trying copy the newly inserted image to folder <code id="image-create-folder-target"></code> according to your YAML Front Matter setting. But the target folder does not exist, create it now?'
 							data-lg="Front" data-lt="html">Typora are trying copy the newly inserted image to folder
 							<code id="image-create-folder-target"></code> according to your YAML Front Matter setting.
-							But the target folder does not exist, create it now?
-						</div>
+							But the target folder does not exist, create it now?</div>
 					</div>
 					<div class="modal-footer"><button type="button"
 							class="btn btn-primary image-create-folder-dialog-yes" data-localize="Create Folder"
@@ -1107,6 +984,9 @@
 						class="ty-menu-shortcut"></span></a></li>
 			<li data-key="copy_as_simple_html" data-copy-action><a role="menuitem"><span
 						data-localize="Copy without Theme Styling" data-lg="Menu">Copy without Theme Styling</span><span
+						class="ty-menu-shortcut"></span></a></li>
+			<li data-key="copy_as_plain_text" data-copy-action><a role="menuitem"><span
+						data-localize="Copy as Plain Text" data-lg="Menu">Copy as Plain Text</span><span
 						class="ty-menu-shortcut"></span></a></li>
 			<li class="divider" data-group="adv-media"></li>
 			<li data-key="copy_as_image" data-group="adv-media"><a role="menuitem"><span data-localize="Copy as Image"
@@ -1631,6 +1511,7 @@
 		</div>
 	</div>
 	<div id="uni-preference-panel" class="uni-preference-panel"></div>
+	<div id="uni-license-panel" class="uni-license-panel"></div>
 	<div class="modal fade fullscreen-modal stopselect" id="preference-dialog" tabindex="-1" role="dialog">
 		<div class="modal-dialog modal-lg" role="document">
 			<div class="modal-content">
@@ -1688,7 +1569,7 @@
 	<script src="./plugin/index.js" defer="defer"></script>
 	<script>
 		var mode = "release";
-		window._releaseNo = "36f3d131";
+		window._releaseNo = "ccbaa448";
 		window.debugMode = (mode != "release");
 
 		window.isOnWindowHtml = true;
@@ -1705,7 +1586,7 @@
 			}
 		}
 
-		(function () {
+		(function() {
 			if (!window.reqnode) return;
 			var Module = reqnode("module");
 			var path = reqnode("path");
@@ -1713,7 +1594,7 @@
 			Module.globalPaths.push(node_modules_asar);
 
 			var _old_require = Module.prototype.require;
-			Module.prototype.require = function (id) {
+			Module.prototype.require = function(id) {
 				if (this.paths.indexOf(node_modules_asar) == -1) {
 					this.paths.push(node_modules_asar);
 				}

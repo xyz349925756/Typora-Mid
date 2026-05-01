@@ -9,54 +9,44 @@ class FenceMarkmap {
     hotkey = () => [{ hotkey: this.config.FENCE_HOTKEY, callback: this.callback }]
 
     process = () => {
-        this.utils.thirdPartyDiagramParser.register({
+        const parser = this.utils.thirdPartyDiagramParser
+        parser.register({
             lang: this.config.FENCE_LANGUAGE,
             mappingLang: "markdown",
             destroyWhenUpdate: false,
             interactiveMode: this.config.INTERACTIVE_MODE,
+            metaConfigSchema: null,
             checkSelector: ".plugin-fence-markmap-svg",
             wrapElement: '<svg class="plugin-fence-markmap-svg"></svg>',
             lazyLoadFunc: this.plugin.lazyLoad,
             beforeRenderFunc: this.beforeRender,
-            setStyleFunc: this.setStyle,
+            renderStyleGetter: parser.helpers.renderStyle.wrapDefault({
+                height: this.config.DEFAULT_FENCE_HEIGHT,
+                backgroundColor: this.config.DEFAULT_FENCE_BACKGROUND_COLOR,
+            }),
             createFunc: this.create,
             updateFunc: this.update,
             destroyFunc: this.destroy,
             beforeExportToNative: null,
             beforeExportToHTML: null,
-            extraStyleGetter: this.getStyleContent,
+            exportStyleGetter: this.getStyleContent,
             versionGetter: this.getVersion,
         })
     }
 
     callback = type => {
         const empty = "# empty"
-        const backQuote = "```"
-        const frontMatter = `---\nmarkmap:\n  height: 300px\n  backgroundColor: "#f8f8f8"\n---\n\n`
-        const fence = type === "draw_fence_template"
-            ? this.config.FENCE_TEMPLATE
-            : `${backQuote}${this.config.FENCE_LANGUAGE}\n${frontMatter}${this.plugin.getToc() || empty}\n${backQuote}`
-        this.utils.insertText(null, fence)
+        const frontMatter = `---\nmarkmap:\n  height: 300px\n  backgroundColor: "#f8f8f8"\n---\n`
+        const content = type === "draw_fence_template" ? this.config.FENCE_TEMPLATE : `${frontMatter}\n${this.plugin.getToc() || empty}`
+        this.utils.insertBlockCode(null, this.config.FENCE_LANGUAGE, content)
     }
 
     // Get options in fence front-matter
     beforeRender = (cid, content) => {
         const defaultOptions = this.config.DEFAULT_FENCE_OPTIONS || {}
         const { yamlObject } = this.utils.splitFrontMatter(content)
-        if (!yamlObject) {
-            return defaultOptions
-        }
-        const fenceOptions = yamlObject.markmap ? yamlObject.markmap : yamlObject
+        const fenceOptions = yamlObject?.markmap ?? yamlObject ?? {}
         return { ...defaultOptions, ...fenceOptions }
-    }
-
-    setStyle = ($pre, $wrap, content, options) => {
-        const panelWidth = $pre.find(".md-diagram-panel").css("width")
-        $wrap.css({
-            width: parseFloat(panelWidth) - 10 + "px",
-            height: options.height || this.config.DEFAULT_FENCE_HEIGHT,
-            "background-color": options.backgroundColor || this.config.DEFAULT_FENCE_BACKGROUND_COLOR,
-        })
     }
 
     create = ($wrap, content, options) => {
@@ -77,14 +67,9 @@ class FenceMarkmap {
     getVersion = () => this.Lib.transformerVersions["markmap-lib"]
 
     getStyleContent = () => `
-        .md-diagram-panel .plugin-fence-markmap-svg {
-            line-height: initial !important;
-            user-select: none;
-        }
-        .plugin-fence-markmap-svg table {
-            margin: 0;
-            padding: 0;
-        }`
+        .md-diagram-panel .plugin-fence-markmap-svg { line-height: initial !important; user-select: none; }
+        .plugin-fence-markmap-svg table { margin: 0; padding: 0; }
+    `
 }
 
 module.exports = FenceMarkmap

@@ -7,14 +7,20 @@ class Migrate {
     }
 
     deleteUselessPlugins = async () => {
-        const dirs = ["scrollBookmarker"]
+        const dirs = [
+            "scrollBookmarker", "markdownLint", "drawIO", "calendar", "wavedrom",
+            "chart", "echarts", "abc", "plantUML",
+        ]
         const files = [
             "fullPathCopy", "extractRangeToNewFile", "bingSpeech", "autoTrailingWhiteSpace", "darkMode",
             "noImageMode", "hotkeyHub", "pluginUpdater", "openInTotalCommander", "resourceOperation",
-            "reopenClosedFiles", "sortableOutline", "blockSideBySide", "__modal_example",
+            "reopenClosedFiles", "sortableOutline", "blockSideBySide", "chineseSymbolAutoPairer", "redirectLocalRootUrl",
+            "scrollBookmarker", "imageReviewer", "quickButton", "toc", "templater",
+            "callouts", "marp", "timeline", "chat", "kanban",
+            "__modal_example",
         ]
-        const toDir = name => this.utils.joinPath("./plugin/custom/plugins", name)
-        const toFile = name => this.utils.joinPath("./plugin/custom/plugins", `${name}.js`)
+        const toDir = name => this.utils.joinPluginPath("./plugin/custom/plugins", name)
+        const toFile = name => this.utils.joinPluginPath("./plugin/custom/plugins", `${name}.js`)
         const promises = [...files.map(toFile), ...dirs.map(toDir)].map(path => this.utils.Package.FsExtra.remove(path))
         await Promise.all(promises)
     }
@@ -31,7 +37,7 @@ class Migrate {
                     `./plugin/${fixedName}/index.js`,
                 ]
                 const promises = paths
-                    .map(path => this.utils.joinPath(path))
+                    .map(path => this.utils.joinPluginPath(path))
                     .map(path => this.utils.existPath(path))
                 const candidate = await Promise.all(promises)
                 if (!candidate.some(Boolean)) {
@@ -45,11 +51,11 @@ class Migrate {
     cleanPluginsAndKeys = (files) => {
         files.forEach(({ configDefault, configUser }) => {
             Object.keys(configUser)
-                .filter(fixedName => configDefault.hasOwnProperty(fixedName))
+                .filter(fixedName => Object.hasOwn(configDefault, fixedName))
                 .map(fixedName => {
                     const pluginUser = configUser[fixedName]
                     const pluginDefault = configDefault[fixedName]
-                    const toDeleteKeys = Object.keys(pluginUser).filter(key => !pluginDefault.hasOwnProperty(key) || this.utils.deepEqual(pluginDefault[key], pluginUser[key]))
+                    const toDeleteKeys = Object.keys(pluginUser).filter(key => !Object.hasOwn(pluginDefault, key) || this.utils.deepEqual(pluginDefault[key], pluginUser[key]))
                     return [pluginUser, toDeleteKeys]
                 })
                 .forEach(([plugin, toDeleteKeys]) => toDeleteKeys.forEach(key => delete plugin[key]))

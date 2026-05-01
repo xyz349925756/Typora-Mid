@@ -2,6 +2,14 @@ const Searcher = require("./searcher")
 const Highlighter = require("./highlighter")
 
 class SearchMultiPlugin extends BasePlugin {
+    cancelController = null
+    searcher = new Searcher(this)
+    highlighter = new Highlighter(this)
+    allowedExtensions = new Set(this.config.ALLOW_EXT.map(ext => {
+        const prefix = (ext !== "" && !ext.startsWith(".")) ? "." : ""
+        return prefix + ext.toLowerCase()
+    }))
+
     styleTemplate = () => {
         const colors_style = this.config.HIGHLIGHT_COLORS
             .map((color, idx) => `.cm-plugin-highlight-hit-${idx} { background-color: ${color} !important; }`)
@@ -39,13 +47,6 @@ class SearchMultiPlugin extends BasePlugin {
     hotkey = () => [{ hotkey: this.config.HOTKEY, callback: this.call }]
 
     init = () => {
-        this.cancelController = null
-        this.searcher = new Searcher(this)
-        this.highlighter = new Highlighter(this)
-        this.allowedExtensions = new Set(this.config.ALLOW_EXT.map(ext => {
-            const prefix = (ext !== "" && !ext.startsWith(".")) ? "." : ""
-            return prefix + ext.toLowerCase()
-        }))
         this.entities = {
             window: document.querySelector("#plugin-search-multi"),
             form: document.querySelector("#plugin-search-multi-form"),
@@ -83,6 +84,7 @@ class SearchMultiPlugin extends BasePlugin {
         })
         this.entities.input.addEventListener("keydown", ev => {
             if (ev.key === "ArrowUp" || ev.key === "ArrowDown") {
+                ev.preventDefault()
                 this.utils.scrollActiveItem(this.entities.files, ".plugin-search-item.active", ev.key === "ArrowDown")
             } else if (ev.key === "Escape" || ev.key === "Backspace" && this.config.BACKSPACE_TO_HIDE && !this.entities.input.value) {
                 this.hide()
@@ -129,7 +131,7 @@ class SearchMultiPlugin extends BasePlugin {
                 const item = document.createElement("div")
                 item.className = `plugin-highlight-item ${cls}`
                 item.dataset.pos = -1
-                if (!this.config.REMOVE_BUTTON_HINT) {
+                if (!this.config.HIDE_BUTTON_HINT) {
                     item.setAttribute("ty-hint", hint)
                 }
                 item.appendChild(document.createTextNode(`${name} (${hits.length})`))
@@ -149,8 +151,8 @@ class SearchMultiPlugin extends BasePlugin {
         this.entities.counter.textContent = 0
         this.entities.files.innerHTML = ""
 
-        const { MAX_SIZE, MAX_DEPTH, MAX_STATS, TIMEOUT, TRAVERSE_STRATEGY, CONCURRENCY_LIMIT, IGNORE_FOLDERS, FOLLOW_SYMBOLIC_LINKS, STOP_SEARCHING_ON_HIDING } = this.config
-        const { Path: { extname }, FsExtra: { readFile } } = this.utils.Package
+        const { MAX_SIZE, MAX_DEPTH, MAX_ENTITIES, TIMEOUT, TRAVERSE_STRATEGY, CONCURRENCY_LIMIT, IGNORE_FOLDERS, FOLLOW_SYMBOLIC_LINKS, STOP_SEARCHING_ON_HIDING } = this.config
+        const { extname } = this.utils.Package.Path
 
         const getFileFilter = () => {
             const verifyExt = name => this.allowedExtensions.has(extname(name).toLowerCase())
@@ -159,12 +161,7 @@ class SearchMultiPlugin extends BasePlugin {
                 : (name, path, stat) => stat.size < MAX_SIZE && verifyExt(name)
         }
         const getDirFilter = () => name => !IGNORE_FOLDERS.includes(name)
-        const getFileParamsCreator = () => {
-            const readFileScopes = this.searcher.getReadFileScopes(ast)
-            return readFileScopes.length !== 0
-                ? async (path, file, dir, stats) => ({ path, file, stats, content: await readFile(path, "utf-8") })
-                : (path, file, dir, stats) => ({ path, file, stats })
-        }
+        const getFileParamsCreator = () => this.searcher.getParamProvider(ast)
         const getOnFile = () => {
             const matcher = this.searcher.match.bind(null, ast)
             return this._showSearchResult(rootPath, matcher)
@@ -200,7 +197,7 @@ class SearchMultiPlugin extends BasePlugin {
             onFile: getOnFile(),
             signal: getSignal(),
             semaphore: CONCURRENCY_LIMIT,
-            maxStats: MAX_STATS,
+            maxEntities: MAX_ENTITIES,
             maxDepth: MAX_DEPTH,
             strategy: TRAVERSE_STRATEGY,
             followSymlinks: FOLLOW_SYMBOLIC_LINKS,
@@ -267,5 +264,5 @@ class SearchMultiPlugin extends BasePlugin {
 }
 
 module.exports = {
-    plugin: SearchMultiPlugin
+    plugin: SearchMultiPlugin,
 }

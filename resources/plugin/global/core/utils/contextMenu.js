@@ -2,10 +2,11 @@
  * Dynamically register context menu.
  */
 class ContextMenu {
+    menus = new WeakSet()
+    _callback = null
+
     constructor(utils) {
         this.utils = utils
-        this.menuSet = new WeakSet()
-        this._callback = null
     }
 
     process = async () => {
@@ -29,20 +30,20 @@ class ContextMenu {
      * @param {function(ev, key): null} onClickMenuItem: on click callback; the key parameter is the clicked option
      */
     register = (el, getMenuItems, onClickMenuItem) => {
-        if (el && !this.menuSet.has(el)) {
+        if (el && !this.menus.has(el)) {
             el.__getMenuItems = getMenuItems
             el.__onClickMenuItem = onClickMenuItem
             el.addEventListener("mousedown", this._handler)
-            this.menuSet.add(el)
+            this.menus.add(el)
         }
     }
 
     unregister = el => {
-        if (this.menuSet.has(el)) {
+        if (this.menus.has(el)) {
             el.__getMenuItems = undefined
             el.__onClickMenuItem = undefined
             el.removeEventListener("mousedown", this._handler)
-            this.menuSet.delete(el)
+            this.menus.delete(el)
         }
     }
 
@@ -76,18 +77,18 @@ class ContextMenu {
 
     _showMenu = ev => {
         const $menu = $(this.menuEl)
-        $menu.addClass("show");
-        const { innerWidth, innerHeight } = window;
-        const { clientX, clientY } = ev;
-        let width = $menu.width() + 20;
-        width = Math.min(clientX, innerWidth - width);
-        width = Math.max(0, width);
-        let height = $menu.height() + 48;
+        $menu.addClass("show")
+        const { innerWidth, innerHeight } = window
+        const { clientX, clientY } = ev
+        let width = $menu.width() + 20
+        width = Math.min(clientX, innerWidth - width)
+        width = Math.max(0, width)
+        let height = $menu.height() + 48
         height = clientY > innerHeight - height
             ? innerHeight - height
-            : clientY - $("#top-titlebar").height() + 8;
-        height = Math.max(0, height);
-        $menu.css({ top: height + "px", left: width + "px" });
+            : clientY - $("#top-titlebar").height() + 8
+        height = Math.max(0, height)
+        $menu.css({ top: height + "px", left: width + "px" })
     }
 }
 

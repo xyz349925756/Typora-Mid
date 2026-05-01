@@ -129,13 +129,13 @@ class Highlighter {
         bar.style.height = markerRect.height + "px"
         bar.style.width = writeRect.width + "px"
         marker.appendChild(bar)
-        setTimeout(() => this.utils.removeElement(bar), 3000)
+        setTimeout(() => bar?.remove(), 3000)
     }
 
     clearSearch = () => {
         if (this.isClosed()) return
 
-        this.utils.entities.querySelectorAllInWrite(".plugin-highlight-bar").forEach(e => this.utils.removeElement(e))
+        this.utils.entities.querySelectorAllInWrite(".plugin-highlight-bar").forEach(el => el.remove())
         if (File.editor.sourceView.inSourceMode) {
             if (this.searchStatus && this.searchStatus.hits.length) {
                 File.editor.fences.clearSearchAll()
@@ -365,7 +365,7 @@ class Highlighter {
         }
     }
 
-    _checkHits = () => this.searchStatus.hits.length <= this.config.MAX_HITS
+    _checkHits = () => this.searchStatus.hits.length <= this.config.MAX_HIGHLIGHTS
 
     _polyfill = () => {
         if (!global.NodeDef) {

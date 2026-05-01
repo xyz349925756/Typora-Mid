@@ -3,62 +3,113 @@ class ResizeTablePlugin extends BasePlugin {
 
     process = () => {
         this.utils.settings.autoSave(this)
-        this.toggleRecorder(false);
-        this.onResize();
+        this.toggleRecorder(false)
+        this.toggleResizer(true)
+    }
+
+    _onMouseDown = ev => {
+        if (!this.utils.metaKeyPressed(ev)) return
+        const cell = ev.target.closest("th, td")
+        if (!cell) return
+        const { target, direction } = this._findResizeTarget(cell, ev)
+        if (!target) return
+
+        ev.stopPropagation()
+        ev.preventDefault()
+        this._startResizing(target, direction, ev)
+    }
+
+    _startResizing = (target, direction, ev) => {
+        const { width: startWidth, height: startHeight } = target.getBoundingClientRect()
+        const { clientX: startX, clientY: startY } = ev
+        const isHorizontal = direction === "right"
+
+        target.style.width = `${startWidth}px`
+        target.style.height = `${startHeight}px`
+        target.style.cursor = isHorizontal ? "col-resize" : "row-resize"
+
+        this._cleanSiblingStyles(target, isHorizontal)
+        const rafManager = this.utils.getRafManager()
+
+        const onMouseMove = ev => {
+            if (!this.utils.metaKeyPressed(ev)) return
+            const currentX = ev.clientX
+            const currentY = ev.clientY
+            rafManager.schedule(() => {
+                if (isHorizontal) {
+                    target.style.width = `${startWidth + currentX - startX}px`
+                } else {
+                    target.style.height = `${startHeight + currentY - startY}px`
+                }
+            })
+        }
+
+        const onMouseUp = () => {
+            target.style.cursor = ""
+            rafManager.cancel()
+            document.removeEventListener("mousemove", onMouseMove)
+            document.removeEventListener("mouseup", onMouseUp)
+        }
+
+        document.addEventListener("mousemove", onMouseMove)
+        document.addEventListener("mouseup", onMouseUp)
+    }
+
+    _cleanSiblingStyles = (target, isHorizontal) => {
+        if (isHorizontal) {
+            const rowTag = target.tagName === "TD" ? "tbody" : "thead"
+            const nth = this._getNthChildIndex(target)
+            const siblingsInColumn = target.closest(rowTag).querySelectorAll(`tr > ${target.tagName}:nth-child(${nth})`)
+            this._removeStyle(siblingsInColumn, target, "width")
+        } else {
+            const siblingsInRow = target.parentElement.children
+            this._removeStyle(siblingsInRow, target, "height")
+        }
+    }
+
+    _removeStyle = (elements, exclude, prop) => {
+        for (const el of elements) {
+            if (el !== exclude) el.style?.removeProperty(prop)
+        }
+    }
+
+    _getNthChildIndex = (el) => {
+        let index = 1
+        while ((el = el.previousElementSibling)) index++
+        return index
+    }
+
+    _getResizeDirection = (target, { clientX, clientY }) => {
+        if (!target) return null
+        const { right, bottom } = target.getBoundingClientRect()
+        const threshold = this.config.DRAG_THRESHOLD
+        if (Math.abs(right - clientX) <= threshold) return "right"
+        if (Math.abs(bottom - clientY) <= threshold) return "bottom"
+        return null
+    }
+
+    _findResizeTarget = (cell, ev) => {
+        const nth = this._getNthChildIndex(cell)
+        const prevRow = cell.parentElement.previousElementSibling
+        const cellAbove = prevRow
+            ? prevRow.querySelector(`td:nth-child(${nth})`)
+            : cell.closest("table").querySelector(`thead tr > th:nth-child(${nth})`)
+
+        for (const target of [cell, cell.previousElementSibling, cellAbove]) {
+            const direction = this._getResizeDirection(target, ev)
+            if (direction) return { target, direction }
+        }
+
+        return { target: null, direction: null }
     }
 
     getDynamicActions = anchorNode => [{ act_value: "record_resize_state", act_state: this.config.RECORD_RESIZE, act_name: this.i18n.t("$label.RECORD_RESIZE") }]
 
     call = action => action === "record_resize_state" && this.toggleRecorder()
 
-    onResize = () => {
-        this.utils.entities.eContent.addEventListener("mousedown", ev => {
-            if (!this.utils.metaKeyPressed(ev)) return;
-            ev.stopPropagation();
-            ev.preventDefault();
-
-            const ele = ev.target.closest("th, td");
-            if (!ele) return;
-            const tag = ele.tagName;
-            const closestElement = tag === "TD" ? "tbody" : "thead";
-            const { target, direction } = this.findTarget(ele, ev);
-            if (!target || !direction) return;
-
-            const { width: startWidth, height: startHeight } = target.getBoundingClientRect();
-            const { clientX: startX, clientY: startY } = ev;
-            target.style.width = startWidth + "px";
-            target.style.height = startHeight + "px";
-            target.style.cursor = direction === "right" ? "w-resize" : "s-resize";
-
-            if (direction === "right") {
-                const num = this.indexOfParent(target);
-                const eleList = target.closest(closestElement).querySelectorAll(`tr ${tag}:nth-child(${num})`);
-                this.cleanStyle(eleList, target, "width");
-            } else if (direction === "bottom") {
-                const tds = target.parentElement.children;
-                this.cleanStyle(tds, target, "height");
-            }
-
-            const onMouseMove = ev => {
-                if (!this.utils.metaKeyPressed(ev)) return;
-                requestAnimationFrame(() => {
-                    if (direction === "right") {
-                        target.style.width = startWidth + ev.clientX - startX + "px";
-                    } else if (direction === "bottom") {
-                        target.style.height = startHeight + ev.clientY - startY + "px";
-                    }
-                });
-            }
-            const onMouseUp = ev => {
-                target.style.cursor = "default";
-                target.onmouseup = null;
-                document.removeEventListener("mousemove", onMouseMove);
-                document.removeEventListener("mouseup", onMouseUp);
-            }
-
-            document.addEventListener("mouseup", onMouseUp);
-            document.addEventListener("mousemove", onMouseMove);
-        })
+    toggleResizer = (enable = true) => {
+        const fn = enable ? "addEventListener" : "removeEventListener"
+        this.utils.entities.eContent[fn]("mousedown", this._onMouseDown)
     }
 
     toggleRecorder = (needChange = true) => {
@@ -70,53 +121,10 @@ class ResizeTablePlugin extends BasePlugin {
                 name: this.fixedName,
                 selector: "#write th, #write td",
                 stateGetter: el => el.style.cssText,
-                stateRestorer: (el, state) => el.style = state,
+                stateRestorer: (el, state) => el.style.cssText = state,
             })
         } else {
             this.utils.stateRecorder.unregister(this.fixedName)
-        }
-    }
-
-    getDirection = (target, ev) => {
-        if (!target) {
-            return ""
-        }
-        const { right, bottom } = target.getBoundingClientRect();
-        const { clientX, clientY } = ev;
-        const { DRAG_THRESHOLD } = this.config;
-        if (right - DRAG_THRESHOLD < clientX && clientX < right + DRAG_THRESHOLD) {
-            return "right"
-        } else if (bottom - DRAG_THRESHOLD < clientY && clientY < bottom + DRAG_THRESHOLD) {
-            return "bottom"
-        } else {
-            return ""
-        }
-    }
-
-    indexOfParent = child => Array.prototype.indexOf.call(child.parentElement.children, child) + 1
-
-    findTarget = (ele, ev) => {
-        const nth = this.indexOfParent(ele);
-        const uncle = ele.parentElement.previousElementSibling;
-        const above = uncle
-            ? uncle.querySelector(`td:nth-child(${nth})`)
-            : ele.closest("table").querySelector("thead tr").querySelector(`th:nth-child(${nth})`)
-
-        const targets = [ele, ele.previousElementSibling, above];  // [self, left, above]
-        for (const target of targets) {
-            const direction = this.getDirection(target, ev);
-            if (target && direction) {
-                return { target, direction };
-            }
-        }
-        return { target: null, direction: "" };
-    };
-
-    cleanStyle = (eleList, exclude, cleanStyle) => {
-        for (const td of eleList) {
-            if (td && td.style && td !== exclude) {
-                td.style[cleanStyle] = "";
-            }
         }
     }
 }
