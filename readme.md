@@ -8,9 +8,13 @@
 
 Typora-Mid 就是一个中间件，修主题改样式和图标、字体、插件几个项目整合起来的。 在不修改typora，typora_plugin 的基础上实现的。因为系统的差异性如果打包成固定的，会出现各种奇葩的问题，体验很不好。
 
-> typora-mid.css 在css文件夹里面，其他替换的文件在 resources 文件夹对应的目录下。目前 typora 1.10.8。
+> typora-mid.css 在css文件夹里面，其他替换的文件在 resources 文件夹对应的目录下。
 
 ## UPdate
+
+[2026.5.1]
+
+- 适配1.13.4版本
 
 [2026.2.14]
 
@@ -53,29 +57,13 @@ typora-mid主题
 
 ![image-20250401144300786](./.readme.assets/image-20250401144300786.png)
 
-![image-20250401144332484](./.readme.assets/image-20250401144332484.png)
-
 ![image-20250401144528653](./.readme.assets/image-20250401144528653.png)
 
 ![image-20250401144553788](./.readme.assets/image-20250401144553788.png)
 
 ![image-20250402111933803](./.readme.assets/image-20250402111933803.png)
 
-DrakeTyporaTheme
 
-![image-20250301211818031](./.readme.assets/image-20250301211818031.png)
-
-**标题样式**
-
-![标题](./.readme.assets/标题-1740828423301-1.gif)
-
-**引用**
-
-![image-20250301193027925](./.readme.assets/image-20250301193027925.png)
-
-`默认引用是 红绿黄 这个`
-
-![image-20250301210334232](./.readme.assets/image-20250301210334232.png)
 
 > 使用提示
 >
@@ -102,21 +90,11 @@ DrakeTyporaTheme
 
 ![image-20250301205630800](./.readme.assets/image-20250301205630800.png)
 
-**有序列表**
-
-![image-20250301205720584](./.readme.assets/image-20250301205720584.png)
-
-**无序列表**
-
-![image-20250301205743126](./.readme.assets/image-20250301205743126.png)
-
 **文件导航**
 
 ![wenjian](./.readme.assets/wenjian.gif)![image-20250301210427777](./.readme.assets/image-20250301210427777.png)
 
-**大纲导航**
 
-![dagang](./.readme.assets/dagang.gif)
 
 **代码块**
 
@@ -135,10 +113,6 @@ DrakeTyporaTheme
 ![image-20250301210613354](./.readme.assets/image-20250301210613354.png)
 
 ![image-20250301210842142](./.readme.assets/image-20250301210842142.png)
-
-**其他**
-
-![image-20250301210925456](./.readme.assets/image-20250301210925456.png)
 
 ### 导出为html/pdf 预览
 
