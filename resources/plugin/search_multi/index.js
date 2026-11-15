@@ -1,7 +1,7 @@
 const FileContext = require("./file_context")
 const Searcher = require("./searcher")
 const Highlighter = require("./highlighter")
-const { ExplainPresenter, GrammarPresenter } = require("./presenters")
+const { ExplainPresenter, getGrammarModal } = require("./presenters")
 
 const h = (tag, attrs = {}, ...children) => {
   const el = document.createElement(tag)
@@ -109,13 +109,29 @@ class SearchStateMachine {
   isSearching = () => this.state === "searching"
 }
 
+const FILE_META_FORMATTERS = {
+  size: (fileCtx) => {
+    const bytes = fileCtx.stats.size
+    if (bytes < 1024) return `${bytes} B`
+    return bytes < 1048576 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1048576).toFixed(1)} MB`
+  },
+  ext: (fileCtx, utils) => utils.Package.Path.extname(fileCtx.file),
+  mtime: (fileCtx, utils) => utils.dateTimeFormat(fileCtx.stats.mtime, "yy/MM/dd"),
+  atime: (fileCtx, utils) => utils.dateTimeFormat(fileCtx.stats.atime, "yy/MM/dd"),
+  birthtime: (fileCtx, utils) => utils.dateTimeFormat(fileCtx.stats.birthtime, "yy/MM/dd"),
+}
+
 class SearchMultiPlugin extends BasePlugin {
   ctx = { config: this.config, utils: this.utils, i18n: this.i18n }
   searcher = new Searcher(this.ctx)
   highlighter = new Highlighter(this.ctx)
   executor = new SearchExecutor({ ...this.ctx, searcher: this.searcher })
   explainPresenter = new ExplainPresenter({ ...this.ctx, searcher: this.searcher })
-  grammarPresenter = new GrammarPresenter({ ...this.ctx, searcher: this.searcher })
+  grammarModal = getGrammarModal({ ...this.ctx, searcher: this.searcher })
+  formatMeta = (() => {
+    const getMeta = Object.hasOwn(FILE_META_FORMATTERS, this.config.META_FIELD) ? FILE_META_FORMATTERS[this.config.META_FIELD] : FILE_META_FORMATTERS.size
+    return (fileCtx) => getMeta(fileCtx, this.utils)
+  })()
 
   style = () => ({
     counter_prefix_text: this.i18n.t("matchedFiles") + "：",
@@ -196,35 +212,30 @@ class SearchMultiPlugin extends BasePlugin {
   process = () => {
     this.highlighter.process()
 
-    this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.fileContentLoaded, () => this.resetHighlight())
+    const resetHighlight = () => !this.entities.panel.hidden && this.highlight()
+    const rehighlight = () => !this.fsm.isSearching() && this.highlight()
+
+    this.utils.eventHub.on(this.utils.eventHub.eventType.fileContentLoaded, () => resetHighlight())
     this.utils.createSmartInputHandler(this.entities.input, () => this._updateExplain(true))
 
     this.entities.files.addEventListener("click", ev => this.utils.openFile(ev.target.closest(".plugin-search-item")?.dataset.path))
-    this.entities.triggerBtn.addEventListener("click", () => {
-      if (this.fsm.isSearching()) {
-        this.executor.abort()
-        this.fsm.cancel()
-      } else {
-        this.search()
-      }
-    })
+    this.entities.triggerBtn.addEventListener("click", () => this.toggleSearch())
     this.entities.anchorBtn.addEventListener("click", () => {
       this.entities.anchorBtn.classList.toggle("is-active")
       this.highlighter.options.matchAnchor = (this.config.HIGHLIGHTS_MATCH_ANCHOR = !this.config.HIGHLIGHTS_MATCH_ANCHOR)
-      if (!this.fsm.isSearching() && this.entities.input.value) {
-        this.highlightByAST()
-      }
+      rehighlight()
     })
     this.entities.caseBtn.addEventListener("click", () => {
       this.entities.caseBtn.classList.toggle("is-active")
-      const sensitive = this.config.CASE_SENSITIVE = !this.config.CASE_SENSITIVE
+      const sensitive = (this.config.CASE_SENSITIVE = !this.config.CASE_SENSITIVE)
       this.searcher.options.caseSensitive = sensitive
       this.highlighter.options.caseSensitive = sensitive
       this._updateExplain(true)
+      rehighlight()
     })
     this.entities.panel.addEventListener("btn-click", ev => {
       if (ev.detail.action === "showGrammar") {
-        this.grammarPresenter.show()
+        this.grammarModal()
       } else if (ev.detail.action === "close") {
         this.hide()
       }
@@ -249,8 +260,8 @@ class SearchMultiPlugin extends BasePlugin {
     await this.executor.execute(ast, rootPath, {
       onEmpty: () => this.fsm.reset(),
       onStart: () => this.fsm.start(),
-      onItem: this._createResultAppender(rootPath),
-      onSuccess: () => this.fsm.success() && this.highlightByAST(ast),
+      onItem: this._createOnItemHandler(rootPath),
+      onSuccess: () => this.fsm.success() && this.highlight(ast),
       onError: (err) => {
         const msg = err.name === "TimeoutError" ? this.i18n.t("error.timeout") : err.toString()
         this.utils.notification.show(msg, "error")
@@ -260,7 +271,20 @@ class SearchMultiPlugin extends BasePlugin {
     })
   }
 
-  highlightByAST = (ast = this._getAST()) => {
+  cancelSearch = () => {
+    this.executor.abort()
+    this.fsm.cancel()
+  }
+
+  toggleSearch = async (rootPath, input) => {
+    if (this.fsm.isSearching()) {
+      this.cancelSearch()
+    } else {
+      await this.search(rootPath, input)
+    }
+  }
+
+  highlight = (ast = this._getAST()) => {
     this.entities.highlights.replaceChildren()
     if (!ast) return
 
@@ -280,8 +304,6 @@ class SearchMultiPlugin extends BasePlugin {
       console.error(e)
     }
   }
-
-  resetHighlight = () => !this.entities.panel.hidden && this.highlightByAST()
 
   _getAST = (input = this.entities.input.value) => {
     input = input.trim()
@@ -316,30 +338,13 @@ class SearchMultiPlugin extends BasePlugin {
     }
   }
 
-  _createResultAppender = (rootPath) => {
-    const formatBytes = (bytes) => {
-      if (bytes < 1024) return `${bytes} B`
-      return bytes < 1048576 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1048576).toFixed(1)} MB`
-    }
-
-    const newItem = (rootPath, fileCtx) => {
-      const { dir, base, name } = this.utils.Package.Path.parse(fileCtx.path)
-      const dirPath = this.config.RELATIVE_PATH ? dir.replace(rootPath, ".") : dir
-      return h("div", { className: "plugin-search-item", "data-path": fileCtx.path },
-        h("div", { className: "plugin-search-item-title" },
-          h("div", { className: "plugin-search-item-name", textContent: this.config.SHOW_EXT ? base : name }),
-          h("div", { className: "plugin-search-item-meta", textContent: formatBytes(fileCtx.stats.size) }),
-        ),
-        h("div", { className: "plugin-search-item-path", textContent: dirPath + this.utils.separator }),
-      )
-    }
-
+  _createOnItemHandler = (rootPath) => {
     let count = 0
     const rafManager = this.utils.getRafManager()
     const fragment = document.createDocumentFragment()
     return (fileCtx, signal) => {
       count++
-      fragment.appendChild(newItem(rootPath, fileCtx))
+      fragment.appendChild(this._toItemEl(rootPath, fileCtx))
       rafManager.schedule(() => {
         if (signal?.aborted) return
         this.entities.files.appendChild(fragment)
@@ -348,11 +353,22 @@ class SearchMultiPlugin extends BasePlugin {
     }
   }
 
+  _toItemEl = (rootPath, fileCtx) => {
+    const { dir, base, name } = this.utils.Package.Path.parse(fileCtx.path)
+    const dirPath = this.config.RELATIVE_PATH ? dir.replace(rootPath, ".") : dir
+    return h("div", { className: "plugin-search-item", "data-path": fileCtx.path },
+      h("div", { className: "plugin-search-item-title" },
+        h("div", { className: "plugin-search-item-name", textContent: this.config.SHOW_EXT ? base : name }),
+        h("div", { className: "plugin-search-item-meta", textContent: this.formatMeta(fileCtx) }),
+      ),
+      h("div", { className: "plugin-search-item-path", textContent: dirPath + this.utils.separator }),
+    )
+  }
+
   hide = () => {
     this.entities.panel.hide()
     this.highlighter.clearSearch()
-    this.executor.abort()
-    this.fsm.cancel()
+    this.cancelSearch()
   }
 
   show = () => {

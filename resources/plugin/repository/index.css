@@ -1,0 +1,263 @@
+#plugin-repository {
+  --repository-bg: #fff;
+  --repository-bg-hover: rgba(0, 0, 0, .04);
+  --repository-border: rgba(0, 0, 0, .08);
+  --repository-text: #1e293b;
+  --repository-text-sub: #475569;
+  --repository-text-placeholder: #94a3b8;
+  --repository-primary: #4285f4;
+  --repository-primary-hover: #3b78e7;
+  --repository-focus: rgba(66, 133, 244, .15);
+  --repository-danger: #c0392b;
+  --repository-scrollbar: rgba(0, 0, 0, .18);
+  --repository-scrollbar-hover: rgba(0, 0, 0, .3);
+
+  --content-area-padding: 24px 20px;
+
+  width: 85vw;
+  min-width: 480px;
+  max-width: 960px;
+  height: 85vh;
+  max-height: 720px;
+  left: calc((100vw - min(85vw, 960px)) / 2);
+  top: calc((100vh - min(85vh, 720px)) / 2);
+  color: var(--repository-text);
+}
+
+#plugin-repository::part(content-area) {
+  overflow: hidden;
+}
+
+#plugin-repository > * + * {
+  margin-top: 14px;
+}
+
+#plugin-repository .repository-toolbar {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto auto;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+#plugin-repository input,
+#plugin-repository fast-dropdown,
+#plugin-repository .repository-add {
+  box-sizing: border-box;
+  height: 36px;
+  color: inherit;
+  background: var(--repository-bg);
+  border: 1px solid var(--repository-border);
+  border-radius: 8px;
+  outline: none;
+  transition: background-color .2s, border-color .2s, box-shadow .2s;
+}
+
+#plugin-repository input {
+  width: 100%;
+  padding: 5px 12px;
+}
+
+#plugin-repository input:focus,
+#plugin-repository fast-dropdown[open] {
+  border-color: var(--repository-primary);
+  box-shadow: 0 0 0 3px var(--repository-focus);
+}
+
+#plugin-repository input::placeholder {
+  color: var(--repository-text-placeholder);
+}
+
+#plugin-repository fast-dropdown {
+  --fd-bg: var(--repository-bg);
+  --fd-hover-bg: var(--repository-bg-hover);
+  --fd-menu-bg: var(--repository-bg);
+  --fd-text: var(--repository-text);
+  --fd-item-text: var(--repository-text);
+  --fd-item-hover-bg: var(--repository-bg-hover);
+  --fd-height: 34px;
+  --fd-font-size: 13px;
+  --fd-font-weight: 400;
+  --fd-padding: 5px 12px;
+  --fd-border-radius: 8px;
+  --fd-menu-left: 0;
+  --fd-menu-right: 0;
+  font-size: 1rem;
+}
+
+#plugin-repository .repository-add {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 12px;
+  color: #fff;
+  background: var(--repository-primary);
+  border-color: transparent;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  font-weight: 500;
+  line-height: 1;
+}
+
+#plugin-repository .repository-add:hover:not(.is-disabled) {
+  background: var(--repository-primary-hover);
+}
+
+#plugin-repository .is-disabled {
+  cursor: not-allowed;
+  opacity: .5;
+}
+
+#plugin-repository fast-dropdown.is-disabled {
+  pointer-events: none;
+}
+
+#plugin-repository .repository-status {
+  min-height: 20px;
+  flex-shrink: 0;
+  color: var(--repository-text-sub);
+  font-size: 12px;
+  line-height: 20px;
+  user-select: none;
+}
+
+#plugin-repository .repository-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0 -20px;
+  padding: 0 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-top: 1px solid var(--repository-border);
+}
+
+#plugin-repository .repository-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--repository-border);
+  cursor: pointer;
+}
+
+#plugin-repository .repository-item:hover {
+  background: var(--repository-bg-hover);
+}
+
+#plugin-repository .repository-item.is-missing {
+  cursor: default;
+  opacity: .62;
+}
+
+#plugin-repository .repository-main {
+  min-width: 0;
+}
+
+#plugin-repository .repository-name {
+  overflow: hidden;
+  font-weight: 600;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#plugin-repository .repository-path,
+#plugin-repository .repository-meta {
+  overflow: hidden;
+  margin-top: 3px;
+  opacity: .68;
+  font-size: 12px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#plugin-repository .repository-meta.is-missing {
+  color: var(--repository-danger);
+  opacity: 1;
+}
+
+#plugin-repository .repository-actions {
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+}
+
+#plugin-repository .repository-action {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: inherit;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color .2s;
+}
+
+#plugin-repository .repository-action:hover:not(.is-disabled) {
+  background: var(--repository-bg-hover);
+}
+
+#plugin-repository .repository-rename-input {
+  width: 100%;
+  height: 30px;
+  min-height: 0;
+}
+
+#plugin-repository .repository-empty {
+  padding: 36px 10px;
+  text-align: center;
+  opacity: .62;
+  user-select: none;
+}
+
+#plugin-repository .repository-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+#plugin-repository .repository-list::-webkit-scrollbar-thumb {
+  background-color: var(--repository-scrollbar);
+  border: 3px solid transparent;
+  border-radius: 8px;
+  background-clip: padding-box;
+}
+
+#plugin-repository .repository-list::-webkit-scrollbar-thumb:hover {
+  background-color: var(--repository-scrollbar-hover);
+}
+
+body.plugin-dark-mode #plugin-repository {
+  --repository-bg: #1e1e20;
+  --repository-bg-hover: rgba(255, 255, 255, .06);
+  --repository-border: rgba(255, 255, 255, .08);
+  --repository-text: #f3f4f6;
+  --repository-text-sub: #9ca3af;
+  --repository-text-placeholder: #6b7280;
+  --repository-primary: #8ab4f8;
+  --repository-primary-hover: #a1c3fa;
+  --repository-focus: rgba(138, 180, 248, .15);
+  --repository-danger: #f28b82;
+  --repository-scrollbar: rgba(255, 255, 255, .16);
+  --repository-scrollbar-hover: rgba(255, 255, 255, .3);
+}
+
+body.plugin-dark-mode #plugin-repository .repository-add {
+  color: #1e1e20;
+}
+
+@media (max-width: 620px) {
+  #plugin-repository .repository-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  #plugin-repository .repository-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #plugin-repository .repository-actions {
+    justify-content: end;
+    margin-top: 6px;
+  }
+}

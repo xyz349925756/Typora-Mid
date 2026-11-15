@@ -4,6 +4,7 @@ const FS_EXTRA = require("fs-extra")
 const TOML = require("../lib/smol-toml")
 
 const i18n = require("../i18n")
+const container = require("../container")
 
 const MIXINS = {
   settings: require("./settings"),
@@ -34,21 +35,18 @@ class utils {
   static supportHasSelector = CSS.supports("selector(:has(*))")
   static tempFolder = window._options.tempPath || require("os").tmpdir()
   static Package = Object.freeze({ Path: PATH, FsExtra: FS_EXTRA, Util: UTIL })
-  static mixins = Object.fromEntries(
-    Object.entries(MIXINS).map(([name, cls]) => [[name], new cls(this, i18n)]),
-  )
+  static mixins = Object.fromEntries(Object.entries(MIXINS).map(([name, cls]) => [[name], new cls(this, i18n)]))
 
   static PLUGIN_LOAD_ABORT = Symbol.for("plugin:load-abort")  // For plugins prepare method; return this to stop loading the plugin
 
-  // =========== Plugin ===========
+  // ---------- Plugin ----------
   static i18n = i18n
+  static container = container
 
-  static container = null
-  static setContainer = container => this.container = container
-  static getAllPlugins = () => this.container.getAllPlugins()
-  static getPlugin = fixedName => this.container.getPlugin(fixedName)
-  static getAllSettings = () => this.container.getAllSettings()
-  static getSetting = (fixedName, key) => this.container.getSetting(fixedName, key)
+  static getAllPlugins = () => container.getAllPlugins()
+  static getPlugin = fixedName => container.getPlugin(fixedName)
+  static getAllSettings = () => container.getAllSettings()
+  static getSetting = (fixedName, key) => container.getSetting(fixedName, key)
 
   static getPluginFn = (fixedName, fnName) => this.getPlugin(fixedName)?.[fnName]
   static callPluginFn = (fixedName, fnName, ...args) => {
@@ -56,19 +54,27 @@ class utils {
     return plugin?.[fnName]?.apply(plugin, args)
   }
 
-  static isUnderMountFolder = path => {
-    const mountFolder = PATH.resolve(this.getMountFolder())
-    const p = PATH.resolve(path)
-    return mountFolder && p && p.startsWith(mountFolder)
+  static isUnderMountFolder = (path) => {
+    const mount = this.getMountFolder()
+    if (!mount) return false
+    const mount_ = PATH.resolve(mount)
+    if (!mount_) return false
+    const path_ = PATH.resolve(path)
+    if (!path_) return false
+    return path_.startsWith(mount_ + this.separator)
   }
-  static openFile = (filepath, force = false) => {
-    if (!filepath) return
-    if (force || (this.getMountFolder() && this.isUnderMountFolder(filepath))) {
+  static setMountFolder = (folder) => {
+    File.setMountFolder(folder)
+    File.editor.library.refreshPanelCommand()
+  }
+  static openFile = (path, force = false) => {
+    if (!path) return
+    if (force || this.isUnderMountFolder(path)) {
       File.editor.restoreLastCursor()
       File.editor.focusAndRestorePos()
-      File.editor.library.openFile(filepath)
+      File.editor.library.openFile(path)
     } else {
-      File.editor.library.openFileInNewWindow(filepath, false)
+      File.editor.library.openFileInNewWindow(path, false)
     }
   }
   static openFolder = folder => {
@@ -86,24 +92,24 @@ class utils {
 
   static _meta = {}  // Used to pass data in the context menu
   static callPluginAction = (fixedName, action) => this.getPlugin(fixedName)?.call?.(action, this._meta)
-  static updatePluginDynamicActions = (fixedName, anchorNode = this.getAnchorNode(), notInContextMenu = false) => {
+  static updatePluginDynamicActions = (fixedName, anchorNode = this.getAnchorNode()) => {
     const plugin = this.getPlugin(fixedName)
     if (typeof plugin?.getDynamicActions === "function") {
       const anchor = anchorNode[0]
       if (anchor) {
         this._meta = {}
-        return plugin.getDynamicActions(anchor, this._meta, notInContextMenu)
+        return plugin.getDynamicActions(anchor, this._meta)
       }
     }
+    return []
   }
-  static updateAndCallPluginDynamicAction = (fixedName, action, anchorNode, notInContextMenu) => {
-    this.updatePluginDynamicActions(fixedName, anchorNode, notInContextMenu)
+  static callPluginDynamicAction = (fixedName, action, anchorNode) => {
+    this.updatePluginDynamicActions(fixedName, anchorNode)
     this.callPluginAction(fixedName, action)
   }
 
   static sendEmail = (email, subject = "", body = "") => reqnode("electron").shell.openExternal(`mailto:${email}?subject=${subject}&body=${body}`)
   static openPath = (path) => reqnode("electron").shell.openPath(path)
-
   static downloadImage = async (src, folder, filename) => {
     folder = folder || this.tempFolder
     filename = filename || (this.randomString() + "_" + PATH.extname(src))
@@ -135,7 +141,7 @@ class utils {
   }
 
 
-  // =========== Event ===========
+  // ---------- Event ----------
   static metaKeyPressed = ev => File.isMac ? ev.metaKey : ev.ctrlKey
   static isIMEActivated = ev => ev.key === "Process"
   static modifierKey = keyString => {
@@ -147,7 +153,7 @@ class utils {
   }
 
 
-  // =========== Pure Function ===========
+  // ---------- Pure Function ----------
   static noop = () => undefined
   static identity = args => args
 
@@ -195,6 +201,20 @@ class utils {
         Promise.try(() => fn.apply(this, args)).then(resolve, reject)
       }, delay)
       return deferred.promise
+    }
+  }
+
+  static singleflight = (fn, keyResolver = (...args) => JSON.stringify(args)) => {
+    const inflight = new Map()
+    return function (...args) {
+      const key = keyResolver.apply(this, args)
+      const existing = inflight.get(key)
+      if (existing) return existing
+      const p = Promise.try(() => fn.apply(this, args))
+      inflight.set(key, p)
+      const clear = () => (inflight.get(key) === p) && inflight.delete(key)
+      p.then(clear, clear)
+      return p
     }
   }
 
@@ -352,7 +372,7 @@ class utils {
 
   static asyncReplaceAll = (text, regex, replaceFn) => {
     if (!regex.global) {
-      throw Error("Called with a non-global RegExp argument")
+      throw new Error("Called with a non-global RegExp argument")
     }
 
     let match
@@ -405,7 +425,8 @@ class utils {
       s: () => date.getSeconds().toString(),
       SSS: () => date.getMilliseconds().toString().padStart(3, "0"),
       S: () => date.getMilliseconds().toString(),
-      a: () => new Intl.DateTimeFormat(locale, { hour: "numeric", hour12: true }).formatToParts(date).find(part => part.type === "dayPeriod")?.value || "",
+      a: () => new Intl.DateTimeFormat(locale, { hour: "numeric", hour12: true })
+        .formatToParts(date).find(part => part.type === "dayPeriod")?.value || "",
     }
     const regex = /(yyyy|yyy|yy|MMMM|MMM|MM|M|dddd|ddd|dd|d|HH|H|hh|h|mm|m|ss|s|SSS|S|a)/g
     return format.replace(regex, match => fns[match]?.() ?? match)
@@ -449,8 +470,6 @@ class utils {
     },
     get: (obj, key) => this.nestedPropertyHelpers.handle(obj, key, (obj, lastKey) => obj[lastKey]),
     set: (obj, key, val) => this.nestedPropertyHelpers.handle(obj, key, (obj, lastKey) => obj[lastKey] = val),
-    push: (obj, key, item) => this.nestedPropertyHelpers.handle(obj, key, (obj, lastKey) => obj[lastKey].push(item)),
-    removeIndex: (obj, key, idx) => this.nestedPropertyHelpers.handle(obj, key, (obj, lastKey) => obj[lastKey].splice(idx, 1)),
   }
 
   /**
@@ -560,9 +579,10 @@ class utils {
     }
   }
 
-  // =========== Business File ===========
-  static getLocalRootUrl = () => File.editor.docMenu.getLocalRootUrl() || this.getCurrentDirPath()
+  // ---------- Business File ----------
   static toFileProtocol = (path) => (path && !path.startsWith("file://")) ? `file://${path}` : path
+  static getLocalRootUrl = () => File.editor.docMenu.getLocalRootUrl() || this.getCurrentDirPath()
+  static resolveLocalPath = (path) => PATH.resolve(this.getLocalRootUrl(), path)
 
   static getCurrentFileContent = () => File.editor.getMarkdown()
   static editCurrentFile = async (replacement, persistence = File.option.enableAutoSave) => {
@@ -607,6 +627,7 @@ class utils {
     el.appendChild(document.createTextNode(css))
     document.head.append(el)
   }
+  static upsertStyle = (name, css) => this[this.getStyleEl(name) ? "replaceStyle" : "insertStyle"](name, css)
   static insertStyleFile = (name, href) => {
     const el = document.createElement("link")
     el.id = this.getStyleId(name)
@@ -615,6 +636,8 @@ class utils {
     el.href = this.toFileProtocol(this.joinPluginPath(href))
     document.head.append(el)
   }
+
+  static insertScript = async (uri) => $.getScript(this.isNetworkURI(uri) ? uri : this.toFileProtocol(PATH.resolve(uri)))
 
   static newFilePath = async filename => {
     filename = filename || File.getFileName() || Date.now() + ".md"
@@ -651,7 +674,7 @@ class utils {
     remove: () => localStorage.removeItem(key),
   })
 
-  // =========== Basic File ===========
+  // ---------- Basic File ----------
   static getDirname = () => global.dirname || global.__dirname
   static getHomeDir = () => require("os").homedir() || File.option.userPath
   static getFilePath = () => File.filePath || File.bundle?.filePath || ""
@@ -830,7 +853,7 @@ class utils {
     return drainPromise
   }
 
-  // =========== Business Operations ===========
+  // ---------- Business Operations ----------
   static exitTypora = () => JSBridge.invoke("window.close")
   static restartTypora = () => {
     this.openFolder(this.getMountFolder())
@@ -859,9 +882,27 @@ class utils {
     return JSBridge.invoke("dialog.showMessageBox", op)
   }
 
-  static getMarkdownIt = this.once(() => require("../lib/markdown-it")({ html: true, linkify: true, typographer: true }))
-  static parseMarkdownBlock = (content, options = {}) => this.getMarkdownIt().parse(content, options)
-  static parseMarkdownInline = (content, options = {}) => this.getMarkdownIt().parseInline(content, options)
+  static createMarkdownIt = () => {
+    const { footnote, mark, tasklist, alert, katex, frontMatter, sub, sup, ins } = require("../lib/markdown-it-plugins")
+    return require("../lib/markdown-it")({ html: true })
+      .use(footnote).use(mark).use(tasklist).use(frontMatter, () => void 0).use(alert, { deep: true }).use(katex, { throwOnError: false })
+    // .use(sub).use(sup).use(ins)
+  }
+  static getMarkdownIt = this.once(() => this.createMarkdownIt())
+  static parseMarkdown = (content, options = {}) => this.getMarkdownIt().parse(content, options)
+  static getDefaultRenderer = this.once(() => {
+    const md = this.createMarkdownIt()
+    const defaultRule = md.renderer.rules.image || ((tokens, idx, options, env, self) => self.renderToken(tokens, idx, options))
+    md.renderer.rules.image = (tokens, idx, options, env, self) => {
+      const token = tokens[idx]
+      const src = token.attrGet("src")
+      if (this.isLocalImage(src)) {
+        token.attrSet("src", this.toFileProtocol(this.resolveLocalPath(src)))
+      }
+      return defaultRule(tokens, idx, options, env, self)
+    }
+    return md
+  })
 
   static fetch = async (url, { proxy = "", timeout = 3 * 60 * 1000, ...args } = {}) => {
     let signal, agent
@@ -906,11 +947,12 @@ class utils {
   static isNetworkURI = uri => /^https?|(ftp):\/\//.test(uri)
   static isSpecialImage = uri => /^(blob|chrome-blob|moz-blob|data):[^\/]/.test(uri)
   static isNetworkImage = this.isNetworkURI
+  static isLocalImage = uri => uri && !this.isNetworkImage(uri) && !this.isSpecialImage(uri)
 
   static getFenceContentByCid = cid => cid && File.editor.fences.queue[cid]?.getValue()
 
   static getTocTree = useBuiltin => {
-    const root = { depth: 0, cid: "n0", text: this.getFileName(), parent: null, children: [] }
+    const root = { depth: 0, cid: "", text: this.getFileName(), parent: null, children: [] }
     const stack = [root]
     const toc = useBuiltin
       ? File.editor.library.outline.getHeaderMatrix(true)
@@ -934,7 +976,7 @@ class utils {
     return root
   }
 
-  // =========== DOM Operations ===========
+  // ---------- DOM Operations ----------
   static entities = {
     eWrite: document.querySelector("#write"),
     $eWrite: $(document.querySelector("#write")),
@@ -959,28 +1001,6 @@ class utils {
 
   static isImgEmbed = img => img.complete && img.naturalWidth !== 0 && img.naturalHeight !== 0
 
-  static markdownInlineStyleToHTML = (content, dir = this.getLocalRootUrl()) => {
-    return content
-      .replace(/(?<!\\)`(.+?)(?<!\\)`/gs, `<code>$1</code>`)
-      .replace(/(?<!\\)[*_]{2}(.+?)(?<!\\)[*_]{2}/gs, `<strong>$1</strong>`)
-      .replace(/(?<![*\\])\*(?![\\*])(.+?)(?<![*\\])\*(?![\\*])/gs, `<em>$1</em>`)
-      .replace(/(?<!\\)~~(.+?)(?<!\\)~~/gs, "<del>$1</del>")
-      .replace(/(?<![\\!])\[(.+?)\]\((.+?)\)/gs, `<a href="$2">$1</a>`)
-      .replace(/(?<!\\)!\[(.+?)\]\((.+?)\)/gs, (_, alt, src) => {
-        if (!this.isNetworkImage(src) && !this.isSpecialImage(src)) {
-          src = this.toFileProtocol(PATH.resolve(dir, src))
-        }
-        return `<img alt="${alt}" src="${src}">`
-      })
-  }
-
-  static buildTable = ([headers = [], ...bodyRows] = []) => {
-    if (headers.length === 0) return "<table></table>"
-    const thead = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>`
-    const tbody = bodyRows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")
-    return `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>`
-  }
-
   static jumpToEdge = (toTop = true) => {
     const fn = toTop ? "jumpTop" : "jumpBottom"
     File.editor.selection[fn]()
@@ -1003,8 +1023,10 @@ class utils {
       focus = true,
       moveCursor = false,
       showHiddenEls = true,
+      forceExitSourceMode = true,
     } = options
 
+    if (forceExitSourceMode && File.editor.sourceView.inSourceMode) File.toggleSourceMode()
     if (focus) File.editor.focusAndRestorePos()
     if (moveCursor) File.editor.selection.jumpIntoElemEnd(target)
     if (showHiddenEls) ["collapse_paragraph", "collapse_table", "collapse_list", "truncate_text"].forEach(plu => this.callPluginFn(plu, "rollback", target[0]))
@@ -1027,16 +1049,6 @@ class utils {
     cm.setCursor(cursor)
   }
 
-  // content: \n represents a soft line break; \n\n represents a hard line break
-  static insertText = (anchorNode, content, restoreLastCursor = true) => {
-    if (restoreLastCursor) {
-      File.editor.contextMenu.hide()
-      // File.editor.writingArea.focus()
-      File.editor.restoreLastCursor()
-    }
-    File.editor.insertText(content)
-  }
-
   static createFragment = els => {
     if (!els) return null
     if (typeof els === "string") {
@@ -1057,24 +1069,17 @@ class utils {
     if (frag) document.getElementById("typora-quick-open").after(frag)
   }
 
-  /** Backup before `File.editor.stylize.toggleFences()` as it uses `File.option` to set block code language. Restore after. */
   static insertFence = (lang = "") => {
-    const lang1_ = File.option["default-code-lang"]  // Used for old versions
-    const lang2_ = File.option.defaultCodeLang  // Used for new versions
-    const menu_ = File.option.DefaultCodeLangOptionMenu
-    const op_ = File.option.defaultCodeLangOption
-
-    File.option["default-code-lang"] = lang
-    File.option.defaultCodeLang = lang
-    File.option.DefaultCodeLangOptionMenu = 1
-    File.option.defaultCodeLangOption = 1
+    const op = File.option
+    const backup = this.pick(op, ["default-code-lang", "defaultCodeLang", "DefaultCodeLangOptionMenu", "defaultCodeLangOption"])
     try {
+      op["default-code-lang"] = lang
+      op.defaultCodeLang = lang
+      op.DefaultCodeLangOptionMenu = 1
+      op.defaultCodeLangOption = 1
       File.editor.stylize.toggleFences()
     } finally {
-      File.option["default-code-lang"] = lang1_
-      File.option.defaultCodeLang = lang2_
-      File.option.DefaultCodeLangOptionMenu = menu_
-      File.option.defaultCodeLangOption = op_
+      Object.assign(op, backup)
     }
   }
 
@@ -1083,22 +1088,33 @@ class utils {
     this.insertText(anchorNode, cnt)
   }
 
-  static getRangy = () => {
-    const range = File.editor.selection.getRangy()
-    if (!range) return {}
-
-    const selection = window.getSelection()
-    const markElem = File.editor.getMarkElem(selection.anchorNode)
-    const node = File.editor.findNodeByElem(markElem)
-    const bookmark = range.getBookmark(markElem[0])
-    return { range, markElem, node, bookmark }
+  // content: \n represents a soft line break; \n\n represents a hard line break
+  static insertText = (anchorNode, content, restoreLastCursor = true) => {
+    if (restoreLastCursor) {
+      File.editor.contextMenu.hide()
+      // File.editor.writingArea.focus()
+      File.editor.restoreLastCursor()
+    }
+    File.editor.insertText(content)
   }
 
-  static getRangyText = () => {
-    const { node, bookmark } = this.getRangy()
-    if (!node || !bookmark) return
-    const el = File.editor.findElemById(node.cid)
-    return el.rawText().substring(bookmark.start, bookmark.end)
+  static getRangy = () => {
+    const range = File.editor.selection.getRangy()
+    if (!range) return null
+    const selection = window.getSelection()
+    const markEl = File.editor.getMarkElem(selection.anchorNode)
+    const node = File.editor.findNodeByElem(markEl)
+    const bookmark = Object.freeze(range.getBookmark(markEl[0]))
+    return {
+      range, node, bookmark,
+      get text() {
+        return node ? File.editor.findElemById(node.cid).rawText().substring(bookmark.start, bookmark.end) : undefined
+      },
+      select: bk => {
+        range.moveToBookmark(bk)
+        range.select()
+      },
+    }
   }
 
   static getSelectionManager = () => {
@@ -1121,6 +1137,8 @@ class utils {
 
   static getRafManager = () => new AnimationFrameManager()
   static getSingleTaskRunner = () => new SingleTaskRunner()
+
+  static setDarkMode = dark => document.body.classList.toggle("plugin-dark-mode", Boolean(dark))
 
   static renderMermaid = async (definition) => {
     const graph = await window.mermaidAPI.render("plugin-common-mermaid", definition)

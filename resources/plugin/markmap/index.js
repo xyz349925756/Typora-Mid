@@ -25,103 +25,56 @@ class MarkmapPlugin extends BasePlugin {
 
   call = async action => {
     if (action === "toggle_toc") {
-      await this.tocMarkmap?.callback(action)
+      await this.tocMarkmap?.callback()
     } else if (action === "draw_fence_template" || action === "draw_fence_outline") {
       await this.fenceMarkmap?.callback(action)
     }
   }
 
-  onButtonClick = () => this.tocMarkmap?.callback()
+  onButtonClick = () => this.call("toggle_toc")
 
-  getToc = (
-    fixSkip = this.config.FIX_SKIPPED_LEVEL_HEADERS,
-    removeStyles = this.config.REMOVE_HEADER_STYLES,
-  ) => {
+  getToc = (options = this.config) => {
+    const { REMOVE_HEADER_STYLES: removeStyles, FIX_SKIPPED_LEVEL_HEADERS: fixSkippedLevels, NODE_TEXT_TEMPLATE: nodeTemplate = "{{text}}" } = options
     const tree = this.utils.getTocTree(removeStyles)
-    const getHeaders = (node, ret, indent) => {
-      const head = "#".repeat(fixSkip ? indent : node.depth)
-      ret.push(`${head} ${node.text}`)
-      for (const child of node.children) {
-        getHeaders(child, ret, indent + 1)
-      }
-      return ret
-    }
-    return getHeaders(tree, [], 0).slice(1).join("\n")
+    const md = serializeToc(tree, { fixSkippedLevels, nodeTemplate })
+    return { tree, md }
   }
 
-  assignOptions = (update, origin) => {
-    const options = this.Lib.deriveOptions({ ...origin, ...update })
-    // `toggleRecursively` is deleted after calling deriveOptions
-    options.toggleRecursively = update.toggleRecursively
-    return options
-  }
-
-  lazyLoad = async () => {
-    if (this.Lib.transformerVersions) return
-
-    const localImagePlugin = resolveImageSrcPlugin(
-      src => src && !this.utils.isNetworkImage(src) && !this.utils.isSpecialImage(src),
-      src => this.utils.toFileProtocol(this.utils.Package.Path.resolve(this.utils.getLocalRootUrl(), src)),
-    )
-    const { Transformer, transformerVersions, builtInPlugins, markmap } = require("./resource/markmap.min.js")
-    const transformer = new Transformer([...builtInPlugins, localImagePlugin])
-    Object.assign(this.Lib, markmap, { transformer, transformerVersions })
-
-    const { styles, scripts } = transformer.getAssets()
-    this.localizeResources(styles, scripts)
-
-    await markmap.loadCSS(styles)
-    await markmap.loadJS(scripts, { getMarkmap: () => markmap })
-  }
-
-  localizeResources = (styles = [], scripts = []) => {
-    const katexBase = "./plugin/global/core/lib/katex"
-    const pluginBase = "./plugin/markmap/resource/"
-    const localResources = {
-      "katex.min.js": this.utils.joinPluginPath(katexBase, "katex.js"),
-      "katex.min.css": this.utils.joinPluginPath(katexBase, "katex.min.css"),
-      "default.min.css": this.utils.joinPluginPath(pluginBase, "default.min.css"),
-      "webfontloader.js": this.utils.joinPluginPath(pluginBase, "webfontloader.js"),
-    }
-    const localize = (items, expectedType, urlProp) => {
-      for (const item of items) {
-        if (item?.type === expectedType && typeof item?.data?.[urlProp] === "string") {
-          const url = item.data[urlProp]
-          const filename = url.slice(url.lastIndexOf("/") + 1)
-          const localResource = localResources[filename]
-          if (localResource) {
-            item.data[urlProp] = this.utils.toFileProtocol(localResource)
-          }
-        }
-      }
-    }
-    localize(styles, "stylesheet", "href")
-    localize(scripts, "script", "src")
-  }
+  lazyLoad = this.utils.once(async () => {
+    const load = require("./loader.js")
+    Object.assign(this.Lib, await load(this.utils))
+  })
 }
 
-function wrapFunction(fn, wrapper) {
-  return (...args) => wrapper(fn, ...args)
+const TOKEN_RESOLVERS = {
+  text: node => node.text,
+  cid: node => node.cid,
+  level: node => node.depth,
+  index: (node, numbers) => numbers.at(-1),
+  number: (node, numbers) => numbers.join("."),
+  children: node => node.children.length,
 }
 
-function resolveImageSrcPlugin(filter, resolve) {
-  return {
-    name: "resolveImageSrc",
-    transform(transformHooks) {
-      transformHooks.parser.tap(md => {
-        md.renderer.renderAttrs = wrapFunction(md.renderer.renderAttrs, (renderAttrs, token) => {
-          if (token.tag === "img") {
-            const src = token.attrGet("src")
-            if (filter(src)) {
-              token.attrSet("src", resolve(src))
-            }
-          }
-          return renderAttrs(token)
-        })
-      })
-      return {}
-    },
+function serializeToc(tree, { fixSkippedLevels, nodeTemplate }) {
+  const lines = []
+  const counters = []
+
+  const visit = (node, depth) => {
+    counters[depth] = (counters[depth] || 0) + 1
+    counters.length = depth + 1
+
+    const heading = "#".repeat(fixSkippedLevels ? depth : node.depth)
+    const numbers = counters.slice(1)
+    const content = nodeTemplate.replace(/\{\{\s*(\w+)\s*}}/g, (raw, token) => TOKEN_RESOLVERS[token]?.(node, numbers) ?? raw)
+    lines.push(`${heading} ${content}`)
+
+    for (const child of node.children) {
+      visit(child, depth + 1)
+    }
   }
+
+  visit(tree, 0)
+  return lines.slice(1).join("\n")  // root is virtual: drop its line
 }
 
 module.exports = {

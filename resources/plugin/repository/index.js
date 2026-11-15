@@ -20,299 +20,28 @@ class RepositoryPlugin extends BasePlugin {
 
   hotkey = () => [{ hotkey: this.config.HOTKEY, callback: this.call }]
 
-  style = () => `
-    #plugin-repository {
-      --repository-bg-mask: rgba(0, 0, 0, .5);
-      --repository-bg-dialog: #fff;
-      --repository-bg-hover: rgba(0, 0, 0, .04);
-      --repository-bg-input: rgba(0, 0, 0, .04);
-      --repository-border: rgba(0, 0, 0, .08);
-      --repository-text-main: #1e293b;
-      --repository-text-sub: #475569;
-      --repository-text-placeholder: #94a3b8;
-      --repository-primary: #4285f4;
-      --repository-focus: rgba(66, 133, 244, .15);
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--repository-text-main);
-      background: var(--repository-bg-mask);
-      animation: repository-fade-in .2s linear forwards;
-    }
-    #plugin-repository .repository-dialog {
-      display: flex;
-      flex-direction: column;
-      width: 85vw;
-      max-width: 960px;
-      height: 85vh;
-      max-height: 720px;
-      overflow: hidden;
-      background: var(--repository-bg-dialog);
-      border-radius: 12px;
-      box-shadow: 0 20px 40px -8px rgba(0, 0, 0, .15), 0 0 1px rgba(0, 0, 0, .1);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-      animation: repository-slide-up .3s ease-out forwards;
-    }
-    #plugin-repository .repository-header {
-      display: flex;
-      flex: 0 0 64px;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 28px;
-      border-bottom: 1px solid var(--repository-border);
-    }
-    #plugin-repository .repository-title {
-      overflow: hidden;
-      font-size: 18px;
-      font-weight: 600;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    #plugin-repository .repository-close {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      min-height: 32px;
-      padding: 0;
-      color: var(--repository-text-sub);
-      background: transparent;
-      border: 0;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background .2s, color .2s;
-    }
-    #plugin-repository .repository-close:hover {
-      color: #ef4444;
-      background: rgba(239, 68, 68, .1);
-    }
-    #plugin-repository .repository-main {
-      flex: 1;
-      min-height: 0;
-      overflow: hidden;
-    }
-    #plugin-repository .repository-layout {
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      padding: 24px 32px;
-    }
-    #plugin-repository .repository-layout > * + * {
-      margin-top: 12px;
-    }
-    #plugin-repository .repository-toolbar {
-      display: grid;
-      grid-template-columns: minmax(160px, 1fr) auto auto;
-      gap: 8px;
-    }
-    #plugin-repository input,
-    #plugin-repository fast-dropdown,
-    #plugin-repository .repository-button {
-      box-sizing: border-box;
-      min-height: 36px;
-      color: inherit;
-      background: var(--repository-bg-dialog);
-      border: 1px solid var(--repository-border);
-      border-radius: 8px;
-      outline: none;
-      transition: background .2s, border-color .2s, box-shadow .2s;
-    }
-    #plugin-repository input {
-      padding: 5px 8px;
-    }
-    #plugin-repository input:focus,
-    #plugin-repository fast-dropdown[open] {
-      border-color: var(--repository-primary);
-      box-shadow: 0 0 0 3px var(--repository-focus);
-    }
-    #plugin-repository input::placeholder {
-      color: var(--repository-text-placeholder);
-    }
-    #plugin-repository fast-dropdown {
-      --fd-bg: var(--repository-bg-dialog);
-      --fd-hover-bg: var(--repository-bg-hover);
-      --fd-menu-bg: var(--repository-bg-dialog);
-      --fd-text: var(--repository-text-main);
-      --fd-item-text: var(--repository-text-main);
-      --fd-item-hover-bg: var(--repository-bg-hover);
-      --fd-height: 34px;
-      --fd-font-weight: 400;
-      --fd-padding: 5px 8px;
-      --fd-menu-left: 0;
-      --fd-menu-right: 0;
-    }
-    #plugin-repository fast-dropdown.is-disabled {
-      pointer-events: none;
-      cursor: not-allowed;
-      opacity: .5;
-    }
-    #plugin-repository .repository-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 5px 10px;
-      cursor: pointer;
-      user-select: none;
-    }
-    #plugin-repository .repository-button:hover:not(.is-disabled) {
-      background: var(--repository-bg-hover);
-    }
-    #plugin-repository .repository-button.is-disabled {
-      cursor: not-allowed;
-      opacity: .5;
-    }
-    #plugin-repository .repository-status {
-      min-height: 20px;
-      color: var(--repository-text-sub);
-      font-size: 12px;
-    }
-    #plugin-repository .repository-list {
-      flex: 1;
-      min-height: 0;
-      overflow: auto;
-      border-top: 1px solid var(--repository-border);
-    }
-    #plugin-repository .repository-item {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
-      align-items: center;
-      padding: 10px 4px;
-      border-bottom: 1px solid var(--repository-border);
-      cursor: pointer;
-    }
-    #plugin-repository .repository-item:hover {
-      background: var(--repository-bg-hover);
-    }
-    #plugin-repository .repository-item.is-missing {
-      cursor: default;
-      opacity: .62;
-    }
-    #plugin-repository .repository-main {
-      min-width: 0;
-    }
-    #plugin-repository .repository-name {
-      overflow: hidden;
-      font-weight: 600;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    #plugin-repository .repository-path,
-    #plugin-repository .repository-meta {
-      overflow: hidden;
-      margin-top: 3px;
-      opacity: .68;
-      font-size: 12px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    #plugin-repository .repository-meta.is-missing {
-      color: #c0392b;
-      opacity: 1;
-    }
-    #plugin-repository .repository-actions {
-      display: flex;
-    }
-    #plugin-repository .repository-actions > * + * {
-      margin-left: 5px;
-    }
-    #plugin-repository .repository-actions .repository-button {
-      width: 32px;
-      padding: 0;
-    }
-    #plugin-repository .repository-rename-input {
-      width: 100%;
-    }
-    #plugin-repository .repository-empty {
-      padding: 36px 10px;
-      text-align: center;
-      opacity: .62;
-    }
-    @keyframes repository-fade-in {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes repository-slide-up {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    body.plugin-dark-mode #plugin-repository {
-      --repository-bg-mask: rgba(0, 0, 0, .8);
-      --repository-bg-dialog: #1e1e20;
-      --repository-bg-hover: rgba(255, 255, 255, .06);
-      --repository-bg-input: rgba(255, 255, 255, .05);
-      --repository-border: rgba(255, 255, 255, .08);
-      --repository-text-main: #f3f4f6;
-      --repository-text-sub: #9ca3af;
-      --repository-text-placeholder: #6b7280;
-      --repository-primary: #8ab4f8;
-      --repository-focus: rgba(138, 180, 248, .15);
-    }
-    body.plugin-dark-mode #plugin-repository .repository-dialog {
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .1);
-    }
-    @media (max-width: 620px) {
-      #plugin-repository .repository-toolbar {
-        grid-template-columns: 1fr;
-      }
-      #plugin-repository .repository-item {
-        grid-template-columns: minmax(0, 1fr);
-      }
-      #plugin-repository .repository-actions {
-        justify-content: flex-end;
-      }
-    }
-  `
+  style = () => true
 
   html = () => `
-    <div id="plugin-repository" class="repository-mask plugin-common-hidden">
-      <div class="repository-dialog" role="dialog" aria-modal="true" aria-labelledby="plugin-repository-title">
-        <div class="repository-header">
-          <div id="plugin-repository-title" class="repository-title"></div>
-          <div class="repository-button repository-close ion-close-round" role="button" tabindex="0" title="${this.i18n.t("action.close")}" aria-label="${this.i18n.t("action.close")}"></div>
-        </div>
-        <div class="repository-main">
-          <div class="repository-layout">
-            <div class="repository-toolbar">
-              <input class="repository-search" type="search" placeholder="${this.i18n.t("search.placeholder")}" aria-label="${this.i18n.t("search.label")}">
-              <fast-dropdown class="repository-sort" role="button" tabindex="0" aria-label="${this.i18n.t("sort.label")}"></fast-dropdown>
-              <div class="repository-button repository-add" role="button" tabindex="0"><div class="fa fa-folder-open-o" aria-hidden="true"></div>&nbsp;${this.i18n.t("action.add")}</div>
-            </div>
-            <div class="repository-status" aria-live="polite"></div>
-            <div class="repository-list"></div>
-          </div>
-        </div>
+    <fast-window id="plugin-repository" hidden window-title="${this.pluginName}" window-resize="both" window-buttons="close|fa-times">
+      <div class="repository-toolbar">
+        <input class="repository-search" type="search" placeholder="${this.i18n.t("search.placeholder")}">
+        <fast-dropdown class="repository-sort" tabindex="0" icon="fa fa-sort-amount-desc"></fast-dropdown>
+        <div class="repository-add" tabindex="0"><div class="fa fa-folder-open-o" aria-hidden="true"></div><div>${this.i18n.t("action.add")}</div></div>
       </div>
-    </div>
-  `
+      <div class="repository-status" aria-live="polite"></div>
+      <div class="repository-list"></div>
+    </fast-window>`
 
   init = () => {
     this.entities = {
       panel: document.querySelector("#plugin-repository"),
-      dialog: document.querySelector("#plugin-repository .repository-dialog"),
-      title: document.querySelector("#plugin-repository .repository-title"),
-      close: document.querySelector("#plugin-repository .repository-close"),
       search: document.querySelector("#plugin-repository .repository-search"),
       sort: document.querySelector("#plugin-repository .repository-sort"),
       add: document.querySelector("#plugin-repository .repository-add"),
       status: document.querySelector("#plugin-repository .repository-status"),
       list: document.querySelector("#plugin-repository .repository-list"),
     }
-    this.entities.title.textContent = this.pluginName
     this.entities.sort
       .setOptions([
         { value: "recent", label: this.i18n.t("sort.recent") },
@@ -324,20 +53,22 @@ class RepositoryPlugin extends BasePlugin {
   }
 
   process = () => {
-    this.entities.close.addEventListener("click", () => this.utils.hide(this.entities.panel))
+    this.entities.panel.addEventListener("btn-click", ev => {
+      if (ev.detail.action === "close") this.entities.panel.hide()
+    })
     this.utils.createSmartInputHandler(this.entities.search, this.render, { debounceDelay: 100 })
-    this.entities.sort.addEventListener("change", () => void this._changeSort())
-    this.entities.add.addEventListener("click", () => void this._addFolder())
-    this.entities.list.addEventListener("click", event => void this._handleListClick(event))
+    this.entities.sort.addEventListener("change", () => this._changeSort())
+    this.entities.add.addEventListener("click", () => this._addFolder())
+    this.entities.list.addEventListener("click", ev => this._handleListClick(ev))
     this.entities.panel.addEventListener("keydown", this._handleControlKeydown)
-    document.addEventListener("keydown", event => {
-      if (event.key === "Escape" && this.utils.isShown(this.entities.panel)) {
-        this.utils.hide(this.entities.panel)
+    document.addEventListener("keydown", ev => {
+      if (ev.key === "Escape" && !this.entities.panel.hidden) {
+        this.entities.panel.hide()
       }
     })
 
-    const capture = () => void this._captureCurrentMount()
-    this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.fileOpened, capture)
+    const capture = () => this._captureCurrentMount()
+    this.utils.eventHub.on(this.utils.eventHub.eventType.fileOpened, capture)
     capture()
 
     if (this.loadError) {
@@ -347,13 +78,11 @@ class RepositoryPlugin extends BasePlugin {
     }
   }
 
-  call = () => {
-    void this.toggle()
-  }
+  call = () => this.toggle()
 
   toggle = async () => {
-    if (this.utils.isShown(this.entities.panel)) {
-      this.utils.hide(this.entities.panel)
+    if (!this.entities.panel.hidden) {
+      this.entities.panel.hide()
       return
     }
 
@@ -368,19 +97,17 @@ class RepositoryPlugin extends BasePlugin {
       }
     }
     await this.render()
-    this.utils.show(this.entities.panel)
+    this.entities.panel.show()
     this.entities.search.focus()
   }
 
   render = async () => {
     const token = ++this.renderToken
     const query = this.entities.search.value.trim().toLocaleLowerCase()
-    const items = this._sortRepositories(this.data.repositories)
-      .filter(item => {
-        if (!query) return true
-        return this._displayName(item).toLocaleLowerCase().includes(query)
-          || item.path.toLocaleLowerCase().includes(query)
-      })
+    const items = this._sortRepositories(this.data.repositories).filter(item => {
+      if (!query) return true
+      return this._displayName(item).toLocaleLowerCase().includes(query) || item.path.toLocaleLowerCase().includes(query)
+    })
 
     const availability = await Promise.all(items.map(item => this._isDirectory(item.path)))
     if (token !== this.renderToken) return
@@ -399,7 +126,7 @@ class RepositoryPlugin extends BasePlugin {
     }
 
     const fragment = document.createDocumentFragment()
-    items.forEach((item, index) => fragment.appendChild(this._createItem(item, availability[index])))
+    items.forEach((item, idx) => fragment.appendChild(this._createItem(item, availability[idx])))
     this.entities.list.appendChild(fragment)
   }
 
@@ -408,7 +135,7 @@ class RepositoryPlugin extends BasePlugin {
     row.className = `repository-item${available ? "" : " is-missing"}`
     row.dataset.path = item.path
     row.dataset.available = String(available)
-    row.title = this.i18n.t(available ? "row.openTitle" : "row.missingTitle")
+    if (!available) row.setAttribute("ty-hint", this.i18n.t("row.missingTitle"))
 
     const main = document.createElement("div")
     main.className = "repository-main"
@@ -440,24 +167,23 @@ class RepositoryPlugin extends BasePlugin {
     return row
   }
 
-  _actionButton = (action, icon, title, disabled = false) => {
+  _actionButton = (action, icon, hint, disabled = false) => {
     const button = document.createElement("div")
     button.dataset.action = action
-    button.className = `repository-button fa ${icon}`
-    button.title = title
-    button.setAttribute("role", "button")
-    button.setAttribute("aria-label", title)
-    this._setButtonDisabled(button, disabled)
+    button.className = `repository-action fa ${icon}`
+    button.setAttribute("ty-hint", hint)
+    this._setControlDisabled(button, disabled)
     return button
   }
 
-  _handleListClick = async event => {
-    const row = event.target.closest(".repository-item")
+  _handleListClick = async ev => {
+    const row = ev.target.closest(".repository-item")
     if (!row) return
     const item = this._findItem(row.dataset.path)
     if (!item) return
+    if (ev.target.closest(".repository-rename-input")) return
 
-    const actionElement = event.target.closest("[data-action]")
+    const actionElement = ev.target.closest("[data-action]")
     if (actionElement?.getAttribute("aria-disabled") === "true") return
     const action = actionElement?.dataset.action
     if (action === "rename") {
@@ -478,7 +204,6 @@ class RepositoryPlugin extends BasePlugin {
     input.className = "repository-rename-input"
     input.value = item.alias
     input.placeholder = this.utils.Package.Path.basename(item.path)
-    input.setAttribute("aria-label", this.i18n.t("alias.label"))
     name.textContent = ""
     name.appendChild(input)
     input.focus()
@@ -494,16 +219,18 @@ class RepositoryPlugin extends BasePlugin {
         await this.render()
       }
     }
-    input.addEventListener("keydown", event => {
-      if (event.key === "Enter") {
-        event.preventDefault()
-        void finish(true)
-      } else if (event.key === "Escape") {
-        event.preventDefault()
-        void finish(false)
+    input.addEventListener("keydown", ev => {
+      if (ev.key === "Enter") {
+        ev.preventDefault()
+        ev.stopPropagation()
+        finish(true)
+      } else if (ev.key === "Escape") {
+        ev.preventDefault()
+        ev.stopPropagation()
+        finish(false)
       }
     })
-    input.addEventListener("blur", () => void finish(true))
+    input.addEventListener("blur", () => finish(true))
   }
 
   _deleteItem = async item => {
@@ -516,7 +243,9 @@ class RepositoryPlugin extends BasePlugin {
       defaultId: 1,
       cancelId: 1,
     })
-    if (response === 0) await this._runMutation(() => this.store.remove(item.path))
+    if (response === 0) {
+      await this._runMutation(() => this.store.remove(item.path))
+    }
   }
 
   _openItem = async (item, available) => {
@@ -526,7 +255,7 @@ class RepositoryPlugin extends BasePlugin {
     }
     await this._runMutation(() => this.store.upsert(item.path), false)
     this.utils.openFolder(item.path)
-    this.utils.hide(this.entities.panel)
+    this.entities.panel.hide()
   }
 
   _addFolder = async () => {
@@ -545,7 +274,9 @@ class RepositoryPlugin extends BasePlugin {
   }
 
   _changeSort = async () => {
-    if (this.loadError) return this._showLoadError()
+    if (this.loadError) {
+      return this._showLoadError()
+    }
     await this._runMutation(() => this.store.setSortBy(this.entities.sort.getValue()))
   }
 
@@ -557,14 +288,16 @@ class RepositoryPlugin extends BasePlugin {
     try {
       const result = await this.store.upsert(folder)
       this._acceptResult(result)
-      if (this.utils.isShown(this.entities.panel)) await this.render()
+      if (!this.entities.panel.hidden) await this.render()
     } catch (error) {
       this._showOperationError(this.i18n.t("error.autoSave"), error)
     }
   }
 
   _runMutation = async (mutation, shouldRender = true) => {
-    if (this.loadError) return this._showLoadError()
+    if (this.loadError) {
+      return this._showLoadError()
+    }
     try {
       this._acceptResult(await mutation())
       if (shouldRender) await this.render()
@@ -576,7 +309,7 @@ class RepositoryPlugin extends BasePlugin {
   _acceptResult = result => {
     this.data = result.data
     if (result.warnings?.length) this.pendingWarnings.push(...result.warnings)
-    if (this.entities) this._showPendingWarnings()
+    this._showPendingWarnings()
   }
 
   _showPendingWarnings = () => {
@@ -586,9 +319,7 @@ class RepositoryPlugin extends BasePlugin {
   }
 
   _showLoadError = () => {
-    const message = this.i18n.t(this.loadError instanceof UnsupportedRepositoryVersionError
-      ? "warning.unsupportedVersion"
-      : "warning.load")
+    const message = this.i18n.t(this.loadError instanceof UnsupportedRepositoryVersionError ? "warning.unsupportedVersion" : "warning.load")
     this.utils.notification.show(message, "error", 7000)
   }
 
@@ -605,16 +336,15 @@ class RepositoryPlugin extends BasePlugin {
     }
   }
 
-  _sortRepositories = repositories => {
-    const items = [...repositories]
+  _sortRepositories = items => {
     const byText = getter => (a, b) => getter(a).localeCompare(getter(b), undefined, { sensitivity: "base" })
     if (this.data.preferences.sortBy === "name") {
-      return items.sort(byText(item => this._displayName(item)))
+      return items.toSorted(byText(item => this._displayName(item)))
     }
     if (this.data.preferences.sortBy === "path") {
-      return items.sort(byText(item => item.path))
+      return items.toSorted(byText(item => item.path))
     }
-    return items.sort((a, b) => new Date(b.lastOpenedAt) - new Date(a.lastOpenedAt))
+    return items.toSorted((a, b) => new Date(b.lastOpenedAt) - new Date(a.lastOpenedAt))
   }
 
   _displayName = item => item.alias || this.utils.Package.Path.basename(item.path) || item.path
@@ -624,42 +354,40 @@ class RepositoryPlugin extends BasePlugin {
     return this.data.repositories.find(item => this.store.canonicalKey(item.path) === key)
   }
 
-  _handleControlKeydown = event => {
-    if (event.target === this.entities.sort) {
-      if (event.target.getAttribute("aria-disabled") === "true") return
-      if (event.key === "Escape") {
-        event.target.close()
-      } else if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault()
-        event.stopPropagation()
-        event.target.state.isOpen ? event.target.close() : event.target.open()
+  _handleControlKeydown = ev => {
+    if (ev.target === this.entities.sort) {
+      if (ev.target.getAttribute("aria-disabled") === "true") return
+      if (ev.key === "Escape") {
+        ev.stopPropagation()
+        ev.target.close()
+      } else if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault()
+        ev.stopPropagation()
+        ev.target.state.isOpen ? ev.target.close() : ev.target.open()
       }
       return
     }
-    const control = event.target.closest?.('.repository-button[role="button"]')
+    const control = ev.target.closest?.(".repository-add, .repository-action")
     if (!control || control.getAttribute("aria-disabled") === "true") return
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault()
-      event.stopPropagation()
+    if (ev.key === "Enter" || ev.key === " ") {
+      ev.preventDefault()
+      ev.stopPropagation()
       control.click()
     }
   }
 
-  _setButtonDisabled = (button, disabled) => {
+  _setControlDisabled = (control, disabled) => {
     const isDisabled = Boolean(disabled)
-    button.classList.toggle("is-disabled", isDisabled)
-    button.setAttribute("aria-disabled", String(isDisabled))
-    button.tabIndex = isDisabled ? -1 : 0
+    control.classList.toggle("is-disabled", isDisabled)
+    control.setAttribute("aria-disabled", String(isDisabled))
+    control.tabIndex = isDisabled ? -1 : 0
   }
 
   _syncControlState = () => {
-    if (!this.entities) return
     const disabled = Boolean(this.loadError)
-    this.entities.sort.classList.toggle("is-disabled", disabled)
-    this.entities.sort.setAttribute("aria-disabled", String(disabled))
-    this.entities.sort.tabIndex = disabled ? -1 : 0
+    this._setControlDisabled(this.entities.sort, disabled)
+    this._setControlDisabled(this.entities.add, disabled)
     if (disabled) this.entities.sort.close()
-    this._setButtonDisabled(this.entities.add, disabled)
   }
 
   _emptyData = () => ({

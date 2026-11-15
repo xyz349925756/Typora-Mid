@@ -1,4 +1,4 @@
-const { ASTUtils } = require("./parser")
+const { ASTUtils, AST } = require("./parser")
 
 const el = (tag, className, children) => {
   const e = document.createElement(tag)
@@ -48,7 +48,7 @@ class ExplainPresenter {
   }
 
   _createToken({ node, negated, isBoolean }) {
-    const { qualifier, scope, operator, operand, matchType } = node.semantic
+    const { qualifier, scope, operator, operand, operandType } = node.semantic
 
     const notEl = negated ? el("div", "sme-not", this.i18n.t("not")) : null
     const scopeEl = el("div", "sme-scope", qualifier.name ?? scope)
@@ -57,7 +57,7 @@ class ExplainPresenter {
     if (isBoolean) {
       els.push(notEl, scopeEl)
     } else {
-      const isRegex = matchType === "REGEX"
+      const isRegex = operandType === "REGEX"
       const opEl = el("div", "sme-operator", this.i18n.t(isRegex ? "matchRegex" : OP_I18N[operator]))
       const valEl = el("div", "sme-operand", isRegex ? `/${operand.pattern}/${operand.flags}` : operand)
       els.push(scopeEl, notEl, opEl, valEl)
@@ -76,8 +76,8 @@ class GrammarPresenter {
 
   _formatNodeText({ node, negated }, { translate, textStyle }) {
     const { i18n } = this
-    const { qualifier, scope, operator, operand, matchType, castResult } = node.semantic
-    const isRegex = matchType === "REGEX"
+    const { qualifier, scope, operator, operand, operandType, castResult } = node.semantic
+    const isRegex = operandType === "REGEX"
 
     const operandTxt = isRegex ? `/${operand.pattern}/${operand.flags}` : operand
     const finalOperandTxt = textStyle ? `<u>${operandTxt}</u>` : operandTxt
@@ -121,7 +121,7 @@ class GrammarPresenter {
     })
   }
 
-  buildExplain(ast, translate, textStyle) {
+  buildList(ast, translate, textStyle) {
     const dnf = this.searcher.toDNF(ast)
     const txt = dnf
       .map(p => p.map(n => `「${this._formatNodeText(n, { translate, textStyle })}」`).join(this.i18n.t("and")))
@@ -130,11 +130,31 @@ class GrammarPresenter {
     return `${this.i18n.t("explain")}：\n${txt}`
   }
 
+  buildTree(ast, translate, textStyle) {
+    const build = (node, depth) => {
+      const pad = "&nbsp;".repeat(6 * depth)
+      if (node.type === AST.LogicalExpression) {
+        const header = translate ? this.i18n.t(node.operator === "AND" ? "matchAll" : "matchAny") : node.operator
+        const children = ASTUtils.collectSameOperatorChildren(node, node.operator)
+        const lines = children.map(c => build(c, depth + 1))
+        return `${pad}${header}：\n${lines.join("\n")}`
+      }
+      if (node.type === AST.UnaryExpression) {
+        const header = translate ? this.i18n.t("exclude") : "NOT"
+        const inner = build(node.argument, depth + 1)
+        return `${pad}${header}：\n${inner}`
+      }
+      const txt = this._formatNodeText({ node, negated: false }, { translate, textStyle })
+      return `${pad}${txt}`
+    }
+    return build(ast, 0)
+  }
+
   buildMermaid(ast, translate, textStyle, direction) {
     const graphData = this._toGraphData(ast)
     const nodes = graphData.nodes.map(n => {
-      const text = this._formatNodeText(n, { translate, textStyle })
-      const safeText = text.replace(/"/g, "#quot;").replace(/^\s*([-*+>#])/g, "\\$1")
+      const txt = this._formatNodeText(n, { translate, textStyle })
+      const safeText = txt.replace(/"/g, "#quot;").replace(/^\s*([-*+>#])/g, "\\$1")
       return `${n.id}("${safeText}")`
     })
     const edges = graphData.edges.map(e => `${e.from} --> ${e.to}`)
@@ -143,10 +163,13 @@ class GrammarPresenter {
     const styles = ["S", "E"].map(id => `style ${id} fill:#bbf,stroke:#f66,stroke-width:2px,color:#fff,stroke-dasharray: 0 1`)
     return [`graph ${direction}`, "S((START))", "E((END))", ...nodes, ...edges, ...start, ...end, ...styles].join("\n")
   }
+}
 
-  async show() {
-    const { searcher, utils, i18n: { t } } = this
-    const scopes = Object.groupBy(searcher.qualifiers.values(), s => s.is_meta ? "isMeta" : "notMeta")
+const getGrammarModal = ({ i18n, utils, searcher }) => {
+  const { t } = i18n
+  const presenter = new GrammarPresenter({ i18n, utils, searcher })
+  return async function show() {
+    const scopes = Object.groupBy(searcher.qualifiers.values(), s => s.isMeta ? "isMeta" : "notMeta")
 
     const bold = x => `<b>${x}</b>`
     const em = x => `<em>${x}</em>`
@@ -154,74 +177,74 @@ class GrammarPresenter {
     const ul = (...li) => `<ul style="padding-left: 1.2em; margin: 0; word-break: break-word;">${li.map(e => `<li>${e}</li>`).join("")}</ul>`
 
     const I18N = {
-      syntax: t("modal.hintDetail.syntax", { eg: em("size>2kb") }),
+      syntax: t("modal.syntax.desc", { eg: em("size>2kb") }),
       scope: ul(
-        bold(t("modal.hintDetail.scope.meta")) + ": " + joinEm(scopes.isMeta.map(e => e.scope)),
-        bold(t("modal.hintDetail.scope.content")) + ": " + joinEm(scopes.notMeta.map(e => e.scope)),
+        bold(t("modal.syntax.scope.meta")) + ": " + joinEm(scopes.isMeta.map(e => e.scope)),
+        bold(t("modal.syntax.scope.content")) + ": " + joinEm(scopes.notMeta.map(e => e.scope)),
       ),
       operator: ul(
-        bold(joinEm([":"])) + " " + t("modal.hintDetail.operator.colon"),
-        bold(joinEm(["=", "!="])) + " " + t("modal.hintDetail.operator.equal"),
-        bold(joinEm([">", "<", ">=", "<="])) + " " + t("modal.hintDetail.operator.compare"),
+        bold(joinEm([":"])) + " " + t("modal.syntax.operator.colon"),
+        bold(joinEm(["=", "!="])) + " " + t("modal.syntax.operator.equal"),
+        bold(joinEm([">", "<", ">=", "<="])) + " " + t("modal.syntax.operator.compare"),
       ),
       operand: ul(
-        t("modal.hintDetail.operand.text"),
-        t("modal.hintDetail.operand.quotes", { eg: em(`"sour pear"`) }),
-        t("modal.hintDetail.operand.regex", { eg: em("/\\bsour\\b/") }),
+        t("modal.syntax.operand.text"),
+        t("modal.syntax.operand.quotes", { eg: em(`"sour pear"`) }),
+        t("modal.syntax.operand.regex", { eg: em("/\\bsour\\b/") }),
       ),
-      combineCond: ul(
-        t("modal.hintDetail.combineCond.and", { eg: em("size>2kb AND ext:txt") }),
-        t("modal.hintDetail.combineCond.or", { eg: em("size>2kb OR ext:txt") }),
-        t("modal.hintDetail.combineCond.not", { eg: em("NOT size>2kb") }),
-        t("modal.hintDetail.combineCond.parentheses", { eg: em("size>2kb OR (ext:txt AND hasimage=true)") }),
+      combine: ul(
+        t("modal.syntax.combine.and", { eg: em("size>2kb AND ext:txt") }),
+        t("modal.syntax.combine.or", { eg: em("size>2kb OR ext:txt") }),
+        t("modal.syntax.combine.not", { eg: em("NOT size>2kb") }),
+        t("modal.syntax.combine.parentheses", { eg: em("size>2kb OR (ext:txt AND hasimage=true)") }),
       ),
-      syntacticSugar: t("modal.hintDetail.syntacticSugar", {
-        scope: em("default"), operator: em(":"), shortCond: em("pear"),
+      sugar: t("modal.syntax.sugarDesc", {
+        scope: bold(em("default")), operator: bold(em(":")), shortCond: em("pear"),
         normalCond: em("default:pear"), longCond: em("path:pear OR content:pear"),
       }),
     }
 
-    const example = utils.buildTable([
-      [t("modal.example.expression"), t("modal.example.query")],
-      [em("pear"), `${t("modal.example.desc1")} ${t("modal.example.equivalentTo")} ${em("default:pear")}`],
-      [em("-pear"), `${t("modal.example.desc2")} ${t("modal.example.equivalentTo")} ${em("NOT pear")}`],
-      [em("sour pear"), `${t("modal.example.desc3")} ${t("modal.example.equivalentTo")} ${em("sour AND pear")}`],
-      [em("sour | pear"), `${t("modal.example.desc4")} ${t("modal.example.equivalentTo")} ${em("sour OR pear")}`],
-      [em(`"sour pear"`), t("modal.example.desc5")],
-      [em("/\\bsour\\b/ pear mtime<2024-05-16"), t("modal.example.desc6")],
-      [em("frontmatter:dev | head=plugin | strong:MIT"), t("modal.example.desc7")],
-      [em("size>10kb (linenum>=1000 | hasimage=true)"), t("modal.example.desc8")],
-      [em("-(path:warn | path:err) -ext:md"), t("modal.example.desc9")],
-      [em(`thead:k8s h2:prometheus blockcode:"kubectl apply"`), t("modal.example.desc10")],
-    ])
+    const example = [
+      ["pear", `${t("modal.example.desc0")} ${t("modal.example.equivalent")} default:pear`],
+      ["-pear", `${t("modal.example.desc1")} ${t("modal.example.equivalent")} NOT pear`],
+      ["sour pear", `${t("modal.example.desc2")} ${t("modal.example.equivalent")} sour AND pear`],
+      ["sour | pear", `${t("modal.example.desc3")} ${t("modal.example.equivalent")} sour OR pear`],
+      [`"sour pear"`, t("modal.example.desc4")],
+      ["/\\bsour\\b/ pear mtime<2024-05-16", t("modal.example.desc5")],
+      ["frontmatter:dev | head=plugin | strong:MIT", t("modal.example.desc6")],
+      ["size>10kb (linenum>=1000 | hasimage=true)", t("modal.example.desc7")],
+      ["-(path:warn | path:err) -ext:md", t("modal.example.desc8")],
+      [`thead:k8s h2:prometheus blockcode:"kubectl apply"`, t("modal.example.desc9")],
+    ].map(([expression, desc]) => ({ expression, desc }))
 
-    const PRESENT = { graph: "graph", text: "text", ast: "ast" }
+    const PRESENT = { graph: "graph", list: "list", tree: "tree", ast: "ast" }
 
     const schema = ({ Group, Controls, When }) => [
       Group(
-        Controls.Hint().Unsafe(true).HintHeader(t("modal.hintHeader.syntax")).HintDetail(I18N.syntax),
-        Controls.Hint().Unsafe(true).HintHeader(t("modal.hintHeader.scope")).HintDetail(I18N.scope),
-        Controls.Hint().Unsafe(true).HintHeader(t("modal.hintHeader.operator")).HintDetail(I18N.operator),
-        Controls.Hint().Unsafe(true).HintHeader(t("modal.hintHeader.operand")).HintDetail(I18N.operand),
-        Controls.Hint().Unsafe(true).HintHeader(t("modal.hintHeader.combineCond")).HintDetail(I18N.combineCond),
-        Controls.Hint().Unsafe(true).HintHeader(t("modal.hintHeader.syntacticSugar")).HintDetail(I18N.syntacticSugar),
+        Controls.Hint().Unsafe(true).HintHeader(t("modal.syntax.base")).HintDetail(I18N.syntax),
+        Controls.Hint().Unsafe(true).HintHeader(t("modal.syntax.scope")).HintDetail(I18N.scope),
+        Controls.Hint().Unsafe(true).HintHeader(t("modal.syntax.operator")).HintDetail(I18N.operator),
+        Controls.Hint().Unsafe(true).HintHeader(t("modal.syntax.operand")).HintDetail(I18N.operand),
+        Controls.Hint().Unsafe(true).HintHeader(t("modal.syntax.combine")).HintDetail(I18N.combine),
+        Controls.Hint().Unsafe(true).HintHeader(t("modal.syntax.sugar")).HintDetail(I18N.sugar),
       ),
-      Controls.Custom().Label(t("modal.title.example")).Unsafe(true).Content(example),
-      Group(t("modal.title.playground"),
-        Controls.Textarea("expression").Rows(3).NoResize(true).IsBlockLayout(true),
+      Controls.Table("example").ThMap({ expression: t("modal.example.expression"), desc: t("modal.example.desc") }).Readonly(true),
+      Group(t("modal.playground.title"),
+        Controls.Textarea("expression").Rows(3).NoResize(true).IsBlockLayout(true).LiveCommit(150),
         Controls.Code("_displayAST").Readonly(true).ShowIf(When.eq("presentation", PRESENT.ast)).DependencyUnmetAction("hide").IsBlockLayout(true),
         Controls.Hint("_displayGraph").Unsafe(true).ShowIf(When.eq("presentation", PRESENT.graph)).DependencyUnmetAction("hide"),
-        Controls.Hint("_displayText").Unsafe(true).ShowIf(When.eq("presentation", PRESENT.text)).DependencyUnmetAction("hide"),
+        Controls.Hint("_displayText").Unsafe(true).ShowIf(When.includes("presentation", [PRESENT.list, PRESENT.tree])).DependencyUnmetAction("hide"),
         Controls.Select("presentation").Label(t("modal.playground.presentation")).Options({
           [PRESENT.graph]: t("modal.playground.presentation.graph"),
-          [PRESENT.text]: t("modal.playground.presentation.text"),
+          [PRESENT.tree]: t("modal.playground.presentation.tree"),
+          [PRESENT.list]: t("modal.playground.presentation.list"),
           [PRESENT.ast]: t("modal.playground.presentation.ast"),
         }),
         Controls.Select("direction").Label(t("modal.playground.direction")).Options(["TB", "BT", "RL", "LR"]).ShowIf(When.eq("presentation", PRESENT.graph)),
-        Controls.Switch("textStyle").Label(t("modal.playground.textStyle")).ShowIf(When.includes("presentation", [PRESENT.graph, PRESENT.text])),
+        Controls.Switch("textStyle").Label(t("modal.playground.textStyle")).ShowIf(When.ne("presentation", PRESENT.ast)),
         Controls.Switch("translate").Label(t("modal.playground.translate")).ShowIf(When.follow("textStyle")),
       ),
-      Controls.Action("_grammar_box_visible").Label(t("modal.title.grammar")).ActionType("toggle"),
+      Controls.Action("_grammar_box_visible").Label(t("modal.grammar.title")).ActionType("toggle"),
       Controls.Code("grammar").Readonly(true).ShowIf(When.true("_grammar_box_visible")),
     ]
 
@@ -234,10 +257,11 @@ class GrammarPresenter {
       }
     }
 
-    await utils.formDialog.modal({
+    return await utils.formDialog.modal({
       title: t("grammar"),
       schema,
       data: {
+        example,
         grammar: searcher.getGrammar(),
         expression: `h2:"foo bar"  ( linenum<200 | blockcodelang=java | abc )  -file:/baz/`,
         presentation: PRESENT.graph, direction: "LR", textStyle: true, translate: true,
@@ -256,11 +280,13 @@ class GrammarPresenter {
           const direction = ctx.getValue("direction")
           if (presentation === PRESENT.ast) {
             _to(expression, ast => JSON.stringify(ast, null, "  ")).then(data => ctx.setValue("_displayAST", data))
-          } else if (presentation === PRESENT.text) {
-            _to(expression, ast => this.buildExplain(ast, translate, textStyle)).then(data => ctx.setValue("_displayText", { hintDetail: data }))
+          } else if (presentation === PRESENT.list) {
+            _to(expression, ast => presenter.buildList(ast, translate, textStyle)).then(data => ctx.setValue("_displayText", { hintDetail: data }))
+          } else if (presentation === PRESENT.tree) {
+            _to(expression, ast => presenter.buildTree(ast, translate, textStyle)).then(data => ctx.setValue("_displayText", { hintDetail: data }))
           } else if (presentation === PRESENT.graph) {
             _to(expression, async ast => {
-              const definition = this.buildMermaid(ast, translate, textStyle, direction)
+              const definition = presenter.buildMermaid(ast, translate, textStyle, direction)
               const svg = await utils.renderMermaid(definition)
               return `<div style="font-size:initial; line-height:initial; text-align:center; user-select:none">${svg}</div>`
             }).then(data => ctx.setValue("_displayGraph", { hintDetail: data }))
@@ -272,4 +298,4 @@ class GrammarPresenter {
   }
 }
 
-module.exports = { ExplainPresenter, GrammarPresenter }
+module.exports = { ExplainPresenter, GrammarPresenter, getGrammarModal }

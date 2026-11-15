@@ -63,332 +63,30 @@ const toBase64Url = buffer => buffer.toString("base64")
   .replace(/=+$/g, "")
 
 class HtmlEditorPlugin extends BasePlugin {
-  prepare = () => {
-    this.options = normalizeOptions(this.config)
-    this.sourceCache = new Map()
-    this.activeFile = ""
-    this.currentStat = null
-    this.savedSource = ""
-    this.viewMode = this.options.defaultView
-    this.previewTimer = null
-    this.previewUrl = ""
-    this.previewRenderToken = 0
-    this.previewBridgeToken = ""
-    this.remoteImageCache = new Map()
-    this.inspectorEnabled = false
-    this.syncingSourceScroll = false
-    this.activationToken = 0
-    this.bypassOpenGuard = false
+  options = normalizeOptions(this.config)
+  sourceCache = new Map()
+  activeFile = ""
+  currentStat = null
+  savedSource = ""
+  viewMode = this.options.defaultView
+  previewTimer = null
+  previewUrl = ""
+  previewRenderToken = 0
+  previewBridgeToken = ""
+  remoteImageCache = new Map()
+  inspectorEnabled = false
+  syncingSourceScroll = false
+  activationToken = 0
+  bypassOpenGuard = false
+
+  prepare = async () => {
+    await this.utils.waitUntil(() => File, 50, 1500)
+    return Object.hasOwn(File, "readContentFrom") ? undefined : this.utils.PLUGIN_LOAD_ABORT
   }
 
   hotkey = () => [{ hotkey: this.config.HOTKEY, callback: this.call }]
 
-  style = () => `
-    content.plugin-html-file-active {
-      overflow: hidden !important;
-    }
-    content.plugin-html-file-active > #write,
-    content.plugin-html-file-active > #typora-source,
-    content.plugin-html-file-active > #ty-oversize-body {
-      display: none !important;
-    }
-    content.plugin-html-file-active ~ footer.ty-footer {
-      display: none !important;
-    }
-    #plugin-html-file-view {
-      --html-editor-bg: #fff;
-      --html-editor-toolbar-bg: #f8fafc;
-      --html-editor-hover: rgba(15, 23, 42, .06);
-      --html-editor-active: rgba(66, 133, 244, .12);
-      --html-editor-border: rgba(15, 23, 42, .12);
-      --html-editor-text: #172033;
-      --html-editor-subtext: #64748b;
-      --html-editor-primary: #4285f4;
-      --html-editor-warning: #b45309;
-      position: absolute !important;
-      top: 0 !important;
-      right: 0 !important;
-      bottom: 0 !important;
-      left: 0 !important;
-      width: auto !important;
-      height: auto !important;
-      max-width: none !important;
-      max-height: none !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      box-sizing: border-box;
-      z-index: 20;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      min-width: 0;
-      min-height: 0;
-      color: var(--html-editor-text);
-      background: var(--html-editor-bg);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-    #plugin-html-file-view .html-editor-header {
-      display: flex;
-      flex: 0 0 52px;
-      align-items: center;
-      min-width: 0;
-      padding: 0 16px;
-      background: var(--html-editor-toolbar-bg);
-      border-bottom: 1px solid var(--html-editor-border);
-    }
-    #plugin-html-file-view .html-editor-header > * + * {
-      margin-left: 12px;
-    }
-    #plugin-html-file-view .html-editor-heading {
-      min-width: 0;
-      flex: 1;
-    }
-    #plugin-html-file-view .html-editor-title,
-    #plugin-html-file-view .html-editor-path {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    #plugin-html-file-view .html-editor-title {
-      font-size: 15px;
-      font-weight: 600;
-    }
-    #plugin-html-file-view .html-editor-path {
-      margin-top: 1px;
-      color: var(--html-editor-subtext);
-      font-size: 10px;
-    }
-    #plugin-html-file-view .html-editor-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
-      min-height: 30px;
-      padding: 4px 9px;
-      color: inherit;
-      background: var(--html-editor-bg);
-      border: 1px solid var(--html-editor-border);
-      border-radius: 6px;
-      cursor: pointer;
-      user-select: none;
-      transition: background .15s, border-color .15s, color .15s;
-    }
-    #plugin-html-file-view .html-editor-button:hover:not(.is-disabled) {
-      background: var(--html-editor-hover);
-    }
-    #plugin-html-file-view .html-editor-button.is-disabled {
-      cursor: not-allowed;
-      opacity: .45;
-    }
-    #plugin-html-file-view .html-editor-view-group {
-      display: inline-flex;
-      flex: none;
-      padding: 2px;
-      background: var(--html-editor-hover);
-      border-radius: 8px;
-    }
-    #plugin-html-file-view .html-editor-view-group .html-editor-button {
-      border-color: transparent;
-      background: transparent;
-    }
-    #plugin-html-file-view .html-editor-view-group .html-editor-button[aria-pressed="true"] {
-      color: var(--html-editor-primary);
-      background: var(--html-editor-active);
-      border-color: rgba(66, 133, 244, .22);
-    }
-    #plugin-html-file-view > .html-editor-header > .html-editor-button[aria-pressed="true"] {
-      color: var(--html-editor-primary);
-      background: var(--html-editor-active);
-      border-color: rgba(66, 133, 244, .22);
-    }
-    #plugin-html-file-view .html-editor-workspace {
-      display: grid;
-      flex: 1 1 0;
-      width: 100%;
-      min-width: 0;
-      min-height: 0;
-      overflow: hidden;
-      background: var(--html-editor-bg);
-    }
-    #plugin-html-file-view.is-split .html-editor-workspace {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    }
-    #plugin-html-file-view .html-editor-pane {
-      min-width: 0;
-      min-height: 0;
-      overflow: hidden;
-    }
-    #plugin-html-file-view .html-editor-source-pane {
-      display: flex;
-      border-right: 1px solid var(--html-editor-border);
-    }
-    #plugin-html-file-view .html-editor-source {
-      box-sizing: border-box;
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 18px;
-      resize: none;
-      color: var(--html-editor-text);
-      background: var(--html-editor-bg);
-      border: 0;
-      outline: 0;
-      font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
-      line-height: 1.55;
-      tab-size: 2;
-      white-space: pre;
-    }
-    #plugin-html-file-view .html-editor-preview-pane {
-      position: relative;
-      display: flex;
-      background: #fff;
-    }
-    #plugin-html-file-view .html-editor-preview {
-      display: block;
-      width: 100%;
-      height: 100%;
-      max-width: none !important;
-      margin: 0 !important;
-      background: #fff;
-      border: 0;
-    }
-    #plugin-html-file-view.is-source .html-editor-preview-pane,
-    #plugin-html-file-view.is-preview .html-editor-source-pane {
-      display: none;
-    }
-    #plugin-html-file-view.is-source .html-editor-workspace,
-    #plugin-html-file-view.is-preview .html-editor-workspace {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    #plugin-html-file-view .html-editor-inspector {
-      position: absolute;
-      right: 12px;
-      bottom: 12px;
-      z-index: 4;
-      box-sizing: border-box;
-      width: min(380px, calc(100% - 24px));
-      max-height: min(520px, calc(100% - 24px));
-      overflow: auto;
-      color: var(--html-editor-text);
-      background: var(--html-editor-bg);
-      border: 1px solid var(--html-editor-border);
-      border-radius: 9px;
-      box-shadow: 0 14px 36px rgba(15, 23, 42, .2);
-    }
-    #plugin-html-file-view .html-editor-inspector.plugin-common-hidden {
-      display: none !important;
-    }
-    #plugin-html-file-view .html-editor-inspector-header {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 10px;
-      background: var(--html-editor-toolbar-bg);
-      border-bottom: 1px solid var(--html-editor-border);
-    }
-    #plugin-html-file-view .html-editor-inspector-header .html-editor-button {
-      min-width: 28px;
-      min-height: 26px;
-      padding: 2px 7px;
-    }
-    #plugin-html-file-view .html-editor-inspector-body {
-      padding: 10px;
-      font-size: 12px;
-    }
-    #plugin-html-file-view .html-editor-inspector-title,
-    #plugin-html-file-view .html-editor-inspector-tag {
-      font-weight: 600;
-    }
-    #plugin-html-file-view .html-editor-inspector-selector {
-      display: block;
-      margin-top: 5px;
-      overflow-wrap: anywhere;
-      color: var(--html-editor-primary);
-      font-family: "Cascadia Code", Consolas, monospace;
-    }
-    #plugin-html-file-view .html-editor-inspector-box {
-      margin: 8px 0;
-      color: var(--html-editor-subtext);
-    }
-    #plugin-html-file-view .html-editor-inspector details {
-      margin-top: 8px;
-    }
-    #plugin-html-file-view .html-editor-inspector pre {
-      max-height: 160px;
-      margin: 5px 0 0;
-      padding: 8px;
-      overflow: auto;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      color: inherit;
-      background: var(--html-editor-hover);
-      border-radius: 6px;
-      font: 11px/1.45 "Cascadia Code", Consolas, monospace;
-    }
-    #plugin-html-file-view .html-editor-footer {
-      display: flex;
-      flex: 0 0 30px;
-      align-items: center;
-      justify-content: space-between;
-      min-width: 0;
-      padding: 0 12px;
-      color: var(--html-editor-subtext);
-      background: var(--html-editor-toolbar-bg);
-      border-top: 1px solid var(--html-editor-border);
-      font-size: 10px;
-    }
-    #plugin-html-file-view .html-editor-security {
-      margin-left: 12px;
-    }
-    #plugin-html-file-view .html-editor-status,
-    #plugin-html-file-view .html-editor-security {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    #plugin-html-file-view .html-editor-security.is-warning {
-      color: var(--html-editor-warning);
-      font-weight: 600;
-    }
-    body.plugin-dark-mode #plugin-html-file-view {
-      --html-editor-bg: #1e1e20;
-      --html-editor-toolbar-bg: #252529;
-      --html-editor-hover: rgba(255, 255, 255, .07);
-      --html-editor-active: rgba(138, 180, 248, .14);
-      --html-editor-border: rgba(255, 255, 255, .1);
-      --html-editor-text: #f1f5f9;
-      --html-editor-subtext: #9ca3af;
-      --html-editor-primary: #8ab4f8;
-      --html-editor-warning: #fbbf24;
-    }
-    @media (max-width: 760px) {
-      #plugin-html-file-view .html-editor-header {
-        flex-wrap: wrap;
-        height: auto;
-        padding-top: 7px;
-        padding-bottom: 7px;
-      }
-      #plugin-html-file-view .html-editor-heading {
-        flex-basis: 100%;
-      }
-      #plugin-html-file-view.is-split .html-editor-workspace {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
-      }
-      #plugin-html-file-view .html-editor-source-pane {
-        border-right: 0;
-        border-bottom: 1px solid var(--html-editor-border);
-      }
-    }
-    @media print {
-      #plugin-html-file-view {
-        display: none !important;
-      }
-    }
-  `
+  style = () => true
 
   html = () => `
     <div id="plugin-html-file-view" class="html-file-view plugin-common-hidden is-${this.options.defaultView}" aria-label="${this.i18n.t("aria.fileView")}">
@@ -438,11 +136,9 @@ class HtmlEditorPlugin extends BasePlugin {
 
   init = () => {
     const root = document.querySelector("#plugin-html-file-view")
-    const content = this.utils.entities.eContent
-    content.appendChild(root)
     this.entities = {
-      content,
       root,
+      content: this.utils.entities.eContent,
       title: root.querySelector(".html-editor-title"),
       path: root.querySelector(".html-editor-path"),
       source: root.querySelector(".html-editor-source"),
@@ -474,11 +170,11 @@ class HtmlEditorPlugin extends BasePlugin {
     this._installOpenGuard()
     this._installSaveRedirect()
 
-    this.entities.open.addEventListener("click", () => void this._chooseFile())
+    this.entities.open.addEventListener("click", () => this._chooseFile())
     this.entities.save.addEventListener("click", () => {
-      if (this.entities.save.getAttribute("aria-disabled") !== "true") void this._save()
+      if (this.entities.save.getAttribute("aria-disabled") !== "true") this._save()
     })
-    this.entities.reload.addEventListener("click", () => void this._reload())
+    this.entities.reload.addEventListener("click", () => this._reload())
     this.entities.external.addEventListener("click", () => this.activeFile && this.utils.openPath(this.activeFile))
     this.entities.inspect.addEventListener("click", () => this._toggleInspector())
     this.entities.closeInspector.addEventListener("click", () => this._toggleInspector(false))
@@ -492,20 +188,15 @@ class HtmlEditorPlugin extends BasePlugin {
     window.addEventListener("beforeunload", this._handleBeforeUnload)
     window.addEventListener("message", this._handlePreviewMessage)
 
-    const eventType = this.utils.eventHub?.eventType
-    if (eventType?.fileContentLoaded) {
-      this.utils.eventHub.addEventListener(eventType.fileContentLoaded, this._handleFileContentLoaded)
-    }
-    if (eventType?.allPluginsHadInjected) {
-      this.utils.eventHub.addEventListener(eventType.allPluginsHadInjected, () => this._registerFileTypes(true))
-    }
+    this.utils.eventHub.on(this.utils.eventHub.eventType.fileContentLoaded, this._handleFileContentLoaded)
+    this.utils.eventHub.on(this.utils.eventHub.eventType.allPluginsHadInjected, () => this._registerFileTypes(true))
   }
 
   call = () => {
     if (this.activeFile) {
       this._setViewMode(this.viewMode === "preview" ? "source" : "preview")
     } else {
-      void this._chooseFile()
+      this._chooseFile()
     }
   }
 
@@ -518,7 +209,7 @@ class HtmlEditorPlugin extends BasePlugin {
         changed = true
       }
     }
-    if (refresh) File.editor?.library?.refreshPanelCommand?.()
+    if (refresh) File.editor.library.refreshPanelCommand()
     return changed
   }
 
@@ -556,7 +247,7 @@ class HtmlEditorPlugin extends BasePlugin {
       target => {
         if (this.bypassOpenGuard || !this._isDirty() || this._samePath(target, this.activeFile)) return false
         const name = this.utils.Package.Path.basename(target || "")
-        void this._confirmDiscard(this.i18n.t("action.openTarget", { name })).then(confirmed => {
+        this._confirmDiscard(this.i18n.t("action.openTarget", { name })).then(confirmed => {
           if (!confirmed) return
           this.bypassOpenGuard = true
           try {
@@ -577,7 +268,7 @@ class HtmlEditorPlugin extends BasePlugin {
       "saveUseNode",
       () => {
         if (!this.activeFile || !this._samePath(this.utils.getFilePath(), this.activeFile)) return false
-        void this._save()
+        this._save()
         return true
       },
       { priority: -200 },
@@ -587,7 +278,7 @@ class HtmlEditorPlugin extends BasePlugin {
   _handleFileContentLoaded = filePath => {
     const target = filePath || this.utils.getFilePath()
     if (isHtmlFile(target)) {
-      void this._activateFile(target)
+      this._activateFile(target)
     } else {
       this._deactivateFile()
     }
@@ -615,7 +306,6 @@ class HtmlEditorPlugin extends BasePlugin {
     this.activationToken++
     this.previewRenderToken++
     clearTimeout(this.previewTimer)
-    if (!this.entities) return
     this.entities.content.classList.remove("plugin-html-file-active")
     this.entities.root.classList.add("plugin-common-hidden")
     this.activeFile = ""
@@ -722,11 +412,11 @@ class HtmlEditorPlugin extends BasePlugin {
     if (key === "s") {
       event.preventDefault()
       event.stopImmediatePropagation()
-      void this._save()
+      this._save()
     } else if (key === "o") {
       event.preventDefault()
       event.stopImmediatePropagation()
-      void this._chooseFile()
+      this._chooseFile()
     } else if (key === "e") {
       event.preventDefault()
       event.stopImmediatePropagation()
@@ -743,28 +433,26 @@ class HtmlEditorPlugin extends BasePlugin {
   _setViewMode = (mode, shouldRender = true) => {
     if (!["source", "preview", "split"].includes(mode)) mode = "preview"
     this.viewMode = mode
-    if (!this.entities?.root) return
     this.entities.root.classList.remove("is-source", "is-preview", "is-split")
     this.entities.root.classList.add(`is-${mode}`)
     this.entities.views.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.view === mode)))
     if (mode === "source" && this.inspectorEnabled) this._toggleInspector(false)
-    if (shouldRender && mode !== "source") void this._renderPreview()
+    if (shouldRender && mode !== "source") this._renderPreview()
     this._postPreviewMessage("html-editor:set-sync", { enabled: this.options.splitSync && mode === "split" })
     if (mode !== "preview") this.entities.source.focus()
   }
 
   _schedulePreview = () => {
     clearTimeout(this.previewTimer)
-    this.previewTimer = setTimeout(() => void this._renderPreview(), this.options.previewDelay)
+    this.previewTimer = setTimeout(() => this._renderPreview(), this.options.previewDelay)
   }
 
   _renderPreview = async () => {
-    if (!this.entities?.preview) return false
     const renderToken = ++this.previewRenderToken
     const source = this.entities.source.value
     this._syncUI(this.i18n.t("status.preparingPreview"))
     const preparedSource = await this._preparePreviewSource(source, renderToken)
-    if (renderToken !== this.previewRenderToken || !this.entities?.preview) return false
+    if (renderToken !== this.previewRenderToken || !this.entities.preview) return false
     const path = this.utils.Package.Path
     const baseHref = this.activeFile
       ? pathToFileURL(path.dirname(this.activeFile) + path.sep).href
@@ -832,7 +520,7 @@ class HtmlEditorPlugin extends BasePlugin {
 
   _resolveLocalResourcePath = resource => {
     const path = this.utils.Package.Path
-    const mountFolder = this.utils.getMountFolder?.() || ""
+    const mountFolder = this.utils.getMountFolder() || ""
     try {
       if (/^file:/i.test(resource)) return fileURLToPath(new URL(resource))
       if (/^https?:/i.test(resource) || /^[A-Za-z][A-Za-z\d+.-]*:/.test(resource) && !/^[A-Za-z]:[\\/]/.test(resource)) return ""
@@ -848,7 +536,6 @@ class HtmlEditorPlugin extends BasePlugin {
 
   _readLocalImage = async filePath => {
     const fs = this.utils.Package.FsExtra
-    if (!fs?.stat || !fs?.readFile) return ""
     try {
       const stat = await fs.stat(filePath)
       if (stat.isFile && !stat.isFile() || stat.size > MAX_IMAGE_BYTES) return ""
@@ -902,8 +589,8 @@ class HtmlEditorPlugin extends BasePlugin {
   _toggleInspector = (enabled = !this.inspectorEnabled) => {
     this.inspectorEnabled = Boolean(enabled)
     if (this.inspectorEnabled && this.viewMode === "source") this._setViewMode("split", false)
-    this.entities?.inspect?.setAttribute("aria-pressed", String(this.inspectorEnabled))
-    this.entities?.inspector?.classList.toggle("plugin-common-hidden", !this.inspectorEnabled)
+    this.entities.inspect.setAttribute("aria-pressed", String(this.inspectorEnabled))
+    this.entities.inspector.classList.toggle("plugin-common-hidden", !this.inspectorEnabled)
     this._postPreviewMessage("html-editor:set-inspector", { enabled: this.inspectorEnabled })
   }
 
@@ -914,20 +601,20 @@ class HtmlEditorPlugin extends BasePlugin {
   }
 
   _postPreviewMessage = (type, payload = {}) => {
-    const target = this.entities?.preview?.contentWindow
+    const target = this.entities.preview.contentWindow
     if (!target || !this.previewBridgeToken) return false
     target.postMessage({ channel: "typora-html-editor", token: this.previewBridgeToken, type, payload }, "*")
     return true
   }
 
   _handlePreviewMessage = event => {
-    if (!this.entities?.preview || event.source !== this.entities.preview.contentWindow) return
+    if (!this.entities.preview || event.source !== this.entities.preview.contentWindow) return
     const data = event.data || {}
     if (data.channel !== "typora-html-editor" || data.token !== this.previewBridgeToken) return
     if (data.type === "html-editor:inspect") {
       this._showInspectedElement(data.payload || {})
     } else if (data.type === "html-editor:navigate") {
-      void this._handlePreviewNavigation(data.payload || {})
+      this._handlePreviewNavigation(data.payload || {})
     } else if (data.type === "html-editor:scroll") {
       this._handlePreviewScroll(data.payload || {})
     } else if (data.type === "html-editor:ready") {
@@ -937,26 +624,21 @@ class HtmlEditorPlugin extends BasePlugin {
 
   _showInspectedElement = payload => {
     this._toggleInspector(true)
-    if (this.entities.inspectorTag) this.entities.inspectorTag.textContent = `<${payload.tagName || "element"}>`
-    if (this.entities.inspectorSelector) this.entities.inspectorSelector.textContent = payload.selector || ""
-    if (this.entities.inspectorBox) {
-      const box = payload.box || {}
-      this.entities.inspectorBox.textContent = Number.isFinite(box.width)
-        ? `${box.width} × ${box.height}px · x ${box.x}, y ${box.y}`
-        : ""
-    }
-    if (this.entities.inspectorAttributes) {
-      this.entities.inspectorAttributes.textContent = (payload.attributes || [])
-        .map(attribute => `${attribute.name}="${attribute.value}"`)
-        .join("\n") || this.i18n.t("inspector.noAttributes")
-    }
-    if (this.entities.inspectorText) this.entities.inspectorText.textContent = payload.text || this.i18n.t("inspector.noText")
+    this.entities.inspectorTag.textContent = `<${payload.tagName || "element"}>`
+    this.entities.inspectorSelector.textContent = payload.selector || ""
+    const box = payload.box || {}
+    this.entities.inspectorBox.textContent = Number.isFinite(box.width)
+      ? `${box.width} × ${box.height}px · x ${box.x}, y ${box.y}`
+      : ""
+    this.entities.inspectorAttributes.textContent = (payload.attributes || [])
+      .map(attribute => `${attribute.name}="${attribute.value}"`)
+      .join("\n") || this.i18n.t("inspector.noAttributes")
+    this.entities.inspectorText.textContent = payload.text || this.i18n.t("inspector.noText")
     this._jumpToSource(payload.offset, payload.end)
   }
 
   _jumpToSource = (offset, end) => {
-    const source = this.entities?.source
-    if (!source) return false
+    const source = this.entities.source
     const start = Math.max(0, Math.min(source.value.length, Number(offset) || 0))
     const finish = Math.max(start, Math.min(source.value.length, Number(end) || start))
     if (this.viewMode !== "split") this._setViewMode("split", false)
@@ -974,22 +656,18 @@ class HtmlEditorPlugin extends BasePlugin {
 
   _handleSourceScroll = () => {
     if (!this.options.splitSync || this.viewMode !== "split" || this.syncingSourceScroll) return
-    const source = this.entities?.source
-    if (!source) return
+    const source = this.entities.source
     const maximum = Math.max(0, source.scrollHeight - source.clientHeight)
     this._postPreviewMessage("html-editor:set-scroll-ratio", { ratio: maximum ? source.scrollTop / maximum : 0 })
   }
 
   _handlePreviewScroll = payload => {
     if (!this.options.splitSync || this.viewMode !== "split") return
-    const source = this.entities?.source
-    if (!source) return
+    const source = this.entities.source
     const maximum = Math.max(0, source.scrollHeight - source.clientHeight)
     this.syncingSourceScroll = true
     source.scrollTop = maximum * clampRatio(payload.ratio)
-    const release = () => { this.syncingSourceScroll = false }
-    if (typeof requestAnimationFrame === "function") requestAnimationFrame(release)
-    else release()
+    requestAnimationFrame(() => this.syncingSourceScroll = false)
   }
 
   _handlePreviewNavigation = async payload => {
@@ -1000,7 +678,7 @@ class HtmlEditorPlugin extends BasePlugin {
       this.utils.openFile(localTarget)
       return true
     }
-    const remoteBase = discoverRemoteBase(this.entities?.source?.value || "")
+    const remoteBase = discoverRemoteBase(this.entities.source.value || "")
     const external = this._resolveRemoteResourceUrl(payload.resolvedHref || href, remoteBase)
       || this._resolveRemoteResourceUrl(href, remoteBase)
     if (external) {
@@ -1035,7 +713,7 @@ class HtmlEditorPlugin extends BasePlugin {
     addHrefCandidate(href)
     addHrefCandidate(resolvedHref)
 
-    const remoteBase = discoverRemoteBase(this.entities?.source?.value || "")
+    const remoteBase = discoverRemoteBase(this.entities.source.value || "")
     if (remoteBase && this.activeFile) {
       try {
         const baseUrl = new URL(remoteBase)
@@ -1063,7 +741,7 @@ class HtmlEditorPlugin extends BasePlugin {
   }
 
   _syncUI = message => {
-    if (!this.entities || !this.activeFile) return
+    if (!this.activeFile) return
     const dirty = this._isDirty()
     this.entities.title.textContent = `${this.utils.Package.Path.basename(this.activeFile)}${dirty ? " *" : ""}`
     this.entities.path.textContent = this.activeFile
@@ -1092,7 +770,7 @@ class HtmlEditorPlugin extends BasePlugin {
     control.tabIndex = isDisabled ? -1 : 0
   }
 
-  _isDirty = () => Boolean(this.activeFile) && this.entities?.source?.value !== this.savedSource
+  _isDirty = () => Boolean(this.activeFile) && this.entities.source.value !== this.savedSource
 
   _confirmDiscard = async action => {
     if (!this._isDirty()) return true
@@ -1131,9 +809,7 @@ class HtmlEditorPlugin extends BasePlugin {
     return response === 0
   }
 
-  _normalizedPath = filePath => this.utils?.Package?.Path?.resolve
-    ? this.utils.Package.Path.resolve(String(filePath || ""))
-    : String(filePath || "")
+  _normalizedPath = filePath => this.utils.Package.Path.resolve(String(filePath || ""))
 
   _samePath = (first, second) => {
     if (!first || !second) return false
@@ -1142,7 +818,7 @@ class HtmlEditorPlugin extends BasePlugin {
     return process.platform === "win32" ? a.toLowerCase() === b.toLowerCase() : a === b
   }
 
-  _notify = (message, type = "info") => this.utils.notification?.show(message, type, 4500)
+  _notify = (message, type = "info") => this.utils.notification.show(message, type, 4500)
 
   _showError = (message, error) => {
     console.error(`[html_editor] ${message}`, error)

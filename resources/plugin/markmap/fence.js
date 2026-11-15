@@ -37,7 +37,7 @@ class FenceMarkmap {
   callback = type => {
     const empty = "# empty"
     const frontMatter = `---\nmarkmap:\n  height: 300px\n  backgroundColor: transparent\n---\n`
-    const content = type === "draw_fence_template" ? this.config.FENCE_TEMPLATE : `${frontMatter}\n${this.plugin.getToc() || empty}`
+    const content = type === "draw_fence_template" ? this.config.FENCE_TEMPLATE : `${frontMatter}\n${this.plugin.getToc().md || empty}`
     this.utils.insertBlockCode(null, this.config.FENCE_LANGUAGE, content)
   }
 
@@ -51,24 +51,22 @@ class FenceMarkmap {
 
   create = ($wrap, content, options) => {
     const { root } = this.Lib.transformer.transform(content)
-    const _options = this.plugin.assignOptions(options)
-    return this.Lib.Markmap.create($wrap[0], _options, root)
+    const _options = this.Lib.assignOptions(options)
+    return this.Lib.createMarkmap($wrap[0], _options, root)
   }
 
   update = async ($wrap, content, instance, options) => {
     const { root } = this.Lib.transformer.transform(content)
-    const _options = this.plugin.assignOptions(options, instance.options)
+    const _options = this.Lib.assignOptions(options, instance.options)
     instance.setData(root, _options)
     await instance.fit()
   }
 
   destroy = instance => instance.destroy()
 
-  getVersion = () => this.Lib.transformerVersions["markmap-lib"]
+  getVersion = () => this.Lib.version
 
-  getStyleContent = () =>
-    `.md-diagram-panel .plugin-fence-markmap-svg { line-height: initial !important; user-select: none; }
-     .plugin-fence-markmap-svg table { margin: 0; padding: 0; }`
+  getStyleContent = () => `.md-diagram-panel .plugin-fence-markmap-svg { line-height: initial !important; user-select: none; } .plugin-fence-markmap-svg table { margin: 0; padding: 0; }`
 }
 
 module.exports = FenceMarkmap

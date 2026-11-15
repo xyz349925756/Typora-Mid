@@ -1,0 +1,216 @@
+.md-diagram-panel .plugin-fence-markmap-svg {
+  line-height: initial !important;
+  user-select: none;
+}
+
+.plugin-fence-markmap-svg table {
+  margin: 0;
+  padding: 0;
+}
+
+#plugin-markmap {
+  --bg-dialog: #ffffff;
+  --bg-toolbar: #f8fafc;
+  --border: rgba(0, 0, 0, 0.06);
+  --text-main: #1e293b;
+  --text-sub: #475569;
+  --primary: #4285f4;
+  --shadow-dialog: 0 20px 40px -8px rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.1);
+  --radius-dialog: 12px;
+  --icon-hover: rgba(0, 0, 0, 0.04);
+  --icon-danger-bg: rgba(239, 68, 68, 0.1);
+  --icon-danger-text: #ef4444;
+
+  display: flex;
+  min-width: 150px;
+  min-height: 150px;
+  padding: 0;
+  background-color: var(--bg-dialog);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-dialog);
+  box-shadow: var(--shadow-dialog);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  user-select: none;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#plugin-markmap:active {
+  transition: none !important;
+}
+
+#plugin-markmap:not(.plugin-common-hidden) {
+  animation: markmap-slide-up 0.3s ease-out forwards;
+}
+
+#plugin-markmap.pinned-window {
+  box-shadow: none;
+  border-radius: 0;
+  border: none;
+  animation: none;
+}
+
+#plugin-markmap:not(.pinned-window) .plugin-markmap-header {
+  cursor: grab;
+}
+
+#plugin-markmap:not(.pinned-window) .plugin-markmap-header:active {
+  cursor: grabbing;
+}
+
+#plugin-markmap.markmap-focused .plugin-markmap-header {
+  background: color-mix(in srgb, var(--primary) 18%, var(--bg-toolbar));
+}
+
+#plugin-markmap.markmap-focused #plugin-markmap-svg {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+@keyframes markmap-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.plugin-markmap-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  min-width: 40px;
+  padding: 8px 6px;
+  background: var(--bg-toolbar);
+  border-top-left-radius: var(--radius-dialog);
+  border-bottom-left-radius: var(--radius-dialog);
+  z-index: 2;
+  writing-mode: vertical-lr;
+  transition: background-color 0.3s, border-radius 0.3s;
+}
+
+#plugin-markmap.pinned-window .plugin-markmap-header {
+  border-radius: 0;
+}
+
+.plugin-markmap-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--text-sub);
+  border-radius: 8px;
+  cursor: pointer;
+  pointer-events: auto;
+  writing-mode: horizontal-tb;
+  transition: background 0.15s, color 0.15s;
+}
+
+.plugin-markmap-icon:not([action="resize"]):hover {
+  background: var(--icon-hover);
+  color: var(--text-main);
+}
+
+.plugin-markmap-icon[action="close"]:hover,
+.plugin-markmap-icon[action="delete"]:hover {
+  background: var(--icon-danger-bg);
+  color: var(--icon-danger-text);
+}
+
+.plugin-markmap-icon[action="resize"] {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  background: transparent;
+}
+
+.plugin-markmap-icon[action="resize"] svg {
+  fill: currentColor;
+  height: 1.2em;
+  width: 1.2em;
+}
+
+.plugin-markmap-icon[action="resize"]:hover {
+  color: var(--text-main);
+}
+
+.plugin-markmap-grip-top {
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 100%;
+  height: 10px;
+  cursor: ns-resize;
+  z-index: 10;
+}
+
+.plugin-markmap-grip-right {
+  position: absolute;
+  top: 0;
+  left: -5px;
+  width: 10px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 10;
+}
+
+#plugin-markmap-svg {
+  flex: 1;
+  margin: 0;
+  color: var(--text-main);
+  user-select: none;
+  border-top-right-radius: var(--radius-dialog);
+  border-bottom-right-radius: var(--radius-dialog);
+}
+
+#plugin-markmap-svg .markmap-foreign {
+  line-height: 20px;
+  color: var(--text-main);
+}
+
+#plugin-markmap-svg .markmap-node {
+  cursor: pointer;
+}
+
+#plugin-markmap-svg .markmap-node .markmap-foreign:hover {
+  outline: 2px solid var(--primary);
+  background-color: var(--icon-hover);
+  border-radius: 4px;
+}
+
+body.plugin-dark-mode #plugin-markmap {
+  --bg-dialog: #1e1e20;
+  --bg-toolbar: #252528;
+  --border: rgba(255, 255, 255, 0.08);
+  --text-main: #f3f4f6;
+  --text-sub: #9ca3af;
+  --primary: #8ab4f8;
+  --shadow-dialog: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --icon-hover: rgba(255, 255, 255, 0.06);
+  --icon-danger-bg: rgba(239, 68, 68, 0.2);
+}
+
+#plugin-markmap-svg .markmap-node,
+#plugin-markmap-svg .markmap-link {
+  opacity: 1;
+  transition: opacity 500ms ease-out;
+}
+
+#plugin-markmap-svg.markmap-dim-others .markmap-node,
+#plugin-markmap-svg.markmap-dim-others .markmap-link {
+  opacity: 0.1;
+}
+
+#plugin-markmap-svg .markmap-node.markmap-path-active,
+#plugin-markmap-svg .markmap-link.markmap-path-active {
+  opacity: 1;
+}

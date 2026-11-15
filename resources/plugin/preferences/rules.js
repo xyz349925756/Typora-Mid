@@ -1,19 +1,28 @@
 const self = (rules) => ({ $self: rules })
 const each = (rules) => ({ $each: rules })
+const row = (rules) => ({ $row: rules })
+
+const and = (...rules) => Object.assign(...rules)
 
 const url = "url"
 const regex = "regex"
 const path = "path"
 const required = "required"
 const array = "array"
-const notZero = { name: "notEqual", args: [0] }
-const hotkey = { name: "pattern", args: [/^((ctrl|shift|alt)\+)*[\w`]+$/i] }
-const fileExt = { name: "pattern", args: [/^([a-zA-Z0-9]+)?$/] }
-const codingLang = { name: "pattern", args: [/^[a-zA-Z0-9#+.\-]+$/] }
-const hexColor = { name: "pattern", args: [/^#([a-f0-9]{8}|[a-f0-9]{6}|[a-f0-9]{4}|[a-f0-9]{3})$/i] }
+const notZero = { name: "notEqual", args: 0 }
+const hotkey = { name: "pattern", args: /^((ctrl|shift|alt)\+)*[\w`]+$/i }
+const codeMirrorKey = { name: "pattern", args: /^((Ctrl|Alt|Shift|Cmd|Mod)-)*[\w\[\]';,.\/\\`=-]+$/ }
+const fileExt = { name: "pattern", args: /^([a-zA-Z0-9]+)?$/ }
+const codingLang = { name: "pattern", args: /^[a-zA-Z0-9#+.\-]+$/ }
+const hexColor = { name: "pattern", args: /^#([a-f0-9]{8}|[a-f0-9]{6}|[a-f0-9]{4}|[a-f0-9]{3})$/i }
+const variable = { name: "pattern", args: /^[a-zA-Z_][a-zA-Z0-9_]*$/i }
+const lettersAndNumbers = { name: "pattern", args: /^[a-zA-Z0-9]+$/ }
+const gestures = { name: "pattern", args: /^[↖↗↘↙←↑→↓]+$/u }
 
-const minItems = (min) => ({ name: "minItems", args: [min] })
-const maxItems = (max) => ({ name: "minItems", args: [max] })
+const minItems = (min) => ({ name: "minItems", args: min })
+const maxItems = (max) => ({ name: "maxItems", args: max })
+const minLength = (min) => ({ name: "minLength", args: min })
+const maxLength = (max) => ({ name: "maxLength", args: max })
 
 const hotkeys = each([required, hotkey])
 
@@ -34,6 +43,8 @@ module.exports = {
     SWITCH_NEXT_TAB_HOTKEY: hotkeys,
     SWITCH_LAST_ACTIVE_TAB_HOTKEY: hotkeys,
     SORT_TABS_HOTKEY: hotkeys,
+    SAVE_TABS_HOTKEY: hotkeys,
+    OPEN_SAVED_TABS_HOTKEY: hotkeys,
     COPY_PATH_HOTKEY: hotkeys,
     TOGGLE_TAB_BAR_HOTKEY: hotkeys,
   },
@@ -45,7 +56,10 @@ module.exports = {
     MAX_DEPTH: notZero,
   },
   commander: {
-    POST_SCRIPT: required,
+    BUILTIN: row({
+      name: required,
+      cmd: required,
+    }),
   },
   md_padding: {
     IGNORE_WORDS: each(required),
@@ -58,6 +72,7 @@ module.exports = {
     "DOWNLOAD_OPTIONS.BACKGROUND_COLOR": [required, hexColor],
     "DOWNLOAD_OPTIONS.TEXT_COLOR": [required, hexColor],
     "DOWNLOAD_OPTIONS.OPEN_CIRCLE_COLOR": [required, hexColor],
+    NODE_TEXT_TEMPLATE: required,
     DEFAULT_FENCE_HEIGHT: required,
     DEFAULT_FENCE_BACKGROUND_COLOR: [required, hexColor],
     "DEFAULT_FENCE_OPTIONS.height": required,
@@ -66,7 +81,9 @@ module.exports = {
   },
   auto_number: {
     FONT_FAMILY: required,
-    APPLY_EXPORT_HEADER_NUMBERING: required,
+    LAYOUTS: row({
+      name: required,
+    }),
   },
   fence_enhance: {
     BUTTON_SIZE: required,
@@ -79,30 +96,90 @@ module.exports = {
     HIGHLIGHT_LINE_COLOR_BY_LANGUAGE: required,
     HIGHLIGHT_LINE_COLOR_ON_HOVER: required,
     HIGHLIGHT_LINE_COLOR_ON_FOCUS: required,
+    HIGHLIGHT_LINE_COLOR_ON_LINE_NUMBER_CLICK: required,
     CODE_TITLE_PATTERN: [required, regex],
+    CUSTOM_BUTTONS: row({
+      ICON: required,
+      ON_CLICK: required,
+    }),
+    SWAP_PREVIOUS_LINE: codeMirrorKey,
+    SWAP_NEXT_LINE: codeMirrorKey,
+    COPY_PREVIOUS_LINE: codeMirrorKey,
+    COPY_NEXT_LINE: codeMirrorKey,
+    INSERT_LINE_PREVIOUS: codeMirrorKey,
+    INSERT_LINE_NEXT: codeMirrorKey,
+    CUSTOM_HOTKEYS: row({
+      HOTKEY: [required, codeMirrorKey],
+      CALLBACK: required,
+    }),
   },
   sidebar_enhance: {
     FONT_WEIGHT: required,
+    OPEN_BY_SYSTEM_EXT: each(fileExt),
+    OPEN_BY_TYPORA_EXT: each(fileExt),
     HIDDEN_NODE_PATTERNS: each([required, regex]),
     COUNT_EXT: each(fileExt),
     IGNORE_FOLDERS: each(required),
+    SIDEBAR_ICONS: row({
+      icon: required,
+      extensions: each([required, fileExt]),
+    }),
   },
   text_stylize: {
     "DEFAULT_COLORS.FOREGROUND": [required, hexColor],
     "DEFAULT_COLORS.BACKGROUND": [required, hexColor],
     "DEFAULT_COLORS.BORDER": [required, hexColor],
+    PANEL_WIDTH: required,
     COLOR_TABLE: each([required, array]),
+    ACTION_HOTKEYS: row({
+      hotkey: [required, hotkey],
+    }),
+  },
+  mouse_gestures: {
+    GESTURES: row({
+      path: [required, gestures],
+      execute: required,
+    }),
   },
   slash_commands: {
     TRIGGER_REGEXP: [required, regex],
+    COMMANDS: row({
+      icon: required,
+      keyword: [required, lettersAndNumbers],
+      callback: required,
+    }),
+  },
+  cjk_symbol_pairing: {
+    AUTO_PAIR_SYMBOLS: row({
+      input: [required, maxLength(1)],
+      output: [required, maxLength(1)],
+    }),
+    AUTO_CONVERT_SYMBOLS: row({
+      input: [required, maxLength(1)],
+      output: [required, maxLength(1)],
+    }),
+  },
+  right_click_menu: {
+    MENUS: row({
+      NAME: required,
+    }),
+  },
+  hotkeys: {
+    CUSTOM_HOTKEYS: row({
+      hotkey: [required, hotkey],
+    }),
   },
   resource_manager: {
+    RESOURCE_EXT: each(fileExt),
+    MARKDOWN_EXT: each(fileExt),
     MAX_ENTITIES: notZero,
     MAX_DEPTH: notZero,
     IGNORE_FOLDERS: each(required),
   },
-  preferences: {
-    FORM_RENDERING_HOOK: required,
+  pie_menu: {
+    BUTTONS: row({
+      CALLBACK: required,
+    }),
   },
   asset_root_redirect: {
     ROOT_PATH: required,
@@ -113,7 +190,7 @@ module.exports = {
   },
   article_uploader: {
     "upload.wordpress.hostname": required,
-    "upload.wordpress.loginUrl": required,
+    "upload.wordpress.loginUrl": [required, url],
     "upload.wordpress.username": required,
     "upload.wordpress.password": required,
     "upload.cnblog.username": required,
@@ -149,16 +226,27 @@ module.exports = {
   },
   echarts: chartStyles,
   chart: chartStyles,
+  vega_lite: {
+    ...chartStyles,
+    "RESOURCE_URI.vega": [required, url],
+    "RESOURCE_URI.vega_lite": [required, url],
+    "RESOURCE_URI.vega_embed": [required, url],
+  },
   wavedrom: {
     ...chartStyles,
     SKIN_FOLDER: [required, path],
   },
+  function_plot: chartStyles,
   calendar: chartStyles,
   abc: chartStyles,
   drawIO: {
     ...chartStyles,
     RESOURCE_URI: [required, url],
     PROXY: url,
+  },
+  infographic: {
+    ...chartStyles,
+    RESOURCE_URI: [required, url],
   },
   plantUML: {
     ...chartStyles,
@@ -171,24 +259,40 @@ module.exports = {
   callouts: {
     FONT_FAMILY: required,
     NETWORK_ICON_URL: [required, url],
+    CALLOUTS: row({
+      type: [required, variable],
+      icon: required,
+      background_color: required,
+      left_line_color: required,
+    }),
     DEFAULT_BACKGROUND_COLOR: required,
     DEFAULT_LEFT_LINE_COLOR: required,
     DEFAULT_ICON: required,
     TEMPLATE: required,
   },
   templater: {
+    TEMPLATE_VARIABLES: row({
+      name: [required, variable],
+      callback: required,
+    }),
+    TEMPLATE: row({
+      name: required,
+    }),
     TEMPLATE_FOLDERS: each([required, path]),
   },
   image_viewer: {
     THUMBNAIL_HEIGHT: required,
+    HOTKEY_FUNCTION: row({
+      hotkey: [required, hotkey],
+    }),
   },
   markdownlint: {
     BUTTON_WIDTH: required,
     BUTTON_HEIGHT: required,
     BUTTON_RIGHT: required,
     BUTTON_BORDER_RADIUS: required,
-    BUTTON_PASS_COLOR: required,
-    BUTTON_ERROR_COLOR: required,
+    BUTTON_PASS_COLOR: [required, hexColor],
+    BUTTON_ERROR_COLOR: [required, hexColor],
     CUSTOM_RULE_FILES: each([required, path]),
   },
   action_buttons: {
@@ -200,5 +304,8 @@ module.exports = {
     BUTTON_GAP: required,
     POSITION_RIGHT: required,
     POSITION_BOTTOM: required,
+    BUTTONS: row({
+      icon: required,
+    }),
   },
 }

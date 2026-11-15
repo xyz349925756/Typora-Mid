@@ -1,0 +1,56 @@
+let LIB
+let RULE_CONFIG
+let CUSTOM_RULES
+
+const linter = {
+  configure: ({ polyfillLibs, coreLib, helpersLib, customRuleFiles, ruleConfig, content }) => {
+    if (polyfillLibs) {
+      polyfillLibs.forEach(require)
+    }
+    if (coreLib) {
+      LIB = require(coreLib)
+    }
+    if (helpersLib && customRuleFiles) {
+      const helpers = require(helpersLib)
+      const define = (defineRule) => defineRule(helpers)  // Dependency Injection
+      CUSTOM_RULES = customRuleFiles.map(require).flatMap(define)
+    }
+    if (ruleConfig) {
+      RULE_CONFIG = ruleConfig
+    }
+    if (LIB) {
+      console.debug(`[ Markdownlint ] markdownlint@${LIB.getVersion()} worker is configured with rules`, RULE_CONFIG)
+    }
+    if (content) {
+      return linter.check({ content })
+    }
+  },
+  check: async ({ content }) => {
+    if (!LIB) return
+    const result = await LIB.lint({ strings: { content }, config: RULE_CONFIG, customRules: CUSTOM_RULES })
+    return result.content
+  },
+  fix: ({ content, fixInfo }) => {
+    if (LIB && fixInfo?.length) {
+      return LIB.applyFixes(content, fixInfo)
+    }
+  },
+  close: () => {
+    self.close()
+  },
+}
+
+self.onmessage = async (event) => {
+  const { data: { action, requestId, payload } } = event
+  if (!payload) return
+
+  const fn = linter[action]
+  if (!fn) {
+    console.error("[ Markdownlint ] Error action", action)
+    return
+  }
+  const result = await fn(payload)
+  if (result) {
+    postMessage({ action, requestId, result })
+  }
+}

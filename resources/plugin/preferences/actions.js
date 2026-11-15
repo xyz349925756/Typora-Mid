@@ -4,10 +4,10 @@ module.exports = (plugin) => {
   const consecutive = (onConfirmed) => utils.createConsecutiveAction({ threshold: 3, timeWindow: 3000, onConfirmed })
   const openUrl = (urlOrFn) => () => utils.openUrl(typeof urlOrFn === "function" ? urlOrFn() : urlOrFn)
   const openPath = (relPath) => () => utils.showInFinder(utils.joinPluginPath(relPath))
-  const showSettings = async (title, settings) => await utils.formDialog.modal({
+  const showCodeModal = async (title, cnt) => await utils.formDialog.modal({
     title,
-    schema: ({ Controls }) => [Controls.Code("settings").Readonly(true)],
-    data: { settings: typeof settings === "string" ? settings : JSON.stringify(settings, null, "  ") },
+    schema: ({ Controls }) => [Controls.Code("d").Readonly(true)],
+    data: { d: typeof cnt === "string" ? cnt : JSON.stringify(cnt, null, "  ") },
   })
 
   const actions = {
@@ -34,10 +34,8 @@ module.exports = (plugin) => {
     developPlugins: openPath("./plugin/DEVELOP_PLUGINS.md"),
     openLocaleFolder: openPath("./plugin/global/locales/en.json"),
     openPluginFolder: openPath("./plugin"),
-    openLogFolder: () => {
-      utils.logger.ensureDir()
-      utils.logger.showInFinder()
-    },
+    openTyporaFileIconFolder: openPath("./style/typora-file-icon/style.css"),
+    openLogFolder: () => utils.logger.showInFinder(),
     openSettingsFolder: async () => utils.settings.openFolder(),
     toggleDevTools: () => JSBridge.invoke("window.toggleDevTools"),
     togglePreferencePanel: () => File.megaMenu.togglePreferencePanel(),
@@ -45,6 +43,18 @@ module.exports = (plugin) => {
     copyEmail: async () => {
       await navigator.clipboard.writeText("nilheap@gmail.com")
       utils.notification.show(i18n.t("success.copy"))
+    },
+    undoChange: () => {
+      const ok = plugin.entities.form.getApi("history")?.undo()
+      if (!ok) utils.notification.show(i18n.t("nothingToDo"), "info")
+    },
+    redoChange: () => {
+      const ok = plugin.entities.form.getApi("history")?.redo()
+      if (!ok) utils.notification.show(i18n.t("nothingToDo"), "info")
+    },
+    inspectChanges: async () => {
+      const changes = plugin.entities.form.getApi("history")?.inspect() ?? {}
+      await showCodeModal(i18n._t("settings", "$tooltip.inspectChanges"), changes)
     },
     importSettings: async () => {
       const { canceled, filePaths } = await JSBridge.invoke("dialog.showOpenDialog", {
@@ -78,16 +88,16 @@ module.exports = (plugin) => {
     }),
     inspectRuntimeSettings: async () => {
       const { settings } = await plugin.getCurrent()
-      await showSettings(i18n._t("settings", "$label.inspectRuntimeSettings"), settings)
+      await showCodeModal(i18n._t("settings", "$label.inspectRuntimeSettings"), settings)
     },
     inspectDefaultSettings: async () => {
-      const content = await utils.Package.FsExtra.readFile(utils.settings.defaultTomlPath, "utf-8")
+      const content = await FsExtra.readFile(utils.settings.defaultTomlPath, "utf-8")
       const settings = utils.readToml(content)?.[plugin._getCurrentPlugin()]
-      await showSettings(i18n._t("settings", "$tooltip.inspectDefaultSettings"), settings)
+      await showCodeModal(i18n._t("settings", "$tooltip.inspectDefaultSettings"), settings)
     },
     inspectAllDefaultSettings: async () => {
-      const settings = await utils.Package.FsExtra.readFile(utils.settings.defaultTomlPath, "utf-8")
-      await showSettings(i18n.t("$tooltip.inspectAllDefaultSettings"), settings)
+      const settings = await FsExtra.readFile(utils.settings.defaultTomlPath, "utf-8")
+      await showCodeModal(i18n.t("$tooltip.inspectAllDefaultSettings"), settings)
     },
     openSettingsDefaultTomlExternally: async () => utils.openPath(utils.settings.defaultTomlPath),
     openSettingsUserTomlExternally: async () => utils.openPath(await utils.settings.getUserTomlPath()),
@@ -121,6 +131,31 @@ module.exports = (plugin) => {
       } catch (err) {
         utils.notification.show(err.message, "error")
       }
+    },
+    inspectBuiltinTemplateVars: async () => {
+      const vars = Object.entries({
+        "formatDate(format, locale)": "Formatted current datetime",
+        "dateOffset(offset, format, locale)": "Formatted date adjusted by offset",
+        "date()": "Current date. Equivalent to formatDate('yyyy-MM-dd')",
+        "time()": "Current time. Equivalent to formatDate('HH')",
+        "datetime()": "Current datetime. Equivalent to formatDate('yyyy-MM-dd HH')",
+        "weekday()": "Current weekday. Equivalent to formatDate('ddd')",
+        "yesterday()": "Yesterday's date. Equivalent to dateOffset(-1)",
+        "tomorrow()": "Tomorrow's date. Equivalent to dateOffset(1)",
+        "timestamp()": "Current timestamp (ms)",
+        "randomInt(min, max)": "Random integer within range",
+        "randomStr(length)": "Random string of specified length",
+        "title()": "Title of the newly created file",
+        "filepath()": "Path of the newly created file",
+        "folder()": "Directory containing the current file",
+        "mountFolder()": "Current mount directory",
+        "uuid()": "UUID",
+      }).map(([name, desc]) => ({ name, desc }))
+      await utils.formDialog.modal({
+        title: i18n._t("templater", "$tooltip.inspectBuiltinTemplateVars"),
+        schema: ({ Controls }) => [Controls.Table("vars").ThMap({ name: "Variables", desc: "Desc" }).Readonly(true)],
+        data: { vars },
+      })
     },
     myopicDefocusEffectDemo: async () => {
       const MyopicDefocus = require("../myopic_defocus/myopic_defocus.js")
@@ -241,7 +276,7 @@ module.exports = (plugin) => {
       const qrEls = QR_CONFIG.map(qr => {
         const svg = _toSVG(_decompress(qr.data), qr.color)
         const label = `<div style="font-weight: bold">${qr.label}</div>`
-        return `<div style="display: flex; flex-direction: column; align-items: center">${svg}${label}</div>`
+        return `<div style="display: flex; flex-direction: column; align-items: center; gap: 5px">${svg}${label}</div>`
       })
       const qrcodeCnt = `<div style="display: flex; justify-content: space-evenly; margin-top: 8px">${qrEls.join("")}</div>`
       const backers = (await FsExtra.readFile(utils.joinPluginPath("./plugin/preferences/backers.txt"), "utf-8"))

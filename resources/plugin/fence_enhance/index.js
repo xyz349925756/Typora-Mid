@@ -25,6 +25,7 @@ class FenceEnhancePlugin extends BasePlugin {
 .fence-enhance .enhance-btn { cursor: pointer; opacity: ${this.config.BUTTON_OPACITY}; padding: 0 ${this.config.BUTTON_PADDING}; }
 .fence-enhance .enhance-btn:hover { opacity: ${this.config.BUTTON_OPACITY_HOVER}; }
 .plugin-fence-enhance-highlight { background-color: ${this.config.HIGHLIGHT_LINE_COLOR_BY_LANGUAGE} !important; }
+.plugin-fence-enhance-click-highlight { background-color: ${this.config.HIGHLIGHT_LINE_COLOR_ON_LINE_NUMBER_CLICK} !important; }
 ${this.config.HIGHLIGHT_ON_HOVER ? `.CodeMirror-line:hover { background-color: ${this.config.HIGHLIGHT_LINE_COLOR_ON_HOVER}; }` : ""}
 ${this.config.HIGHLIGHT_ON_FOCUS ? `.md-focus .CodeMirror-activeline { background-color: ${this.config.HIGHLIGHT_LINE_COLOR_ON_FOCUS}; }` : ""}
 `
@@ -35,6 +36,7 @@ ${this.config.HIGHLIGHT_ON_FOCUS ? `.md-focus .CodeMirror-activeline { backgroun
     if (this.config.ENABLE_BUTTON) this.buttonHelper.process()
     if (this.config.ENABLE_HOTKEY) new HotkeyHelper(this).process()
     if (this.config.HIGHLIGHT_BY_LANGUAGE) new HighlightHelper(this).process()
+    if (this.config.HIGHLIGHT_ON_LINE_NUMBER_CLICK) highlightByClickGutter(this)
     if (this.config.PRELOAD_ALL_FENCES) preloadAllFences(this)
     if (this.config.SIDE_BY_SIDE_VIEW) sideBySideView(this)
     if (this.config.ENABLE_LANGUAGE_FOLD) await foldLanguage(this)
@@ -57,64 +59,10 @@ ${this.config.HIGHLIGHT_ON_FOCUS ? `.md-focus .CodeMirror-activeline { backgroun
     { act_value: "toggle_state_indent", act_state: this.buttonHelper?.enableIndent, act_hidden: !this.buttonHelper?.supportIndent },
     { act_value: "toggle_state_auto_hide", act_state: this.config.AUTO_HIDE },
     { act_value: "toggle_state_default_fold", act_state: this.config.DEFAULT_FOLD },
-    { act_value: "add_fences_lang" },
-    { act_value: "replace_fences_lang" },
     { act_value: "indent_all_fences", act_hint: this.i18n.t("$tooltip.dangerous"), act_hidden: !this.buttonHelper?.supportIndent },
   ])
 
-  call = (action, meta) => {
-    const handleAllFences = async (filterFn, handleFn) => {
-      await this.utils.editCurrentFile(content => {
-        const lines = content.split(/\r?\n/g)
-        this.utils.parseMarkdownBlock(content)
-          .filter(token => token.type === "fence")
-          .filter(filterFn)
-          .map(token => token.map[0])
-          .forEach(idx => lines[idx] = handleFn(lines[idx].trimEnd()))
-        const joiner = content.includes("\r\n") ? "\r\n" : "\n"
-        return lines.join(joiner)
-      })
-      this.utils.notification.show(this.i18n.t("success"))
-    }
-
-    const callMap = {
-      add_fences_lang: async () => {
-        const { response, data: { targetLang } } = await this.utils.formDialog.modal({
-          title: this.i18n.t("modal.add_fences_lang.title"),
-          schema: ({ Controls }) => [Controls.Text("targetLang").Label(this.i18n.t("modal.add_fences_lang.targetLang"))],
-          data: { targetLang: "javascript" },
-        })
-        if (response === 1 && targetLang) {
-          await handleAllFences(
-            token => token.info === "",
-            line => line.endsWith("```") ? line + targetLang : line,
-          )
-        }
-      },
-      replace_fences_lang: async () => {
-        const { response, data: { sourceLang, targetLang } } = await this.utils.formDialog.modal({
-          title: this.i18n.t("modal.replace_fences_lang.title"),
-          schema: ({ Group, Controls }) => [Group(
-            Controls.Text("sourceLang").Label(this.i18n.t("modal.replace_fences_lang.sourceLang")),
-            Controls.Text("targetLang").Label(this.i18n.t("modal.replace_fences_lang.targetLang")),
-          )],
-          data: { sourceLang: "js", targetLang: "javascript" },
-        })
-        if (response === 1 && sourceLang && targetLang) {
-          const regex = new RegExp(`(?<=\`\`\`)${sourceLang}$`)
-          await handleAllFences(
-            token => token.info === sourceLang,
-            line => line.replace(regex, targetLang),
-          )
-        }
-      },
-    }
-    if (callMap[action]) {
-      callMap[action]()
-    } else {
-      this.buttonHelper?.actionCall(action, meta)
-    }
-  }
+  call = (action, meta) => this.buttonHelper?.actionCall(action, meta)
 }
 
 class ButtonHelper {
@@ -346,7 +294,7 @@ class ButtonHelper {
     const evalFn = fnString => {
       const fn = this.utils.safeEval(fnString)
       if (typeof fn !== "function") {
-        throw Error(`custom button param is not function: ${fnString}`)
+        throw new Error(`custom button param is not function: ${fnString}`)
       }
       return fn
     }
@@ -378,11 +326,11 @@ class ButtonHelper {
         this.foldCode(cid, true, btn)
       })
     })
-    const eventHub = this.utils.eventHub
-    eventHub.addEventListener(eventHub.eventType.allPluginsHadInjected, () => {
+    const { eventHub } = this.utils
+    eventHub.on(eventHub.eventType.allPluginsHadInjected, () => {
       this.buttons.filter(btn => btn.enable && typeof btn.initFunc === "function").forEach(btn => btn.initFunc(this.plugin))
     })
-    eventHub.addEventListener(eventHub.eventType.afterAddCodeBlock, (cid, cm) => {
+    eventHub.on(eventHub.eventType.afterAddCodeBlock, (cid, cm) => {
       if (this.buttons.length === 0) return
       const fence = cm?.display.wrapper.parentElement ?? this.utils.entities.querySelectorInWrite(`.md-fences[cid="${cid}"]`)
       if (!fence) return
@@ -450,7 +398,7 @@ class HotkeyHelper {
 
   process = () => {
     const hotkeys = this.getHotkeys()
-    this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.afterAddCodeBlock, (cid, cm) => cm?.addKeyMap(hotkeys))
+    this.utils.eventHub.on(this.utils.eventHub.eventType.afterAddCodeBlock, (cid, cm) => cm?.addKeyMap(hotkeys))
   }
 
   getHotkeys = () => {
@@ -460,8 +408,10 @@ class HotkeyHelper {
       SWAP_NEXT_LINE: () => this.swapLine(false),
       COPY_PREVIOUS_LINE: () => this.copyLine(true),
       COPY_NEXT_LINE: () => this.copyLine(false),
-      INSERT_LINE_NEXT: () => this.newlineAndIndent(false),
       INSERT_LINE_PREVIOUS: () => this.newlineAndIndent(true),
+      INSERT_LINE_NEXT: () => this.newlineAndIndent(false),
+      JUMP_TO_PREVIOUS_FENCE: () => this.jumpToFence(true),
+      JUMP_TO_NEXT_FENCE: () => this.jumpToFence(false),
     }
     for (const [hotkey, callback] of Object.entries(keyMap)) {
       const hk = this.config[hotkey]
@@ -473,7 +423,7 @@ class HotkeyHelper {
       if (DISABLE || !HOTKEY || !CALLBACK) return
       const fn = this.utils.safeEval(CALLBACK)
       if (typeof fn !== "function") {
-        throw Error(`CALLBACK param is not function: ${CALLBACK}`)
+        throw new Error(`CALLBACK param is not function: ${CALLBACK}`)
       }
       hotkeys[HOTKEY] = () => fn(this.getFocusedFence())
     })
@@ -534,6 +484,28 @@ class HotkeyHelper {
     if (previous) this.goLineUp()
     cm.execCommand("goLineEnd")
     cm.execCommand("newlineAndIndent")
+  }
+
+  jumpToFence = (previous = true) => {
+    const fences = [...document.querySelectorAll("#write .md-fences[cid]")]
+    if (!fences.length) return
+
+    const current = this.getFocusedFence()
+    const curIdx = current ? fences.findIndex(f => f.getAttribute("cid") === current.cid) : -1
+
+    let targetIdx = previous ? curIdx - 1 : curIdx + 1
+    if (targetIdx < 0) targetIdx = fences.length - 1
+    if (targetIdx >= fences.length) targetIdx = 0
+    if (targetIdx === curIdx) return
+
+    const targetFence = fences[targetIdx]
+    const targetCid = targetFence.getAttribute("cid")
+    const targetCm = File.editor.fences.queue[targetCid] || File.editor.fences.addCodeBlock(targetCid)
+    if (!targetCm) return
+
+    this.utils.scrollTo(targetFence, { moveCursor: false })
+    targetCm.focus()
+    targetCm.setCursor({ line: 0, ch: 0 })
   }
 }
 
@@ -617,13 +589,13 @@ class HighlightHelper {
       return mode
     }
     this.utils.decorator.decorate(() => window, "getCodeMirrorMode", { before, after, modifyResult: true, modifyArgs: true })
-    this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.afterAddCodeBlock, (cid, cm) => {
+    this.utils.eventHub.on(this.utils.eventHub.eventType.afterAddCodeBlock, (cid, cm) => {
       if (!cm) return
       this._rerender(cm)
       cm.off("change", handleLineChange)
       cm.on("change", handleLineChange)
     })
-    this.utils.eventHub.addEventListener(this.utils.eventHub.eventType.afterUpdateCodeBlockLang, ([node] = []) => {
+    this.utils.eventHub.on(this.utils.eventHub.eventType.afterUpdateCodeBlockLang, ([node] = []) => {
       const cid = node?.cid
       if (!cid) return
       const cm = File.editor.fences.queue[cid]
@@ -632,10 +604,22 @@ class HighlightHelper {
   }
 }
 
+const highlightByClickGutter = ({ utils }) => {
+  const className = "plugin-fence-enhance-click-highlight"
+  const onClick = (cm, lineNo, gutter) => {
+    if (gutter !== "CodeMirror-linenumbers") return
+    const info = cm.lineInfo(lineNo)
+    if (!info?.handle) return
+    const highlighted = (info.bgClass ?? "").split(" ").includes(className)
+    cm[highlighted ? "removeLineClass" : "addLineClass"](info.handle, "background", className)
+  }
+  utils.eventHub.on(utils.eventHub.eventType.afterAddCodeBlock, (cid, cm) => cm?.on("gutterClick", onClick))
+}
+
 const preloadAllFences = ({ utils }) => {
   const preload = () => traverseAllFences(utils.noop)
   utils.eventHub.once(utils.eventHub.eventType.fileOpened, () => setTimeout(preload, 3000))
-  utils.eventHub.addEventListener(utils.eventHub.eventType.fileContentLoaded, preload)
+  utils.eventHub.on(utils.eventHub.eventType.fileContentLoaded, preload)
 }
 
 // Credit: https://github.com/gruvw/typora-side-by-side
@@ -657,12 +641,11 @@ const indentWrappedLine = ({ utils }) => {
     elt.style.textIndent = "-" + off + "px"
     elt.style.paddingLeft = (codeIndentSize + off) + "px"
   }
-  utils.eventHub.addEventListener(utils.eventHub.eventType.afterAddCodeBlock, (cid, cm) => {
-    if (cm) {
-      charWidth = charWidth || cm.defaultCharWidth()
-      cm.on("renderLine", callback)
-      setTimeout(() => cm?.refresh(), 100)
-    }
+  utils.eventHub.on(utils.eventHub.eventType.afterAddCodeBlock, (cid, cm) => {
+    if (!cm) return
+    charWidth = charWidth || cm.defaultCharWidth()
+    cm.on("renderLine", callback)
+    setTimeout(() => cm?.refresh(), 100)
   })
 }
 
@@ -679,7 +662,7 @@ const foldLanguage = async ({ utils }) => {
 
   const handle = () => {
     const gutter = "CodeMirror-foldgutter"
-    utils.eventHub.addEventListener(utils.eventHub.eventType.afterAddCodeBlock, (cid, cm) => {
+    utils.eventHub.on(utils.eventHub.eventType.afterAddCodeBlock, (cid, cm) => {
       if (!cm) return
       if (!cm.options.gutters.includes(gutter)) {
         cm.setOption("gutters", [...cm.options.gutters, gutter])
@@ -723,8 +706,8 @@ const codeTitle = ({ utils, config }) => {
     `.md-fences .${className} { padding: 6px 14px; margin-bottom: 6px; border-bottom: 1px solid #d0d0d0; color: currentColor; user-select: none; }`,
   )
 
-  utils.eventHub.addEventListener(utils.eventHub.eventType.afterAddCodeBlock, cid => rerender(cid))
-  utils.eventHub.addEventListener(utils.eventHub.eventType.afterUpdateCodeBlockLang, ([node] = []) => rerender(node?.cid))
+  utils.eventHub.on(utils.eventHub.eventType.afterAddCodeBlock, cid => rerender(cid))
+  utils.eventHub.on(utils.eventHub.eventType.afterUpdateCodeBlockLang, ([node] = []) => rerender(node?.cid))
 }
 
 module.exports = {

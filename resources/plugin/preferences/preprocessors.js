@@ -72,6 +72,11 @@ module.exports = (plugin) => {
         if (!utils.exportHelper.isAsync) _disableSwitch(field, data)
       },
     },
+    html_editor: {
+      ENABLE: (field, data) => {
+        if (!Object.hasOwn(File, "readContentFrom")) _disableSwitch(field, data)
+      },
+    },
     sidebar_enhance: {
       DISPLAY_NON_MARKDOWN_FILES: (field, data) => {
         if (!File.SupportedFiles) _disableSwitch(field, data)
@@ -85,15 +90,6 @@ module.exports = (plugin) => {
           _disableControl(field, tooltip)
         } else {
           _enableControl(field, true)
-        }
-      },
-    },
-    markmap: {
-      AUTO_COLLAPSE_PARAGRAPH_ON_FOLD: (field, data) => {
-        if (!utils.getPlugin("collapse_paragraph")) {
-          _disableSwitch(field, data, i18n._t("markmap", "$tooltip.experimental"))
-        } else {
-          _enableControl(field)
         }
       },
     },
@@ -113,19 +109,6 @@ module.exports = (plugin) => {
       },
       SHOW_PLUGIN_HOTKEY: (field, data) => {
         if (!document.querySelector(".ty-menu-shortcut")) _disableSwitch(field, data)
-      },
-    },
-    preferences: {
-      DEFAULT_MENU: (field) => {
-        if (!field.options) {
-          field.options = { __LAST__: i18n.t("lastUsed"), ...plugin._getAllPlugins() }
-        }
-      },
-      HIDE_MENUS: (field) => {
-        if (!field.options) {
-          field.options = plugin._getAllPlugins()
-          _disableOptions(field, "global", "preferences")
-        }
       },
     },
     markdownlint: {

@@ -1,0 +1,158 @@
+.plugin-pie-menu {
+  position: fixed;
+  left: 50vw;
+  top: 50vh;
+  width: var(--menu-solid-size);
+  height: var(--menu-solid-size);
+  z-index: 9998;
+  cursor: pointer;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+
+  --menu-solid-size: 52px;
+  --menu-inner-size: 210px;
+  --menu-outer-size: 320px;
+  --menu-icon-size: 18px;
+  --menu-item-radius: 170px;
+  --menu-inner-icon-r: 66px;   /* mid-radius of inner ring: (26 + 105) / 2 */
+  --menu-outer-icon-r: 134px;  /* mid-radius of outer ring: (105 + 160) / 2 */
+
+  --menu-bg: #ffffff;
+  --menu-item-bg: #f7f8fa;
+  --menu-item-hover: #e8f0fe;
+  --menu-divider: rgba(0, 0, 0, 0.1);
+  --menu-accent: #1a73e8;
+  --menu-icon-color: #5f6368;
+  --menu-hint-color: #3c4043;
+  --menu-shadow: 0 6px 20px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.plugin-pie-menu-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--menu-solid-size);
+  height: var(--menu-solid-size);
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--menu-divider);
+  border-radius: 50%;
+  box-sizing: border-box;
+  --w: calc(360deg / var(--n, 1));
+}
+
+.plugin-pie-menu-inner,
+.plugin-pie-menu-outer {
+  overflow: hidden;
+  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+  border-color 0.2s, box-shadow 0.2s;
+}
+
+.plugin-pie-menu-inner {
+  z-index: 1;
+}
+
+.plugin-pie-menu-solid {
+  z-index: 2;
+  overflow: visible;
+  background-color: var(--menu-bg);
+  box-shadow: var(--menu-shadow);
+}
+
+.plugin-pie-menu:hover .plugin-pie-menu-inner,
+.plugin-pie-menu.pin-menu .plugin-pie-menu-inner {
+  width: var(--menu-inner-size);
+  height: var(--menu-inner-size);
+  box-shadow: var(--menu-shadow);
+}
+
+.plugin-pie-menu:hover .plugin-pie-menu-outer,
+.plugin-pie-menu.pin-menu .plugin-pie-menu-outer,
+.plugin-pie-menu.expand-menu .plugin-pie-menu-outer {
+  width: var(--menu-outer-size);
+  height: var(--menu-outer-size);
+  box-shadow: var(--menu-shadow);
+}
+
+.plugin-pie-menu.pin-menu .plugin-pie-menu-solid {
+  border-color: var(--menu-accent);
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.18), var(--menu-shadow);
+}
+
+.plugin-pie-menu.expand-menu .plugin-pie-menu-outer {
+  border-color: var(--menu-accent);
+}
+
+.plugin-pie-menu-item {
+  position: absolute;
+  right: 50%;
+  bottom: 50%;
+  width: var(--menu-item-radius);
+  height: var(--menu-item-radius);
+  transform-origin: 100% 100%;
+  transform: rotate(calc((var(--i) + 1) * var(--w))) skewY(calc(90deg - var(--w)));
+  border-right: 1px solid var(--menu-divider);
+  border-bottom: 1px solid var(--menu-divider);
+  background-color: var(--menu-item-bg);
+  transition: background-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.plugin-pie-menu-item:hover {
+  background-color: var(--menu-item-hover);
+}
+
+.plugin-pie-menu-icon {
+  --a: calc((var(--i) + 0.5) * var(--w));
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--menu-icon-size);
+  height: var(--menu-icon-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--menu-icon-size);
+  color: var(--menu-icon-color);
+  pointer-events: none;
+  z-index: 1;
+  transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(-1 * var(--icon-r))) rotate(calc(-1 * var(--a)));
+}
+
+.plugin-pie-menu-inner {
+  --icon-r: var(--menu-inner-icon-r);
+}
+
+.plugin-pie-menu-outer {
+  --icon-r: var(--menu-outer-icon-r);
+}
+
+.plugin-pie-menu-item:hover + .plugin-pie-menu-icon {
+  color: var(--menu-accent);
+}
+
+.plugin-pie-menu-hint {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--menu-hint-color);
+  pointer-events: none;
+}
+
+body.plugin-dark-mode .plugin-pie-menu {
+  --menu-bg: #2a2a2e;
+  --menu-item-bg: #232326;
+  --menu-item-hover: #33415c;
+  --menu-divider: rgba(255, 255, 255, 0.1);
+  --menu-accent: #8ab4f8;
+  --menu-icon-color: #b8bcc2;
+  --menu-hint-color: #d6d8db;
+  --menu-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}

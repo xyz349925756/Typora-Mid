@@ -88,11 +88,5 @@ callback = "image_viewer.call"
 [resource_manager]
 ENABLE = false
 
-[markmap]
 [global]
-ENABLE = true
-LOCALE = "auto"
 DARK_MODE = true
-LOGGING = false
-EXIT_CHART_INTERACTION = [ "click_exit_button" ]
-BATCH_RENDER_CHARTS = false

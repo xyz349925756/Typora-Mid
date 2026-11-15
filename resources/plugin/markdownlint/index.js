@@ -1,24 +1,19 @@
-const createLinterClient = (workerPath, hooks, contentProvider) => {
-  const ACTION = { CONFIGURE: "configure", CLOSE: "close", CHECK: "check", FIX: "fix" }
-  const { onCheck, onFix, onError } = hooks
-  const worker = new Worker(workerPath)
-  worker.onmessage = event => {
-    const { action, result } = event.data
-    const onEvent = (action === ACTION.FIX) ? onFix : onCheck
-    onEvent(result)
-  }
-  worker.onerror = event => onError(event)
-  const send = (action, customPayload) => worker.postMessage({ action, payload: { content: contentProvider(), ...customPayload } })
-  return {
-    configure: (payload) => send(ACTION.CONFIGURE, payload),
-    close: () => send(ACTION.CLOSE),
-    check: () => send(ACTION.CHECK),
-    fix: (fixInfo) => send(ACTION.FIX, { fixInfo }),
-  }
+const { createLinter } = require("./linter.js")
+const { DEFAULT_VALUES, ALIAS_MAP } = require("./rule-definitions.js")
+
+// Rule keys may be canonical names or aliases, case-insensitive (later wins on conflict).
+// Normalize them all to canonical names upfront to simplify downstream processing.
+const normalizeConfig = (config) => {
+  return Object.fromEntries(
+    Object.entries(config).map(([name, option]) => {
+      name = /^md\d{3}$/i.test(name) ? name.toUpperCase() : name.toLowerCase()
+      name = ALIAS_MAP[name] ?? name
+      return [name, option]
+    }),
+  )
 }
 
 class MarkdownlintPlugin extends BasePlugin {
-  fixInfos = []
   TRANSLATIONS = this.i18n.entries(Object.keys(this.i18n.data).filter(e => e.startsWith("MD")))
   ACTIONS = (() => {
     const getDetail = async infos => {
@@ -38,10 +33,10 @@ class MarkdownlintPlugin extends BasePlugin {
         this.linter.check()
         this.utils.notification.show(this.i18n.t("success.refresh"))
       },
-      detailAll: () => getDetail(this.fixInfos),
-      fixAll: () => this.linter.fix(this.fixInfos),
-      detailSingle: idx => getDetail([this.fixInfos[idx]]),
-      fixSingle: idx => this.linter.fix([this.fixInfos[idx]]),
+      detailAll: () => getDetail(this.linter.getFixInfos()),
+      fixAll: () => this.linter.fixAll(),
+      detailSingle: idx => getDetail([this.linter.getFixInfo(idx)]),
+      fixSingle: idx => this.linter.fixByIndex(idx),
       toggleSourceMode: () => File.toggleSourceMode(),
       settings: () => this.settings(),
       jumpToLine: lineToGo => {
@@ -52,18 +47,8 @@ class MarkdownlintPlugin extends BasePlugin {
     }
   })()
 
-  // Markdownlint config supports names and aliases,
-  // keys are not case-sensitive and processed in order from top to bottom with later values overriding earlier ones.
-  // To simplify the main processing logic, we first normalize the config by resolving all aliases to their names.
   prepare = () => {
-    const mapAliasToName = require("./rule-aliases.json")
-    this.config.RULE_CONFIG = Object.fromEntries(
-      Object.entries(this.config.RULE_CONFIG).map(([name, option]) => {
-        name = /^md\d{3}$/i.test(name) ? name.toUpperCase() : name.toLowerCase()
-        name = mapAliasToName[name] ?? name
-        return [name, option]
-      }),
-    )
+    this.config.RULE_CONFIG = normalizeConfig(this.config.RULE_CONFIG)
   }
 
   style = () => `
@@ -74,13 +59,8 @@ class MarkdownlintPlugin extends BasePlugin {
   width: var(--markdownlint-width);
   z-index: 9993;
 }
-#plugin-markdownlint::part(content-area) {
-  padding: 8px;
-}
-.plugin-markdownlint-table {
-  --table-max-height: 300px;
-  --cell-padding-y: 6px;
-}
+#plugin-markdownlint::part(content-area) { padding: 8px; }
+.plugin-markdownlint-table { --table-max-height: 300px; --cell-padding-y: 6px; }
 #plugin-markdownlint-indicator {
   position: fixed;
   right: ${this.config.BUTTON_RIGHT};
@@ -94,13 +74,11 @@ class MarkdownlintPlugin extends BasePlugin {
   transition: background-color 0.1s ease 0s;
   z-index: 9992;
 }
-#plugin-markdownlint-indicator[lint-check-failed] {
-  background-color: ${this.config.BUTTON_ERROR_COLOR};
-}`
+#plugin-markdownlint-indicator[lint-check-failed] { background-color: ${this.config.BUTTON_ERROR_COLOR}; }`
 
   hotkey = () => [
     { hotkey: this.config.HOTKEY, callback: () => this.call() },
-    { hotkey: this.config.HOTKEY_FIX_LINT, callback: () => this.linter.fix() },
+    { hotkey: this.config.HOTKEY_FIX_LINT, callback: () => this.linter.fixAll() },
   ]
 
   html = () => {
@@ -114,30 +92,11 @@ class MarkdownlintPlugin extends BasePlugin {
   }
 
   init = () => {
-    const client = createLinterClient(
-      "plugin/markdownlint/linter-worker.js",
-      { onCheck: this._onCheck, onFix: this._onFix, onError: event => console.error(event.message) },
+    this.linter = createLinter(
+      this.utils,
       () => this.utils.getCurrentFileContent(),
+      { onCheck: this._onCheck, onFix: this._onFix, onError: console.error },
     )
-    this.linter = {
-      configure: async ({ ruleConfig = this.config.RULE_CONFIG, customRuleFiles = this.config.CUSTOM_RULE_FILES, persistent = false } = {}) => {
-        if (persistent) {
-          const conf = { RULE_CONFIG: ruleConfig, CUSTOM_RULE_FILES: customRuleFiles }
-          await this.utils.settings.handle(this.fixedName, pluginSettings => Object.assign(pluginSettings, conf))
-          Object.assign(this.config, conf)
-        }
-        client.configure({
-          ruleConfig,
-          coreLib: this.utils.joinPluginPath("plugin/markdownlint/markdownlint.min.js"),
-          helpersLib: this.utils.joinPluginPath("plugin/markdownlint/markdownlint-rule-helpers.min.js"),
-          polyfillLib: this.utils.joinPluginPath("plugin/global/core/polyfill.js"),
-          customRuleFiles: customRuleFiles.map(f => this.utils.resolvePluginPath(f)),
-        })
-      },
-      close: client.close,
-      check: client.check,
-      fix: (fixInfo = this.fixInfos) => client.fix(fixInfo),
-    }
 
     this.entities = {
       panel: document.querySelector("#plugin-markdownlint"),
@@ -149,34 +108,30 @@ class MarkdownlintPlugin extends BasePlugin {
 
   process = () => {
     const { eventHub } = this.utils
-    eventHub.addEventListener(eventHub.eventType.fileEdited, this.utils.debounce(this.linter.check, 500))
-    eventHub.addEventListener(eventHub.eventType.allPluginsHadInjected, () => this.linter.configure())
-    eventHub.addEventListener(eventHub.eventType.toggleSettingPage, force => {
+    eventHub.on(eventHub.eventType.fileEdited, this.utils.debounce(this.linter.check, 500))
+    eventHub.on(eventHub.eventType.allPluginsHadInjected, () => this.linter.configure(this.config.RULE_CONFIG, this.config.CUSTOM_RULE_FILES))
+    eventHub.on(eventHub.eventType.toggleSettingPage, force => {
       if (force) this.entities.panel.toggle(force)
       if (this.entities.indicator) this.utils.toggleInvisible(this.entities.indicator, force)
     })
 
+    const invoke = (act, rowData) => {
+      const param = rowData == null ? undefined : (act === "fixSingle" || act === "detailSingle") ? rowData.idx : rowData.line
+      this.ACTIONS[act]?.(param)
+    }
     this.entities.indicator?.addEventListener("mousedown", ev => {
       if (ev.button === 0) this.call()
-      else if (ev.button === 2) this.ACTIONS[this.config.RIGHT_CLICK_INDICATOR_ACTION]?.()
+      else if (ev.button === 1) invoke(this.config.MIDDLE_CLICK_INDICATOR_ACTION)
+      else if (ev.button === 2) invoke(this.config.RIGHT_CLICK_INDICATOR_ACTION)
     })
     this.entities.table.addEventListener("mousedown", ev => {
       ev.preventDefault()
       ev.stopPropagation()
-      if (ev.button === 2) this.ACTIONS[this.config.RIGHT_CLICK_TABLE_ACTION]?.()
+      if (ev.button === 2) invoke(this.config.RIGHT_CLICK_TABLE_ACTION)
     })
-    this.entities.panel.addEventListener("btn-click", ev => this.ACTIONS[ev.detail.action]?.())
-    this.entities.table.addEventListener("row-action", ev => {
-      const { action, rowData } = ev.detail
-      const arg = (action === "fixSingle" || action === "detailSingle") ? rowData.idx : rowData.line
-      this.ACTIONS[action](arg)
-    })
-    this.entities.table.addEventListener("row-click", ev => {
-      const action = this.config.LEFT_CLICK_ROW_ACTION
-      const { rowData } = ev.detail
-      const arg = (action === "fixSingle" || action === "detailSingle") ? rowData.idx : rowData.line
-      this.ACTIONS[action](arg)
-    })
+    this.entities.panel.addEventListener("btn-click", ev => invoke(ev.detail.action))
+    this.entities.table.addEventListener("row-action", ev => invoke(ev.detail.action, ev.detail.rowData))
+    this.entities.table.addEventListener("row-click", ev => invoke(this.config.LEFT_CLICK_ROW_ACTION, ev.detail.rowData))
   }
 
   call = () => {
@@ -185,11 +140,10 @@ class MarkdownlintPlugin extends BasePlugin {
   }
 
   settings = async () => {
-    const defaultValues = require("./rule-default-values.json")
     const getData = () => {
       const cfg = this.config.RULE_CONFIG
       return {
-        ...defaultValues,
+        ...DEFAULT_VALUES,
         ...cfg,
         default: true,  // Force `default` to true
         extends: cfg.extends || "",  // `extends` type is null or string. Text fields do not support null, convert it to an empty string
@@ -201,7 +155,7 @@ class MarkdownlintPlugin extends BasePlugin {
       const regex = "regex"
       const word = { name: "pattern", args: [/^\w+$/] }
       const codingLang = { name: "pattern", args: [/^[a-zA-Z0-9#+.\-]+$/] }
-      const heading = { name: "pattern", args: [/^(\*|\+|\?|#{1,6}\s+\S.*)$/] }
+      const heading = { name: "pattern", args: [/^(?:[*+?]|\^+|[#%]{1,6}\s+\S.*)$/u] }
       const readJSON = ({ value }) => {
         if (!value) return
         value = this.utils.Package.Path.resolve(value)
@@ -244,16 +198,16 @@ class MarkdownlintPlugin extends BasePlugin {
       }
     }
     const getParsers = () => {
-      const toNumberOrNumberArray = (value) => {
-        if (!isNaN(value)) {
-          return Number(value)
+      const toNumberOrNumberArray = val => {
+        if (!isNaN(val)) {
+          return Number(val)
         }
         try {
-          return JSON.parse(`[${value}]`).flat()  // supports: [1,2,3] or 1,2,3
+          return JSON.parse(`[${val}]`).flat()  // supports: [1,2,3] or 1,2,3
         } catch (err) {
           console.error(err)
         }
-        return value
+        return val
       }
       return {
         "extends": val => val.trim(),
@@ -288,10 +242,16 @@ class MarkdownlintPlugin extends BasePlugin {
       if (data.extends === "") {
         data.extends = null  // Convert an empty string back to null
       }
-      const ruleConfig = this.utils.minimize(data, defaultValues)
-      await this.linter.configure({ ruleConfig, persistent: true })
+      const ruleConfig = this.utils.minimize(data, DEFAULT_VALUES)
+      await this._saveRuleConfig(ruleConfig)
+      this.linter.configure(ruleConfig, this.config.CUSTOM_RULE_FILES)
       this.utils.notification.show(this.i18n.t("success.edit"))
     }
+  }
+
+  _saveRuleConfig = async (ruleConfig) => {
+    await this.utils.settings.save(this.fixedName, { RULE_CONFIG: ruleConfig })
+    this.config.RULE_CONFIG = ruleConfig
   }
 
   _initTableColumns = () => {
@@ -317,7 +277,6 @@ class MarkdownlintPlugin extends BasePlugin {
   }
 
   _onCheck = fixInfos => {
-    this.fixInfos = fixInfos
     this.entities.indicator?.toggleAttribute("lint-check-failed", !!fixInfos.length)
     if (!this.entities.panel.hidden) {
       this.entities.table.setData(fixInfos.map((item, idx) => {
